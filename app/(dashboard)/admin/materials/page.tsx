@@ -34,17 +34,6 @@ function toInitialMaterial(m: MaterialRow) {
   return { ...m, visibility: normalizeVisibility(m.visibility) };
 }
 
-const visibilityValues = ['students', 'both', 'teachers'] as const;
-type Visibility = (typeof visibilityValues)[number];
-
-function normalizeVisibility(v: string): Visibility {
-  return visibilityValues.includes(v as Visibility) ? (v as Visibility) : 'students';
-}
-
-function toInitialMaterial(m: MaterialRow) {
-  return { ...m, visibility: normalizeVisibility(m.visibility) };
-}
-
 export default function AdminMaterialsPage() {
   const { supabase } = useSupabase();
   const [materials, setMaterials] = useState<MaterialRow[]>([]);
