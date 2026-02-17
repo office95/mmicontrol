@@ -25,9 +25,15 @@ export default function AdminCourseForm({
   const [duration, setDuration] = useState<string>(initial?.duration_hours?.toString() ?? '');
   const [priceGross, setPriceGross] = useState<string>(initial?.price_gross?.toString() ?? '');
   const [vatMode, setVatMode] = useState<string>(
-    initial?.vat_rate !== undefined ? initial.vat_rate.toString() : '0.2'
+    initial?.vat_rate !== undefined && initial?.vat_rate !== null
+      ? initial.vat_rate.toString()
+      : '0.2'
   );
-  const [customVat, setCustomVat] = useState<string>(initial?.vat_rate?.toString() ?? '0.2');
+  const [customVat, setCustomVat] = useState<string>(
+    initial?.vat_rate !== undefined && initial?.vat_rate !== null
+      ? initial.vat_rate.toString()
+      : '0.2'
+  );
   const [deposit, setDeposit] = useState<string>(initial?.deposit?.toString() ?? '');
   const [status, setStatus] = useState<'active' | 'inactive'>(initial?.status ?? 'active');
   const [category, setCategory] = useState<string>(initial?.category ?? 'Extrem');
@@ -41,8 +47,10 @@ export default function AdminCourseForm({
     setDescription(initial?.description ?? '');
     setDuration(initial?.duration_hours?.toString() ?? '');
     setPriceGross(initial?.price_gross?.toString() ?? '');
-    setVatMode(initial?.vat_rate !== undefined ? initial.vat_rate.toString() : '0.2');
-    setCustomVat(initial?.vat_rate?.toString() ?? '0.2');
+    const vr = initial?.vat_rate;
+    const vrStr = vr !== undefined && vr !== null ? vr.toString() : '0.2';
+    setVatMode(vrStr);
+    setCustomVat(vrStr);
     setDeposit(initial?.deposit?.toString() ?? '');
     setStatus(initial?.status ?? 'active');
     setCategory(initial?.category ?? 'Extrem');

@@ -21,6 +21,30 @@ interface MaterialRow {
   created_at: string;
 }
 
+const visibilityValues = ['students', 'both', 'teachers'] as const;
+type Visibility = (typeof visibilityValues)[number];
+
+function normalizeVisibility(v: unknown): Visibility {
+  return typeof v === 'string' && (visibilityValues as readonly string[]).includes(v)
+    ? (v as Visibility)
+    : 'students';
+}
+
+function toInitialMaterial(m: MaterialRow) {
+  return { ...m, visibility: normalizeVisibility(m.visibility) };
+}
+
+const visibilityValues = ['students', 'both', 'teachers'] as const;
+type Visibility = (typeof visibilityValues)[number];
+
+function normalizeVisibility(v: string): Visibility {
+  return visibilityValues.includes(v as Visibility) ? (v as Visibility) : 'students';
+}
+
+function toInitialMaterial(m: MaterialRow) {
+  return { ...m, visibility: normalizeVisibility(m.visibility) };
+}
+
 export default function AdminMaterialsPage() {
   const { supabase } = useSupabase();
   const [materials, setMaterials] = useState<MaterialRow[]>([]);
@@ -250,11 +274,9 @@ export default function AdminMaterialsPage() {
         <MaterialModal
           onClose={() => { setOpenModal(false); setEditMaterial(null); setPresetCourse(null); load(); }}
           presetCourse={presetCourse || (editMaterial ? { id: editMaterial.course_id ?? '', title: courseTitle(editMaterial.course_id) } : undefined)}
-          initialMaterial={editMaterial || undefined}
+          initialMaterial={editMaterial ? toInitialMaterial(editMaterial) : undefined}
         />
       )}
     </div>
   );
 }
-  const toggleCourse = (cid: string) =>
-    setExpanded((prev) => ({ ...prev, [cid]: !(prev[cid] ?? true) }));

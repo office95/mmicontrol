@@ -26,8 +26,8 @@ async function fillAmounts(rows: any | any[]) {
     .select('id, price_gross')
     .in('id', courseIds.length ? courseIds : ['00000000-0000-0000-0000-000000000000']);
 
-  const mapDate = Object.fromEntries((cdData ?? []).map((d) => [d.id, d.course?.price_gross != null ? Number(d.course.price_gross) : null]));
-  const mapCourse = Object.fromEntries((courseData ?? []).map((d) => [d.id, d.price_gross != null ? Number(d.price_gross) : null]));
+  const mapDate = Object.fromEntries(((cdData ?? []) as any[]).map((d) => [d.id, d.course?.price_gross != null ? Number(d.course.price_gross) : null]));
+  const mapCourse = Object.fromEntries(((courseData ?? []) as any[]).map((d) => [d.id, d.price_gross != null ? Number(d.price_gross) : null]));
 
   const toUpdate: { id: string; amount: number | null }[] = [];
   list.forEach((r) => {
@@ -64,7 +64,8 @@ export async function POST(req: Request) {
   // Falls amount fehlt, Kursbeitrag aus Kurs laden
   let amount = body.amount;
   if (amount === undefined || amount === null || amount === '') {
-    amount = cd?.course?.price_gross != null ? Number(cd.course.price_gross) : null;
+    const coursePrice = (cd as any)?.course?.price_gross;
+    amount = coursePrice != null ? Number(coursePrice) : null;
   }
 
   const payload = {
@@ -81,9 +82,9 @@ export async function POST(req: Request) {
     course_id: cd?.course_id ?? body.course_id ?? null,
     course_date_id: body.course_date_id,
     partner_id: body.partner_id ?? cd?.partner_id ?? null,
-    course_title: cd?.course?.title ?? null,
+    course_title: (cd as any)?.course?.title ?? null,
     course_start: cd?.start_date ?? null,
-    partner_name: cd?.partner?.name ?? null,
+    partner_name: (cd as any)?.partner?.name ?? null,
     student_name: stu?.name ?? null,
     student_email: stu?.email ?? null,
   };

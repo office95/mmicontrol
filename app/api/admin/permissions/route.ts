@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies, headers } from 'next/headers';
+import { cookies } from 'next/headers';
 import { createClient } from '@supabase/supabase-js';
 
 export const dynamic = 'force-dynamic';
@@ -13,7 +13,6 @@ const service = createClient(
 const routeClient = () =>
   createRouteHandlerClient({
     cookies,
-    headers,
   });
 
 async function currentUser() {

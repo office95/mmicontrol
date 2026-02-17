@@ -15,6 +15,5 @@ export const createSupabaseRouteClient = () => {
   const headerList = headers();
   return createRouteHandlerClient({
     cookies: () => cookieStore,
-    headers: () => headerList,
   });
 };

@@ -144,7 +144,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
               ).map((l) => (
                 <Link
                   key={l.href}
-                  href={l.href}
+                  href={l.href as any}
                   className="block rounded-lg px-4 py-3 text-sm font-semibold text-white/90 bg-white/12 border border-white/20 hover:bg-white/20 transition"
                 >
                   {l.label}

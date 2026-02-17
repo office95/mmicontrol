@@ -58,10 +58,14 @@ export async function PATCH(req: Request) {
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
 
   // Preisfelder aus Kurs nachreichen
-  if (data?.course_id && (!data.course?.price_gross || data.course?.price_gross === null)) {
-    const { data: course } = await service.from('courses').select('price_gross, vat_rate, price_net, deposit, saldo, duration_hours').eq('id', data.course_id).maybeSingle();
+  if (data?.course_id && (!(data as any).course?.price_gross || (data as any).course?.price_gross === null)) {
+    const { data: course } = await service
+      .from('courses')
+      .select('price_gross, vat_rate, price_net, deposit, saldo, duration_hours')
+      .eq('id', data.course_id)
+      .maybeSingle();
     if (course) {
-      data.course = { ...(data.course || {}), ...course } as any;
+      (data as any).course = { ...((data as any).course || {}), ...course } as any;
     }
   }
 

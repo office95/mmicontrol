@@ -7,7 +7,7 @@ import ButtonLink from '@/components/button-link';
 
 type Partner = {
   id: string;
-  status: string;
+  status: 'active' | 'inactive' | 'lead';
   provider_id: string | null;
   name: string;
   bank_name: string | null;
@@ -38,6 +38,8 @@ type Partner = {
   rating_reliability: number | null;
   rating_engagement: number | null;
 };
+
+import type { PartnerRow } from '@/components/partner-modal';
 
 const statusLabels: Record<string, string> = {
   active: 'Aktiv',
@@ -79,6 +81,12 @@ export default function PartnersPage() {
     const text = `${p.name ?? ''} ${p.city ?? ''} ${p.state ?? ''} ${p.country ?? ''}`.toLowerCase();
     const searchOk = term === '' ? true : text.includes(term);
     return statusOk && searchOk;
+  });
+
+  const toPartnerRow = (p: Partner): PartnerRow => ({
+    ...p,
+    status: p.status ?? 'active',
+    country: (p.country === 'Deutschland' ? 'Deutschland' : 'Österreich') as 'Österreich' | 'Deutschland',
   });
 
   return (
@@ -176,7 +184,7 @@ export default function PartnersPage() {
 
       {openModal && (
         <PartnerModal
-          partner={editPartner}
+          partner={editPartner ? toPartnerRow(editPartner) : undefined}
           onSaved={load}
           onClose={() => {
             setOpenModal(false);

@@ -42,8 +42,7 @@ export async function ensureSlugs(slugs: string[]) {
     rows.push({ role: 'student', page_slug: slug, allowed: false });
   });
   // nur fehlende Einträge anlegen, bestehende nicht überschreiben
-  await supabase.from('role_permissions').insert(rows, {
+  await supabase.from('role_permissions').upsert(rows, {
     onConflict: 'role,page_slug',
-    ignoreDuplicates: true,
   });
 }
