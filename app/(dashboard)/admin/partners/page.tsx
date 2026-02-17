@@ -1,0 +1,190 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { useSupabase } from '@/providers/supabase-provider';
+import PartnerModal from '@/components/partner-modal';
+import ButtonLink from '@/components/button-link';
+
+type Partner = {
+  id: string;
+  status: string;
+  provider_id: string | null;
+  name: string;
+  bank_name: string | null;
+  iban: string | null;
+  bic: string | null;
+  contact_person: string | null;
+  vat_number: string | null;
+  tax_number: string | null;
+  registry_number: string | null;
+  street: string | null;
+  zip: string | null;
+  city: string | null;
+  country: string | null;
+  state: string | null;
+  phone: string | null;
+  email: string | null;
+  created_at: string;
+  contract: boolean | null;
+  contract_date: string | null;
+  provision1: number | null;
+  provision2: number | null;
+  provision3: number | null;
+  provision4: number | null;
+  provision5: number | null;
+  provision6plus: number | null;
+  rating_course: number | null;
+  rating_teacher: number | null;
+  rating_reliability: number | null;
+  rating_engagement: number | null;
+};
+
+const statusLabels: Record<string, string> = {
+  active: 'Aktiv',
+  inactive: 'Inaktiv',
+  lead: 'Lead',
+};
+
+export default function PartnersPage() {
+  const { supabase } = useSupabase();
+  const [partners, setPartners] = useState<Partner[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [openModal, setOpenModal] = useState(false);
+  const [editPartner, setEditPartner] = useState<Partner | null>(null);
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [search, setSearch] = useState('');
+
+  const load = async () => {
+    setLoading(true);
+    const res = await fetch('/api/admin/partners');
+    const data = await res.json();
+    if (!res.ok) {
+      setError(data.error || 'Fehler beim Laden');
+      setPartners([]);
+    } else {
+      setPartners(data);
+      setError(null);
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    load();
+  }, []);
+
+  const filtered = partners.filter((p) => {
+    const statusOk = filterStatus === 'all' ? true : p.status === filterStatus;
+    const term = search.trim().toLowerCase();
+    const text = `${p.name ?? ''} ${p.city ?? ''} ${p.state ?? ''} ${p.country ?? ''}`.toLowerCase();
+    const searchOk = term === '' ? true : text.includes(term);
+    return statusOk && searchOk;
+  });
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-xs uppercase tracking-[0.2em] text-pink-200">Admin</p>
+          <h1 className="text-3xl font-semibold text-white">Partner</h1>
+          <p className="text-sm text-slate-200">Übersicht und Anlage von Partnern.</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            className="inline-flex items-center justify-center h-10 px-4 rounded-lg bg-white/15 border border-white/25 text-sm font-semibold text-white hover:bg-white/25"
+            onClick={() => {
+              setEditPartner(null);
+              setOpenModal(true);
+            }}
+          >
+            Neuer Partner
+          </button>
+          <ButtonLink href="/admin">Zurück</ButtonLink>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-3 flex-wrap">
+        <select
+          className="input max-w-xs h-8 py-1 text-sm"
+          value={filterStatus}
+          onChange={(e) => setFilterStatus(e.target.value)}
+        >
+          <option value="all">Alle</option>
+          <option value="active">Aktiv</option>
+          <option value="inactive">Inaktiv</option>
+          <option value="lead">Lead</option>
+        </select>
+        <input
+          className="input max-w-sm h-8 py-1 text-sm"
+          placeholder="Suche nach Name oder Ort"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+      </div>
+
+      <div className="card p-6 shadow-xl text-slate-900">
+        {loading && <p className="text-sm text-slate-500">Lade Partner...</p>}
+        {error && <p className="text-sm text-red-600">{error}</p>}
+        {!loading && !filtered.length && <p className="text-sm text-slate-500">Keine Partner vorhanden.</p>}
+        <div className="divide-y divide-slate-200">
+          {filtered.map((p) => (
+            <div key={p.id} className="py-3 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+              <div className="space-y-1">
+                <button
+                  onClick={() => {
+                    setEditPartner(p);
+                    setOpenModal(true);
+                  }}
+                  className="text-left text-base font-bold text-ink hover:underline"
+                >
+                  {p.name}
+                </button>
+                <p className="text-xs text-slate-500">
+                  {p.state ?? '—'} · {p.country ?? '—'}
+                </p>
+              </div>
+              <div className="flex items-center gap-2 text-xs">
+                <button
+                  className="px-3 py-1 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100"
+                  onClick={() => {
+                    setEditPartner(p);
+                    setOpenModal(true);
+                  }}
+                >
+                  Bearbeiten
+                </button>
+                <button
+                  className="px-3 py-1 rounded-lg border border-red-300 text-red-600 hover:bg-red-50"
+                  onClick={async () => {
+                    if (!confirm('Diesen Partner wirklich löschen?')) return;
+                    const res = await fetch(`/api/admin/partners?id=${p.id}`, { method: 'DELETE' });
+                    if (res.ok) {
+                      load();
+                    } else {
+                      const d = await res.json().catch(() => ({}));
+                      alert(d.error || 'Löschen fehlgeschlagen');
+                    }
+                  }}
+                >
+                  Löschen
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {openModal && (
+        <PartnerModal
+          partner={editPartner}
+          onSaved={load}
+          onClose={() => {
+            setOpenModal(false);
+            setEditPartner(null);
+            load();
+          }}
+        />
+      )}
+    </div>
+  );
+}
