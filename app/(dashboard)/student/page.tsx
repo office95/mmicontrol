@@ -21,7 +21,7 @@ export default async function StudentPage({ searchParams }: { searchParams: Reco
   // Studentendatensatz über E-Mail (service)
   const { data: student } = await service
     .from('students')
-    .select('id, student_id, name, email, status, is_problem, problem_note, country, state, city')
+    .select('id, student_id, name, email, status, is_problem, problem_note, country, state, city, phone, street, zip, birthdate')
     .eq('email', loginEmail)
     .maybeSingle();
 
