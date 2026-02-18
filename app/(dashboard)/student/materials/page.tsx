@@ -65,6 +65,30 @@ export default async function StudentMaterialsPage() {
     .from('courses')
     .select('id, title')
     .in('id', courseIds);
+
+  // Kurs-Termine laden, um Countdown zu zeigen
+  const { data: dates } = await service
+    .from('course_dates')
+    .select('course_id, start_date')
+    .in('course_id', courseIds);
+
+  let nextStart: Date | null = null;
+  if (dates?.length) {
+    const today = new Date();
+    // Wähle den nächstgelegenen zukünftigen Termin, sonst den jüngsten vergangenen
+    dates.forEach((d) => {
+      if (!d.start_date) return;
+      const dt = new Date(d.start_date);
+      if (nextStart === null) {
+        nextStart = dt;
+      } else {
+        const nsFuture = nextStart >= today;
+        const dtFuture = dt >= today;
+        if (dtFuture && (!nsFuture || dt < nextStart)) nextStart = dt;
+        if (!dtFuture && !nsFuture && dt > nextStart) nextStart = dt;
+      }
+    });
+  }
   const courseTitle = (cid: string | null) =>
     courses?.find((c) => c.id === cid)?.title ?? 'Kurs';
 
@@ -100,14 +124,30 @@ export default async function StudentMaterialsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="bg-white/10 border border-white/15 rounded-xl p-5 shadow-lg">
-        <p className="text-[12px] uppercase tracking-[0.28em] text-pink-200 mb-1">Kursunterlagen</p>
-        <h1 className="text-3xl font-semibold text-white">
-          Deine Materialien zu gebuchten Kursen
-        </h1>
-        <p className="text-sm text-white/80 mt-1">
-          {courses?.map((c) => c.title).join(' · ') || 'Kurse'}
-        </p>
+      <div className="bg-white/10 border border-white/15 rounded-xl p-5 shadow-lg flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        <div>
+          <p className="text-[12px] uppercase tracking-[0.28em] text-pink-200 mb-1">Kursunterlagen</p>
+          <h1 className="text-3xl font-semibold text-white">
+            Deine Materialien zu gebuchten Kursen
+          </h1>
+          <p className="text-sm text-white/80 mt-1">
+            {courses?.map((c) => c.title).join(' · ') || 'Kurse'}
+          </p>
+        </div>
+        <div className="relative">
+          <div className="absolute -right-8 -top-8 h-28 w-28 bg-pink-500/30 rounded-full blur-3xl" />
+          <div className="rounded-2xl bg-gradient-to-r from-pink-500 via-rose-500 to-purple-600 text-white px-6 py-5 shadow-2xl ring-2 ring-white/30 min-w-[220px] text-center">
+            <p className="text-[11px] uppercase tracking-[0.24em] text-white/80 mb-2">Noch</p>
+            <p className="text-3xl font-extrabold leading-tight drop-shadow-lg animate-pulse">
+              {nextStart
+                ? Math.ceil((nextStart.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) >= 0
+                  ? `${Math.ceil((nextStart.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))} Tage`
+                  : 'läuft / vorbei'
+                : '—'}
+            </p>
+            <p className="text-[11px] uppercase tracking-[0.24em] text-white/80 mt-2">bis Kursbeginn</p>
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
