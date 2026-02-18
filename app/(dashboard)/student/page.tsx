@@ -2,6 +2,7 @@ import { createSupabaseServerClient } from '@/lib/supabase-server';
 import { createClient } from '@supabase/supabase-js';
 import ProfileModal from '@/components/student-profile-modal';
 import ProfileWrapper from './profile-wrapper';
+import BookingsClient from './bookings-client';
 
 export default async function StudentPage({ searchParams }: { searchParams: Record<string, string | string[] | undefined> }) {
   // Auth-Client (für Session)
@@ -154,29 +155,7 @@ export default async function StudentPage({ searchParams }: { searchParams: Reco
       </div>
 
       <h2 className="text-xl font-semibold text-white">Meine Buchungen</h2>
-      <div className="card p-5 space-y-3">
-        {!bookings?.length && <p className="text-slate-600 text-sm">Keine Buchungen vorhanden.</p>}
-        {bookings?.map((b) => (
-          <div key={b.id} className="rounded-lg border border-slate-200 p-3 bg-white/60">
-            <div className="flex flex-wrap items-center gap-2 text-sm">
-              <span className="font-semibold text-ink">{b.course_title ?? 'Kurs unbekannt'}</span>
-              <span className="text-slate-500">· Start: {b.course_start ? new Date(b.course_start).toLocaleDateString() : '—'}</span>
-              <span className="text-slate-500">· Status: {b.status}</span>
-              {b.amount != null && <span className="text-slate-500">· Betrag: {b.amount} €</span>}
-              {b.partner_name && <span className="text-slate-500">· Anbieter: {b.partner_name}</span>}
-            </div>
-            <div className="text-xs text-slate-500 mt-1 flex items-center gap-3 flex-wrap">
-              <span>Buchungsdatum: {b.booking_date ? new Date(b.booking_date).toLocaleDateString() : '—'}</span>
-              <a
-                href={`/student?booking=${b.id}`}
-                className="inline-flex items-center rounded-md bg-pink-600 text-white px-3 py-1 text-[12px] font-semibold shadow-sm hover:bg-pink-700 border border-pink-700"
-              >
-                Details
-              </a>
-            </div>
-          </div>
-        ))}
-      </div>
+      <BookingsClient bookings={bookings || []} />
 
       <ProfileWrapper
         open={showProfile}
