@@ -12,7 +12,35 @@ const PARTNER_COLUMNS =
 export async function GET() {
   const { data, error } = await service.from('partners').select(PARTNER_COLUMNS).order('created_at', { ascending: false });
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
-  return NextResponse.json(data);
+
+  // Aktive Kurse je Partner (course_dates.status in offen/laufend)
+  const ids = (data ?? []).map((p) => p.id).filter(Boolean);
+  let activeMap: Record<string, number> = {};
+  if (ids.length) {
+    const { data: cd } = await service
+      .from('course_dates')
+      .select('partner_id, status')
+      .in('partner_id', ids)
+      .in('status', ['offen', 'laufend']);
+    cd?.forEach((c) => {
+      if (!c.partner_id) return;
+      activeMap[c.partner_id] = (activeMap[c.partner_id] || 0) + 1;
+    });
+  }
+
+  const enhanced = (data ?? []).map((p) => {
+    const ratings = [p.rating_course, p.rating_teacher, p.rating_reliability, p.rating_engagement].filter(
+      (v) => v !== null && v !== undefined
+    ) as number[];
+    const rating_avg = ratings.length ? ratings.reduce((a, b) => a + b, 0) / ratings.length : null;
+    return {
+      ...p,
+      rating_avg,
+      active_courses: activeMap[p.id] || 0,
+    };
+  });
+
+  return NextResponse.json(enhanced);
 }
 
 export async function POST(req: Request) {

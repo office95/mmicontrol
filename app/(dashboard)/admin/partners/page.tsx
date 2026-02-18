@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useSupabase } from '@/providers/supabase-provider';
 import PartnerModal from '@/components/partner-modal';
 import ButtonLink from '@/components/button-link';
+import { renderStars } from '@/components/star-utils';
 
 type Partner = {
   id: string;
@@ -37,6 +38,8 @@ type Partner = {
   rating_teacher: number | null;
   rating_reliability: number | null;
   rating_engagement: number | null;
+  rating_avg?: number | null;
+  active_courses?: number;
 };
 
 import type { PartnerRow } from '@/components/partner-modal';
@@ -147,8 +150,19 @@ export default function PartnersPage() {
                 >
                   {p.name}
                 </button>
-                <p className="text-xs text-slate-500">
-                  {p.state ?? '—'} · {p.country ?? '—'}
+                <p className="text-xs text-slate-500 flex items-center gap-2 flex-wrap">
+                  <span>{p.state ?? '—'} · {p.country ?? '—'}</span>
+                  {p.active_courses !== undefined && (
+                    <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[11px]">
+                      ● Aktive Kurse: {p.active_courses}
+                    </span>
+                  )}
+                  {p.rating_avg !== null && p.rating_avg !== undefined && (
+                    <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-pink-50 text-pink-700 border border-pink-200 text-[11px]">
+                      {renderStars(p.rating_avg)}
+                      <span className="font-semibold">{p.rating_avg.toFixed(1)}</span>
+                    </span>
+                  )}
                 </p>
               </div>
               <div className="flex items-center gap-2 text-xs">
