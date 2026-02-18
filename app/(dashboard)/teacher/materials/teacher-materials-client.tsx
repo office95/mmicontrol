@@ -97,10 +97,6 @@ export default function TeacherMaterialsClient({ courses, materials }: { courses
                 )}
               </div>
               <h3 className="text-lg font-semibold text-white drop-shadow-sm">{m.title}</h3>
-              <div className="flex flex-wrap gap-2 text-xs text-white/80">
-                <span className="px-2 py-1 rounded-full bg-white/15 border border-white/20">Typ: {m.type || 'Datei'}</span>
-                <span className="px-2 py-1 rounded-full bg-white/15 border border-white/20">Hochgeladen: {formatDate(m.created_at)}</span>
-              </div>
               <div className="flex gap-2 mt-2">
                 {buildPublicUrl(m.storage_path) && (
                   <a
