@@ -153,22 +153,26 @@ export default function PartnersPage() {
                     >
                       {p.name}
                     </button>
-                    <StatusBadge status={p.status} />
                   </div>
-                  <p className="text-sm text-slate-600 flex items-center gap-2 flex-wrap">
-                    <span>{p.state ?? '—'} · {p.country ?? '—'}</span>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-sm text-slate-600">{p.state ?? '—'} · {p.country ?? '—'}</span>
                     {p.active_courses !== undefined && (
-                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[11px]">
+                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[11px] border border-slate-200 text-slate-700 bg-white">
                         ● Aktive Kurse: {p.active_courses}
                       </span>
                     )}
                     {p.rating_avg !== null && p.rating_avg !== undefined && (
-                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-pink-50 text-pink-700 border border-pink-200 text-[11px]">
+                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[11px] border border-slate-200 text-slate-700 bg-white">
                         {renderStars(p.rating_avg)}
-                        <span className="font-semibold">{p.rating_avg.toFixed(1)}</span>
+                        <span className="font-semibold text-pink-600">{p.rating_avg.toFixed(1)}</span>
                       </span>
                     )}
-                  </p>
+                  </div>
+                  {p.status && (
+                    <div className="flex items-center gap-2 flex-wrap text-[11px] text-slate-500">
+                      <StatusBadge status={p.status} />
+                    </div>
+                  )}
                   <p className="text-xs text-slate-500">Angelegt am {new Date(p.created_at).toLocaleDateString()}</p>
                 </div>
                 <div className="flex items-center gap-2 text-xs">
