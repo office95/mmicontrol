@@ -1,7 +1,9 @@
 import { createSupabaseServerClient } from '@/lib/supabase-server';
 import { createClient } from '@supabase/supabase-js';
+import ProfileModal from '@/components/student-profile-modal';
+import { redirect } from 'next/navigation';
 
-export default async function StudentPage() {
+export default async function StudentPage({ searchParams }: { searchParams: Record<string, string | string[] | undefined> }) {
   // Auth-Client (für Session)
   const supabase = createSupabaseServerClient();
   // Service-Client (RLS-frei, nur serverseitig nutzen)
@@ -103,6 +105,8 @@ export default async function StudentPage() {
     bookings = bookingRows || [];
   }
 
+  const showProfile = searchParams?.profile === '1';
+
   // Nächster Kurs für Countdown (falls vorhanden)
   const nextCourse = (courses || [])
     .filter((c) => c.start_date)
@@ -151,6 +155,27 @@ export default async function StudentPage() {
           </div>
         ))}
       </div>
+
+      <ProfileModal
+        open={showProfile}
+        onClose={() => redirect('/student')}
+        profile={
+          student
+            ? {
+                id: student.id,
+                name: student.name,
+                street: (student as any).street || '',
+                city: student.city,
+                state: student.state,
+                country: student.country,
+                zip: (student as any).zip || '',
+                phone: student.phone,
+                email: student.email,
+                birthdate: (student as any).birthdate || '',
+              }
+            : null
+        }
+      />
     </div>
   );
 }

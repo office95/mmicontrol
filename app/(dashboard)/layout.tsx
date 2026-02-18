@@ -48,6 +48,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
     'admin-bookings',
     'admin-leads',
     'student-materials',
+    'student-profile',
     'admin-settings',
   ]);
   // Student-Kursunterlagen standardmäßig erlauben
@@ -56,7 +57,9 @@ export default async function DashboardLayout({ children }: { children: ReactNod
     .upsert(
       [
         { role: 'student', page_slug: 'student-materials', allowed: true },
+        { role: 'student', page_slug: 'student-profile', allowed: true },
         { role: 'admin', page_slug: 'student-materials', allowed: true },
+        { role: 'admin', page_slug: 'student-profile', allowed: true },
         { role: 'admin', page_slug: 'admin-leads', allowed: true },
         { role: 'admin', page_slug: 'admin-settings', allowed: true },
       ],
@@ -76,6 +79,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
     { href: '/admin/students', label: 'Kursteilnehmer', roles: ['admin'], slug: 'admin-students' },
     { href: '/teacher', label: 'Dozent', roles: ['teacher'], slug: 'teacher-dashboard' },
     { href: '/student', label: 'Dashboard', roles: ['student'], slug: 'student-dashboard' },
+    { href: '/student?profile=1', label: 'Profil', roles: ['student'], slug: 'student-profile' },
     { href: '/student/materials', label: 'Kursunterlagen', roles: ['student'], slug: 'student-materials' },
     { href: '/admin/roles', label: 'Rollen & Rechte', roles: ['admin'], slug: 'admin-roles', pin: 'bottom' },
     { href: '/admin/settings', label: 'Einstellungen', roles: ['admin'], slug: 'admin-settings', pin: 'bottom' },
