@@ -31,7 +31,7 @@ export default async function AdminPage() {
         </div>
       </div>
 
-      <div className="grid gap-5 md:gap-7 grid-cols-1 md:grid-cols-4">
+      <div className="grid gap-6 md:gap-8 grid-cols-1 md:grid-cols-4 text-[17px] md:text-[18px]">
         <StatCard label="Offene Freigaben" value={pending?.length ?? 0} />
         <StatCard label="Gesamt Dozenten" value={teachers?.length ?? 0} />
         <StatCard label="Gesamt Teilnehmer" value={students?.length ?? 0} />
@@ -50,9 +50,9 @@ export default async function AdminPage() {
 
 function StatCard({ label, value }: { label: string; value: number }) {
   return (
-    <div className="card p-6 space-y-2 text-[15px] md:text-base">
-      <p className="text-sm md:text-[15px] text-slate-500">{label}</p>
-      <p className="text-3xl md:text-4xl font-semibold text-ink">{value}</p>
+    <div className="card p-7 space-y-3 text-[17px] md:text-[18px]">
+      <p className="text-[15px] md:text-[16px] text-slate-500">{label}</p>
+      <p className="text-4xl md:text-5xl font-semibold text-ink">{value}</p>
     </div>
   );
 }

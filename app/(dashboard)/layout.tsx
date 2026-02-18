@@ -86,7 +86,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-black via-slate-900 to-pink-500 text-slate-50 text-[16px] md:text-[17px]">
+    <div className="min-h-screen bg-gradient-to-b from-black via-slate-900 to-pink-500 text-slate-50 text-[17px] md:text-[18px] leading-relaxed">
       {/* Top Header full width, dark to match sidebar */}
       <header className="fixed top-0 left-0 right-0 z-30 border-b border-white/10 bg-slate-950/95 backdrop-blur">
         <div className="w-full px-[2vh] md:px-6 py-3 flex items-center justify-between gap-4">
@@ -118,14 +118,14 @@ export default async function DashboardLayout({ children }: { children: ReactNod
       <div className="pt-28 pb-12 px-3 md:px-6">
         <div className="w-full max-w-[85vw] mx-auto flex gap-8">
           {/* Sidebar fixed on the very left with gradient black->pink and rounded edges, slightly below header */}
-          <aside className="hidden md:flex fixed top-28 bottom-6 left-4 w-64 flex-col rounded-2xl border border-white/15 bg-white/10 backdrop-blur-xl text-white shadow-2xl">
+          <aside className="hidden md:flex fixed top-28 bottom-6 left-4 w-64 flex-col rounded-2xl border border-white/15 bg-white/10 backdrop-blur-xl text-white shadow-2xl text-[17px]">
             <div className="flex items-center gap-3 px-6 py-5 border-b border-white/10">
               <div className="h-10 w-10 rounded-lg bg-white/20 text-white grid place-items-center font-semibold">LS</div>
               <div>
-                <p className="text-[10px] uppercase tracking-[0.25em] text-white/80">Navigation</p>
-                <p className="text-sm font-semibold text-white">{profile?.full_name || 'Willkommen'}</p>
+                <p className="text-[11px] uppercase tracking-[0.25em] text-white/80">Navigation</p>
+                <p className="text-[16px] font-semibold text-white">{profile?.full_name || 'Willkommen'}</p>
                 {roleLabel && (
-                  <p className="text-[11px] text-white/70 uppercase tracking-[0.12em]">
+                  <p className="text-[12px] text-white/70 uppercase tracking-[0.12em]">
                     Rolle: {roleLabel}
                   </p>
                 )}
@@ -149,7 +149,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
                 <Link
                   key={l.href}
                   href={l.href as any}
-                  className="block rounded-lg px-5 py-3.5 text-[15px] md:text-[16px] font-semibold text-white/90 bg-white/12 border border-white/20 hover:bg-white/20 transition"
+                  className="block rounded-lg px-5 py-3.5 text-[16px] md:text-[17px] font-semibold text-white/90 bg-white/12 border border-white/20 hover:bg-white/20 transition"
                 >
                   {l.label}
                 </Link>
