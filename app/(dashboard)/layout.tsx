@@ -49,6 +49,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
     'admin-leads',
     'student-materials',
     'student-profile',
+    'teacher-materials',
     'admin-settings',
   ]);
   // Student-Kursunterlagen standardmäßig erlauben
@@ -62,6 +63,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
         { role: 'admin', page_slug: 'student-profile', allowed: true },
         { role: 'admin', page_slug: 'admin-leads', allowed: true },
         { role: 'admin', page_slug: 'admin-settings', allowed: true },
+        { role: 'teacher', page_slug: 'teacher-materials', allowed: true },
       ],
       { onConflict: 'role,page_slug' }
     );
