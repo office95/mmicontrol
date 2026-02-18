@@ -103,7 +103,7 @@ export default function StudentsPage() {
       {error && <p className="text-sm text-red-500">{error}</p>}
       {loading && <p className="text-sm text-white/70">Lade...</p>}
 
-      <div className="grid gap-3 grid-cols-1 lg:grid-cols-2 xl:grid-cols-3">
+      <div className="grid gap-4 grid-cols-1 lg:grid-cols-2 xl:grid-cols-3">
         {filtered.map((r) => (
           <div
             key={r.id}
@@ -134,7 +134,7 @@ export default function StudentsPage() {
 
       {selected && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
-          <div className="w-full max-w-4xl rounded-2xl bg-white text-ink shadow-2xl p-6 relative">
+          <div className="w-full max-w-5xl rounded-2xl bg-white text-ink shadow-2xl p-6 relative">
             <button
               className="absolute top-3 right-3 text-slate-500 hover:text-ink"
               onClick={() => setSelected(null)}
@@ -149,7 +149,7 @@ export default function StudentsPage() {
               </div>
               {selected.type === 'lead' && (
                 <button
-                  className="rounded-lg bg-emerald-600 text-white px-4 py-2 text-sm shadow hover:bg-emerald-700"
+                  className="rounded-full bg-gradient-to-r from-pink-600 to-purple-600 text-white px-4 py-2 text-sm shadow hover:opacity-90"
                   onClick={() => convertToStudent(selected.id)}
                   disabled={converting}
                 >
@@ -158,37 +158,56 @@ export default function StudentsPage() {
               )}
             </div>
 
-            <div className="grid md:grid-cols-2 gap-4 text-sm">
-              {[['Telefon', selected.phone], ['Geburtstag', formatDate(selected.birthdate)], ['Land', selected.country], ['Bundesland', selected.state], ['Ort', selected.city]].map(([label, val]) => (
-                <div key={label} className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
-                  <p className="text-xs uppercase tracking-[0.12em] text-slate-500 mb-1">{label}</p>
-                  <p className="text-[15px] text-slate-800">{val || '—'}</p>
-                </div>
+            <div className="flex gap-3 mb-4 text-sm font-semibold">
+              {['profil','lead','note'].map((t) => (
+                <button
+                  key={t}
+                  className={`px-3 py-2 rounded-lg border ${detailTab === t ? 'border-pink-300 bg-pink-50 text-pink-700' : 'border-slate-200 text-slate-600 bg-slate-50'}`}
+                  onClick={() => setDetailTab(t as any)}
+                >
+                  {t === 'profil' ? 'Profil' : t === 'lead' ? 'Lead-Daten' : 'Notiz'}
+                </button>
               ))}
             </div>
 
-            <div className="mt-4 grid md:grid-cols-2 gap-4 text-sm">
-              <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 min-h-[120px]">
-                <p className="text-xs uppercase tracking-[0.12em] text-slate-500 mb-1">Lead-Daten</p>
-                <p className="text-[15px] text-slate-800">Qualität: {selected.lead_quality || '—'}</p>
-                <p className="text-[15px] text-slate-800">Status: {selected.lead_status || '—'}</p>
-                <p className="text-[15px] text-slate-800">Quelle: {selected.source || '—'}</p>
-                <p className="text-[15px] text-slate-800">Interessen: {(selected.interest_courses || []).join(', ') || '—'}</p>
+            {detailTab === 'profil' && (
+              <div className="grid md:grid-cols-2 gap-4 text-sm">
+                {[['Telefon', selected.phone], ['Geburtstag', formatDate(selected.birthdate)], ['Land', selected.country], ['Bundesland', selected.state], ['Ort', selected.city]].map(([label, val]) => (
+                  <div key={label as string} className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+                    <p className="text-xs uppercase tracking-[0.12em] text-slate-500 mb-1">{label}</p>
+                    <p className="text-[15px] text-slate-800">{val || '—'}</p>
+                  </div>
+                ))}
               </div>
-              <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 min-h-[120px]">
+            )}
+
+            {detailTab === 'lead' && (
+              <div className="grid md:grid-cols-2 gap-4 text-sm">
+                <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 min-h-[140px]">
+                  <p className="text-xs uppercase tracking-[0.12em] text-slate-500 mb-1">Lead-Daten</p>
+                  <p className="text-[15px] text-slate-800">Qualität: {selected.lead_quality || '—'}</p>
+                  <p className="text-[15px] text-slate-800">Status: {selected.lead_status || '—'}</p>
+                  <p className="text-[15px] text-slate-800">Quelle: {selected.source || '—'}</p>
+                  <p className="text-[15px] text-slate-800">Interessen: {(selected.interest_courses || []).join(', ') || '—'}</p>
+                </div>
+                <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 min-h-[140px]">
+                  <p className="text-xs uppercase tracking-[0.12em] text-slate-500 mb-1">Historie</p>
+                  <p className="text-[15px] text-slate-800">Erstellt: {formatDate(selected.created_at)}</p>
+                  {selected.converted_at && <p className="text-[15px] text-slate-800">Konvertiert: {formatDate(selected.converted_at)}</p>}
+                  <p className="text-[13px] text-slate-500 mt-2">(Timeline später erweiterbar)</p>
+                </div>
+              </div>
+            )}
+
+            {detailTab === 'note' && (
+              <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 min-h-[140px] text-sm">
                 <p className="text-xs uppercase tracking-[0.12em] text-slate-500 mb-1">Notiz</p>
                 <p className="text-[15px] text-slate-800 whitespace-pre-wrap">{selected.note || '—'}</p>
               </div>
-            </div>
-
-            <div className="mt-4 text-xs text-slate-500 flex gap-4">
-              <span>Erstellt: {formatDate(selected.created_at)}</span>
-              {selected.converted_at && <span>Konvertiert: {formatDate(selected.converted_at)}</span>}
-            </div>
+            )}
           </div>
         </div>
       )}
     </div>
   );
 }
-
