@@ -16,6 +16,8 @@ export default async function StudentPage({ searchParams }: { searchParams: Reco
     data: { user },
   } = await supabase.auth.getUser();
 
+  const registeredAt = user?.created_at ? new Date(user.created_at) : null;
+
   const loginEmail = (user?.email || '').toLowerCase();
 
   // Studentendatensatz über E-Mail (service)
@@ -123,7 +125,12 @@ export default async function StudentPage({ searchParams }: { searchParams: Reco
           <p className="text-2xl font-semibold text-white">
             Hallo {student?.name ?? (user?.user_metadata as any)?.full_name ?? 'Teilnehmer'}, schön dass du da bist.
           </p>
-          <p className="text-sm text-white/80 mt-1">Deine Übersicht</p>
+          <div className="text-sm text-white/80 mt-1 space-x-2">
+            <span>Deine Übersicht</span>
+            {registeredAt && (
+              <span className="text-white/60">· registriert am {registeredAt.toLocaleDateString()}</span>
+            )}
+          </div>
         </div>
         <div className="relative">
           <div className="absolute -right-10 -top-10 h-32 w-32 bg-pink-500/30 rounded-full blur-3xl animate-pulse" />
