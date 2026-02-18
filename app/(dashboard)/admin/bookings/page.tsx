@@ -124,7 +124,8 @@ export default function BookingsPage() {
                   <td className="py-3 pr-4">{b.status}</td>
                   <td className="py-3 pr-4">
                     <button
-                      onClick={() => setSelected(b)}
+                      type="button"
+                      onClick={(e) => { e.preventDefault(); setSelected(b); }}
                       className="inline-flex items-center justify-center rounded-md px-3 py-1 text-sm font-semibold bg-pink-600 text-white hover:bg-pink-700 border border-pink-700 shadow-sm"
                     >
                       Details
