@@ -4,6 +4,24 @@ import { createSupabaseServerClient } from '@/lib/supabase-server';
 import { getPermissions, ensureSlugs } from '@/lib/permissions';
 import { createClient } from '@supabase/supabase-js';
 
+const PAGES = [
+  'admin-dashboard',
+  'teacher-dashboard',
+  'student-dashboard',
+  'teacher-materials',
+  'courses',
+  'materials',
+  'admin-bookings',
+  'course-dates',
+  'admin-students',
+  'admin-leads',
+  'student-materials',
+  'admin-partners',
+  'quizzes',
+  'integrations',
+  'admin-settings',
+];
+
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
