@@ -89,6 +89,10 @@ export default async function StudentMaterialsPage() {
       }
     });
   }
+
+  const daysRemaining = nextStart
+    ? Math.ceil((nextStart.getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+    : null;
   const courseTitle = (cid: string | null) =>
     courses?.find((c) => c.id === cid)?.title ?? 'Kurs';
 
@@ -139,9 +143,9 @@ export default async function StudentMaterialsPage() {
           <div className="rounded-2xl bg-gradient-to-r from-pink-500 via-rose-500 to-purple-600 text-white px-6 py-5 shadow-2xl ring-2 ring-white/30 min-w-[220px] text-center">
             <p className="text-[11px] uppercase tracking-[0.24em] text-white/80 mb-2">Noch</p>
             <p className="text-3xl font-extrabold leading-tight drop-shadow-lg animate-pulse">
-              {nextStart
-                ? Math.ceil((nextStart.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) >= 0
-                  ? `${Math.ceil((nextStart.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))} Tage`
+              {daysRemaining !== null
+                ? daysRemaining >= 0
+                  ? `${daysRemaining} Tage`
                   : 'läuft / vorbei'
                 : '—'}
             </p>
