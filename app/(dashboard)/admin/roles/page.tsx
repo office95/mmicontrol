@@ -53,6 +53,7 @@ export default function RolesPage() {
   const [savingTeacher, setSavingTeacher] = useState<string | null>(null);
   const [members, setMembers] = useState<MemberRow[]>([]);
   const [savingMember, setSavingMember] = useState<string | null>(null);
+  const [memberSearch, setMemberSearch] = useState('');
 
   const load = async () => {
     setLoading(true);
@@ -304,8 +305,27 @@ export default function RolesPage() {
           {!loading && members.length === 0 && (
             <p className="text-sm text-slate-500">Keine Members gefunden.</p>
           )}
-          <div className="grid md:grid-cols-2 gap-4">
-            {members.map((m) => (
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+            <input
+              type="search"
+              value={memberSearch}
+              onChange={(e) => setMemberSearch(e.target.value)}
+              placeholder="Suchen nach Name oder E-Mail"
+              className="input max-w-sm"
+            />
+            <span className="text-xs text-slate-500">Gesamt: {members.length}</span>
+          </div>
+          <div className="grid grid-cols-1 gap-4">
+            {members
+              .filter((m) => {
+                const q = memberSearch.trim().toLowerCase();
+                if (!q) return true;
+                return (
+                  (m.full_name || '').toLowerCase().includes(q) ||
+                  (m.email || '').toLowerCase().includes(q)
+                );
+              })
+              .map((m) => (
               <div key={m.id} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm space-y-3">
                 <div className="flex items-start justify-between gap-3">
                   <div>
@@ -314,7 +334,7 @@ export default function RolesPage() {
                   </div>
                   <span className="px-2 py-1 text-[11px] rounded-full bg-slate-100 text-slate-700 border border-slate-200">{m.role}</span>
                 </div>
-                <div className="flex items-center gap-2 text-xs">
+                <div className="flex items-center gap-2 text-xs flex-wrap">
                   {(['admin','teacher','student'] as Role[]).map((r) => (
                     <button
                       key={r}
@@ -325,6 +345,32 @@ export default function RolesPage() {
                       {r}
                     </button>
                   ))}
+                  <label className="inline-flex items-center gap-2 px-3 py-1 rounded-lg border border-slate-200 text-slate-700 bg-slate-50">
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4"
+                      checked={Boolean(m.approved)}
+                      onChange={() => {}}
+                      onClick={async (e) => {
+                        const checked = (e.target as HTMLInputElement).checked;
+                        setSavingMember(m.id);
+                        const res = await fetch('/api/admin/members', {
+                          method: 'PATCH',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ id: m.id, role: m.role, approved: checked }),
+                        });
+                        if (res.ok) {
+                          const refreshed = await fetch('/api/admin/members').then((r) => r.json());
+                          setMembers(refreshed);
+                        } else {
+                          const d = await res.json().catch(() => ({}));
+                          setError(d.error || 'Speichern fehlgeschlagen');
+                        }
+                        setSavingMember(null);
+                      }}
+                    />
+                    <span>Approved</span>
+                  </label>
                   <button
                     className="ml-auto px-3 py-1 rounded-lg border border-red-300 text-red-600 hover:bg-red-50"
                     onClick={() => handleMemberDelete(m.id)}

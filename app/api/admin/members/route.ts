@@ -49,7 +49,12 @@ export async function DELETE(req: Request) {
   if (!id) return NextResponse.json({ error: 'id fehlt' }, { status: 400 });
   // auth admin delete
   const { data, error } = await service.auth.admin.deleteUser(id);
-  if (error) return NextResponse.json({ error: error.message }, { status: 400 });
-  // profile will be removed via trigger or cascade
+  if (error) {
+    // Fallback: Profil löschen, auch wenn Auth-User nicht gefunden wird
+    await service.from('profiles').delete().eq('id', id);
+    return NextResponse.json({ ok: true, warning: error.message });
+  }
+  // sicherheitshalber Profil löschen
+  await service.from('profiles').delete().eq('id', id);
   return NextResponse.json({ ok: true, data });
 }
