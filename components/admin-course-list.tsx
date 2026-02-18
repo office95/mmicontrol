@@ -29,6 +29,8 @@ export default function AdminCourseList({
   const [error, setError] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
   const [showArchived, setShowArchived] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterCategory, setFilterCategory] = useState('');
 
   useEffect(() => {
     let ignore = false;
@@ -61,9 +63,26 @@ export default function AdminCourseList({
   if (error) return <p className="text-sm text-red-600">{error}</p>;
   if (!courses.length) return <p className="text-sm text-slate-500">Keine Kurse vorhanden.</p>;
 
+  const categories = Array.from(new Set(courses.map((c) => c.category).filter(Boolean))) as string[];
+
+  const filtered = courses
+    .filter((c) => (showArchived ? true : c.status !== 'inactive'))
+    .filter((c) => {
+      const term = searchTerm.trim().toLowerCase();
+      if (!term) return true;
+      return (
+        (c.title || '').toLowerCase().includes(term) ||
+        (c.category || '').toLowerCase().includes(term)
+      );
+    })
+    .filter((c) => {
+      if (!filterCategory) return true;
+      return (c.category || '') === filterCategory;
+    });
+
   return (
     <div className="space-y-3">
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 flex-wrap">
         <button onClick={reload} className="text-xs text-brand-600 underline">Aktualisieren</button>
         <button
           onClick={() => setShowArchived((v) => !v)}
@@ -71,11 +90,25 @@ export default function AdminCourseList({
         >
           {showArchived ? 'Archivierte ausblenden' : 'Archivierte einblenden'}
         </button>
+        <input
+          className="input h-9 text-sm min-w-[200px]"
+          placeholder="Suche Titel oder Kategorie"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+        <select
+          className="input h-9 text-sm min-w-[180px]"
+          value={filterCategory}
+          onChange={(e) => setFilterCategory(e.target.value)}
+        >
+          <option value="">Alle Kategorien</option>
+          {categories.map((cat) => (
+            <option key={cat} value={cat || ''}>{cat}</option>
+          ))}
+        </select>
       </div>
       <div className="divide-y divide-slate-100">
-        {courses
-          .filter((c) => (showArchived ? true : c.status !== 'inactive'))
-          .map((c) => (
+        {filtered.map((c) => (
           <div key={c.id} className="py-3 flex flex-col md:flex-row md:items-center md:justify-between gap-2">
             <div>
               <p className="font-semibold text-ink">{c.title}</p>
