@@ -7,26 +7,38 @@ const service = createClient(
 );
 
 export async function GET() {
+  // 1) profiles
   const { data, error } = await service
     .from('profiles')
-    .select('id, full_name, role, approved, auth_users:auth.users(email)')
+    .select('id, full_name, role, approved')
     .order('created_at', { ascending: false });
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+
+  // 2) emails über auth.admin.listUsers() (robuster als Join auf auth.users)
+  const userMap = new Map<string, string | null>();
+  const users = await service.auth.admin.listUsers();
+  users.data?.users?.forEach((u) => userMap.set(u.id, u.email ?? null));
+
   const mapped = (data || []).map((p: any) => ({
     id: p.id,
     full_name: p.full_name,
     role: p.role,
     approved: p.approved,
-    email: p.auth_users?.email ?? null,
+    email: userMap.get(p.id) ?? null,
   }));
+
   return NextResponse.json(mapped);
 }
 
 export async function PATCH(req: Request) {
   const body = await req.json();
-  const { id, role } = body;
-  if (!id || !role) return NextResponse.json({ error: 'id und role erforderlich' }, { status: 400 });
-  const { error } = await service.from('profiles').update({ role }).eq('id', id);
+  const { id, role, approved } = body;
+  if (!id) return NextResponse.json({ error: 'id erforderlich' }, { status: 400 });
+  const updates: any = {};
+  if (role) updates.role = role;
+  if (approved !== undefined) updates.approved = approved;
+  if (Object.keys(updates).length === 0) return NextResponse.json({ error: 'keine Felder' }, { status: 400 });
+  const { error } = await service.from('profiles').update(updates).eq('id', id);
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
   return NextResponse.json({ ok: true });
 }
@@ -41,4 +53,3 @@ export async function DELETE(req: Request) {
   // profile will be removed via trigger or cascade
   return NextResponse.json({ ok: true, data });
 }
-
