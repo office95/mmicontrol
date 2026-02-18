@@ -54,15 +54,10 @@ create policy modules_members_read on modules for select using (
 -- 4) course_members
 drop policy if exists cm_admin_all on course_members;
 drop policy if exists cm_teacher_read_owncourses on course_members;
+drop policy if exists cm_self_read on course_members;
 create policy cm_admin_all on course_members for all using (auth.uid() in (select id from v_admin));
-create policy cm_teacher_read_owncourses on course_members for select using (
-  exists (
-    select 1 from course_members cm2
-    where cm2.course_id = course_members.course_id
-      and cm2.user_id = auth.uid()
-      and cm2.role='teacher'
-  )
-);
+-- Lehrende/Studierende dürfen ihre eigenen Mitgliedschaften sehen (vermeidet Rekursion)
+create policy cm_self_read on course_members for select using (course_members.user_id = auth.uid());
 
 -- 5) materials
 drop policy if exists materials_admin_all on materials;
@@ -165,4 +160,3 @@ create policy bookings_student_view on bookings for select using (
 --     bucket_id = 'materials'
 --     and auth.uid() in (select id from v_admin)
 --   );
-
