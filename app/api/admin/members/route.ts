@@ -52,9 +52,13 @@ export async function DELETE(req: Request) {
   if (error) {
     // Fallback: Profil löschen, auch wenn Auth-User nicht gefunden wird
     await service.from('profiles').delete().eq('id', id);
+    await service.from('students').delete().eq('id', id);
+    await service.from('course_members').delete().eq('user_id', id);
     return NextResponse.json({ ok: true, warning: error.message });
   }
   // sicherheitshalber Profil löschen
+  await service.from('course_members').delete().eq('user_id', id);
+  await service.from('students').delete().eq('id', id);
   await service.from('profiles').delete().eq('id', id);
   return NextResponse.json({ ok: true, data });
 }
