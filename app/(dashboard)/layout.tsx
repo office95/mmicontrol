@@ -108,7 +108,10 @@ export default async function DashboardLayout({ children }: { children: ReactNod
               <p className="text-lg font-semibold text-white">Music Mission Institute</p>
             </div>
           </div>
-          <div className="flex items-center gap-3 text-xs text-white uppercase tracking-[0.18em]">
+          <div className="flex items-center gap-4 text-xs text-white uppercase tracking-[0.18em]">
+            <span className="text-[12px] font-semibold text-white/80">
+              {profile?.full_name ?? ''}
+            </span>
             <span>{roleLabel ? `Rolle: ${roleLabel}` : ''}</span>
             <form action="/auth/signout" method="post">
               <button className="rounded-full border border-white/40 px-3 py-1 text-[11px] font-semibold text-white hover:bg-white/10">
@@ -124,18 +127,6 @@ export default async function DashboardLayout({ children }: { children: ReactNod
         <div className="w-full max-w-[85vw] mx-auto flex gap-8">
           {/* Sidebar fixed on the very left with gradient black->pink and rounded edges, slightly below header */}
           <aside className="hidden md:flex fixed top-28 bottom-6 left-4 w-64 flex-col rounded-2xl border border-white/15 bg-white/10 backdrop-blur-xl text-white shadow-2xl text-[17px]">
-            <div className="flex items-center gap-3 px-6 py-5 border-b border-white/10">
-              <div className="h-10 w-10 rounded-lg bg-white/20 text-white grid place-items-center font-semibold">LS</div>
-              <div>
-                <p className="text-[11px] uppercase tracking-[0.25em] text-white/80">Navigation</p>
-                <p className="text-[16px] font-semibold text-white">{profile?.full_name || 'Willkommen'}</p>
-                {roleLabel && (
-                  <p className="text-[12px] text-white/70 uppercase tracking-[0.12em]">
-                    Rolle: {roleLabel}
-                  </p>
-                )}
-              </div>
-            </div>
             <nav className="flex-1 px-4 py-6 space-y-2">
               {(roleLabel
                 ? (() => {
