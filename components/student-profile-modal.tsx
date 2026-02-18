@@ -1,6 +1,5 @@
 "use client";
 import { useState } from "react";
-import { createClient } from "@supabase/supabase-js";
 
 type Props = {
   open: boolean;
@@ -35,17 +34,14 @@ export default function ProfileModal({ open, onClose, profile }: Props) {
 
   if (!open) return null;
 
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
-
   async function save() {
     if (!profile?.id) return;
     setSaving(true);
-    await supabase
-      .from("students")
-      .update({
+    await fetch('/api/student/profile', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id: profile.id,
         name: form.name,
         street: form.street,
         zip: form.zip,
@@ -55,7 +51,7 @@ export default function ProfileModal({ open, onClose, profile }: Props) {
         phone: form.phone,
         birthdate: form.birthdate,
       })
-      .eq("id", profile.id);
+    });
     setSaving(false);
     setEditing(false);
   }
