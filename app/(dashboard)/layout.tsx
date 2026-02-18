@@ -109,7 +109,12 @@ export default async function DashboardLayout({ children }: { children: ReactNod
             </div>
           </div>
           <div className="flex items-center gap-3 text-xs text-white uppercase tracking-[0.18em]">
-            {roleLabel ? `Rolle: ${roleLabel}` : ''}
+            <span>{roleLabel ? `Rolle: ${roleLabel}` : ''}</span>
+            <form action="/auth/signout" method="post">
+              <button className="rounded-full border border-white/40 px-3 py-1 text-[11px] font-semibold text-white hover:bg-white/10">
+                Logout
+              </button>
+            </form>
           </div>
         </div>
       </header>
@@ -155,13 +160,6 @@ export default async function DashboardLayout({ children }: { children: ReactNod
                 </Link>
               ))}
             </nav>
-            <div className="px-4 pb-6">
-              <form action="/auth/signout" method="post">
-                <button className="w-full rounded-lg border border-white/30 px-4 py-2 text-sm font-medium text-white hover:bg-white/10">
-                  Logout
-                </button>
-              </form>
-            </div>
           </aside>
 
           {/* Main content card container with left padding to not overlap sidebar */}
