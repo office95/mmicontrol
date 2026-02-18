@@ -78,8 +78,8 @@ export default function StudentsPage() {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
         <div>
           <p className="text-[11px] uppercase tracking-[0.24em] text-pink-200">Admin</p>
-          <h1 className="text-3xl font-semibold text-white">Leads & Kursteilnehmer</h1>
-          <p className="text-sm text-white/80">Alle Kontakte an einem Ort – Leads können zu Kursteilnehmern konvertiert werden.</p>
+          <h1 className="text-3xl font-semibold text-white">Kundenstamm</h1>
+          <p className="text-sm text-white/80">Alle Leads und Kursteilnehmer an einem Ort – Leads können konvertiert werden.</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <input
@@ -97,6 +97,30 @@ export default function StudentsPage() {
             <option value="lead">Leads</option>
             <option value="student">Kursteilnehmer</option>
           </select>
+          <button
+            className="rounded-full bg-gradient-to-r from-pink-600 to-purple-600 text-white px-4 py-2 text-sm font-semibold shadow hover:opacity-90"
+            onClick={() => setSelected({
+              id: crypto.randomUUID(),
+              name: '',
+              email: '',
+              phone: '',
+              country: '',
+              state: '',
+              city: '',
+              birthdate: null,
+              status: null,
+              type: 'lead',
+              lead_quality: null,
+              lead_status: null,
+              source: null,
+              interest_courses: [],
+              note: '',
+              created_at: new Date().toISOString(),
+              converted_at: null,
+            } as any)}
+          >
+            Neuer Eintrag
+          </button>
         </div>
       </div>
 
