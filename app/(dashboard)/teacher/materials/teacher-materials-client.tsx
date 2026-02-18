@@ -20,9 +20,15 @@ type Material = {
 const formatDate = (d: string | null) => (d ? new Date(d).toLocaleDateString() : '—');
 const publicBase = (process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || '').replace('https://', '').replace(/\/$/, '');
 
+const ensureBucket = (path: string | null) => {
+  if (!path) return null;
+  return path.startsWith('materials/') ? path : `materials/${path}`;
+};
+
 const buildPublicUrl = (path: string | null) => {
-  if (!path || !publicBase) return null;
-  return `https://${publicBase}/storage/v1/object/public/${path}`;
+  const p = ensureBucket(path);
+  if (!p || !publicBase) return null;
+  return `https://${publicBase}/storage/v1/object/public/${p}`;
 };
 
 export default function TeacherMaterialsClient({ courses, materials }: { courses: Course[]; materials: Material[] }) {
