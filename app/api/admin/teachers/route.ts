@@ -21,8 +21,7 @@ export async function GET() {
   const { data: teachers, error } = await service
     .from('profiles')
     .select('id, full_name, partner_id, approved, role')
-    .eq('role', 'teacher')
-    .eq('approved', true);
+    .eq('role', 'teacher');
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
 
   const ids = (teachers ?? []).map((t) => t.id);
