@@ -91,7 +91,7 @@ export default async function StudentMaterialsPage() {
   }
 
   const daysRemaining = nextStart
-    ? Math.ceil((nextStart.getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+    ? Math.ceil(((nextStart as Date).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
     : null;
   const courseTitle = (cid: string | null) =>
     courses?.find((c) => c.id === cid)?.title ?? 'Kurs';
