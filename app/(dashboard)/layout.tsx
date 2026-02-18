@@ -91,7 +91,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
   // Admin: fehlende Slugs automatisch freischalten
   if (roleLabel === 'admin' && PAGES.length) {
     await service.from('role_permissions').upsert(
-      PAGES.map((p) => ({ role: 'admin', page_slug: p.slug, allowed: true })),
+      PAGES.map((slug) => ({ role: 'admin', page_slug: slug, allowed: true })),
       { onConflict: 'role,page_slug' }
     );
   }
