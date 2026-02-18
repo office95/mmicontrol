@@ -78,6 +78,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
     { href: '/admin/bookings', label: 'Buchungsübersicht', roles: ['admin'], slug: 'admin-bookings' },
     { href: '/admin/students', label: 'Kursteilnehmer', roles: ['admin'], slug: 'admin-students' },
     { href: '/teacher', label: 'Dozent', roles: ['teacher'], slug: 'teacher-dashboard' },
+    { href: '/teacher/materials', label: 'Kursunterlagen', roles: ['teacher'], slug: 'teacher-materials' },
     { href: '/student', label: 'Dashboard', roles: ['student'], slug: 'student-dashboard' },
     { href: '/student?profile=1', label: 'Profil', roles: ['student'], slug: 'student-profile' },
     { href: '/student/materials', label: 'Kursunterlagen', roles: ['student'], slug: 'student-materials' },
