@@ -1,7 +1,7 @@
 import { createSupabaseServerClient } from '@/lib/supabase-server';
 import { createClient } from '@supabase/supabase-js';
 import ProfileModal from '@/components/student-profile-modal';
-import { redirect } from 'next/navigation';
+import ProfileWrapper from './profile-wrapper';
 
 export default async function StudentPage({ searchParams }: { searchParams: Record<string, string | string[] | undefined> }) {
   // Auth-Client (für Session)
@@ -156,9 +156,8 @@ export default async function StudentPage({ searchParams }: { searchParams: Reco
         ))}
       </div>
 
-      <ProfileModal
+      <ProfileWrapper
         open={showProfile}
-        onClose={() => redirect('/student')}
         profile={
           student
             ? {
