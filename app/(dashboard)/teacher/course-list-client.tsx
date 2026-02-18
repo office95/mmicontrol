@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 type Participant = { name: string; email: string; phone?: string | null; booking_date?: string | null };
 type CourseCard = {
@@ -12,28 +12,42 @@ type CourseCard = {
   participants: Participant[];
 };
 
+const formatDate = (d: string | null) => (d ? new Date(d).toLocaleDateString() : 'kein Termin');
+
+const colorForDate = (start: string | null) => {
+  if (!start) return 'from-slate-500/30 to-slate-300/20 border-slate-200';
+  const date = new Date(start);
+  const now = new Date();
+  if (date >= now) return 'from-pink-500/25 via-fuchsia-500/15 to-blue-500/25 border-pink-200/60';
+  return 'from-slate-600/20 to-slate-500/10 border-slate-300/60';
+};
+
 export default function CourseListClient({ courses }: { courses: CourseCard[] }) {
   const [openId, setOpenId] = useState<string | null>(null);
 
-  const selected = courses.find((c) => c.id === openId) || null;
+  const selected = useMemo(() => courses.find((c) => c.id === openId) || null, [courses, openId]);
 
   return (
     <div className="space-y-4">
       {courses.map((c) => (
-        <div key={c.id} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm space-y-3">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
-            <div>
-              <p className="text-xs uppercase tracking-[0.12em] text-slate-500">Kurs</p>
-              <h3 className="text-xl font-semibold text-ink">{c.title}</h3>
-              <p className="text-sm text-slate-600">{c.description}</p>
+        <div
+          key={c.id}
+          className={`relative rounded-2xl border backdrop-blur bg-gradient-to-br ${colorForDate(c.start_date)} p-5 shadow-lg transition hover:shadow-2xl hover:-translate-y-[2px]`}
+        >
+          <div className="absolute -right-6 -top-6 h-16 w-16 rounded-full bg-white/20 blur-2xl" />
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+            <div className="space-y-1">
+              <p className="text-[11px] uppercase tracking-[0.18em] text-white/70">Kurs</p>
+              <h3 className="text-xl font-semibold text-white drop-shadow-sm">{c.title}</h3>
+              <p className="text-sm text-white/80">{c.description}</p>
             </div>
-            <div className="text-right text-sm text-slate-600">
-              <div>Start: {c.start_date ? new Date(c.start_date).toLocaleDateString() : 'kein Termin'}</div>
-              <div>Dauer: {c.duration_hours != null ? `${c.duration_hours} h` : '—'}</div>
-              <div>Teilnehmer: {c.participants.length}</div>
+            <div className="flex flex-wrap gap-2 text-[13px] font-medium">
+              <span className="px-3 py-1 rounded-full bg-white/20 text-white border border-white/30">Start: {formatDate(c.start_date)}</span>
+              <span className="px-3 py-1 rounded-full bg-white/20 text-white border border-white/30">Dauer: {c.duration_hours != null ? `${c.duration_hours} h` : '—'}</span>
+              <span className="px-3 py-1 rounded-full bg-white/20 text-white border border-white/30">TN: {c.participants.length}</span>
             </div>
             <button
-              className="self-start md:self-center rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700 hover:bg-slate-100"
+              className="self-start md:self-center rounded-full border border-white/60 bg-white/20 px-4 py-2 text-sm text-white hover:bg-white/30 transition"
               onClick={() => setOpenId(c.id)}
             >
               Teilnehmer
