@@ -15,6 +15,11 @@ type BookingRow = {
   course_start: string | null;
   partner_name: string | null;
   student_email?: string | null;
+  vat_rate?: number | null;
+  price_net?: number | null;
+  deposit?: number | null;
+  saldo?: number | null;
+  duration_hours?: number | null;
 };
 
 const STATUSES = ['alle', 'offen', 'Anzahlung erhalten', 'abgeschlossen', 'Zahlungserinnerung', '1. Mahnung', '2. Mahnung', 'Inkasso', 'Storno', 'Archiv'];
@@ -25,6 +30,7 @@ export default function BookingsPage() {
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('alle');
+  const [selected, setSelected] = useState<BookingRow | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -117,12 +123,12 @@ export default function BookingsPage() {
                   <td className="py-3 pr-4">{b.partner_name ?? '—'}</td>
                   <td className="py-3 pr-4">{b.status}</td>
                   <td className="py-3 pr-4">
-                    <a
-                      href={`/admin/bookings/${b.id}`}
+                    <button
+                      onClick={() => setSelected(b)}
                       className="inline-flex items-center justify-center rounded-md px-3 py-1 text-sm font-semibold bg-pink-600 text-white hover:bg-pink-700 border border-pink-700 shadow-sm"
                     >
-                      Bearbeiten
-                    </a>
+                      Details
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -130,6 +136,49 @@ export default function BookingsPage() {
           </table>
         )}
       </div>
+
+      {selected && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
+          <div className="w-full max-w-3xl rounded-2xl bg-white text-ink shadow-2xl p-6 relative">
+            <button
+              className="absolute top-3 right-3 text-slate-500 hover:text-ink"
+              onClick={() => setSelected(null)}
+            >
+              ×
+            </button>
+            <h3 className="text-2xl font-semibold mb-4">Kursübersicht</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+              {[ 
+                ['Kursteilnehmer', selected.student_name ?? '—'],
+                ['Buchungscode', selected.booking_code ?? '—'],
+                ['Buchungsdatum', selected.booking_date ? new Date(selected.booking_date).toLocaleDateString() : '—'],
+                ['Kurs', selected.course_title ?? '—'],
+                ['Kursstart', selected.course_start ? new Date(selected.course_start).toLocaleDateString() : '—'],
+                ['Anbieter', selected.partner_name ?? '—'],
+                ['Betrag (Brutto)', selected.amount != null ? `${Number(selected.amount).toFixed(2)} €` : '—'],
+                ['USt-Satz', selected.vat_rate != null ? `${(Number(selected.vat_rate) * 100).toFixed(1)} %` : '—'],
+                ['Netto', selected.price_net != null ? `${Number(selected.price_net).toFixed(2)} €` : '—'],
+                ['Anzahlung', selected.deposit != null ? `${Number(selected.deposit).toFixed(2)} €` : '—'],
+                ['Saldo', selected.saldo != null ? `${Number(selected.saldo).toFixed(2)} €` : '—'],
+                ['Dauer (h)', selected.duration_hours != null ? `${selected.duration_hours} h` : '—'],
+              ].map(([label, value]) => (
+                <div key={label} className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+                  <p className="text-xs uppercase tracking-[0.12em] text-slate-500 mb-1">{label}</p>
+                  <p className="text-[15px] text-slate-800">{value}</p>
+                </div>
+              ))}
+            </div>
+            <div className="mt-6 flex justify-end">
+              <button
+                className="rounded-lg bg-slate-900 text-white px-4 py-2 hover:bg-slate-800"
+                onClick={() => setSelected(null)}
+              >
+                Schließen
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
