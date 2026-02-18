@@ -111,8 +111,8 @@ export default async function DashboardLayout({ children }: { children: ReactNod
       </header>
 
       {/* Content area below header */}
-      <div className="pt-28 pb-10 px-4 md:px-6">
-        <div className="max-w-7xl mx-auto flex gap-6">
+      <div className="pt-28 pb-12 px-3 md:px-6">
+        <div className="max-w-screen-2xl w-full mx-auto flex gap-8">
           {/* Sidebar fixed on the very left with gradient black->pink and rounded edges, slightly below header */}
           <aside className="hidden md:flex fixed top-28 bottom-6 left-4 w-64 flex-col rounded-2xl border border-white/15 bg-white/10 backdrop-blur-xl text-white shadow-2xl">
             <div className="flex items-center gap-3 px-6 py-5 border-b border-white/10">
@@ -161,7 +161,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
           </aside>
 
           {/* Main content card container with left padding to not overlap sidebar */}
-          <main className="flex-1 md:pl-72 space-y-6">{children}</main>
+          <main className="flex-1 w-full md:pl-72 space-y-8">{children}</main>
         </div>
       </div>
     </div>
