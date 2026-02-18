@@ -82,7 +82,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-black via-slate-900 to-pink-500 text-slate-50">
+    <div className="min-h-screen bg-gradient-to-b from-black via-slate-900 to-pink-500 text-slate-50 text-[15px] md:text-base">
       {/* Top Header full width, dark to match sidebar */}
       <header className="fixed top-0 left-0 right-0 z-30 border-b border-white/10 bg-slate-950/95 backdrop-blur">
         <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between gap-4">
@@ -145,7 +145,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
                 <Link
                   key={l.href}
                   href={l.href as any}
-                  className="block rounded-lg px-4 py-3 text-sm font-semibold text-white/90 bg-white/12 border border-white/20 hover:bg-white/20 transition"
+                  className="block rounded-lg px-5 py-3.5 text-[15px] md:text-[16px] font-semibold text-white/90 bg-white/12 border border-white/20 hover:bg-white/20 transition"
                 >
                   {l.label}
                 </Link>
