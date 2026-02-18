@@ -43,7 +43,14 @@ export default async function TeacherPage() {
         .from('courses')
         .select('id, title, description, duration_hours')
         .in('id', ids);
-      courses = courseRows || [];
+      courses = (courseRows || []).map((c) => ({
+        id: c.id as string,
+        title: c.title as string,
+        description: (c as any).description ?? null,
+        duration_hours: (c as any).duration_hours ?? null,
+        start_date: null,
+        participants: [],
+      }));
 
       // Nächstes Kursdatum je Kurs
       const { data: dates } = await service
