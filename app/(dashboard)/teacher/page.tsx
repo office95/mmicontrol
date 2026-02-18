@@ -23,7 +23,7 @@ export default async function TeacherPage() {
         id: string;
         title: string;
         description: string | null;
-        start_date?: string | null;
+        start_date: string | null;
         duration_hours?: number | null;
         participants: { name: string; email: string; phone?: string | null }[];
       }[]
@@ -114,7 +114,7 @@ export default async function TeacherPage() {
   // Nächster Kurs für Countdown
   const nextCourse = (courses || [])
     .filter((c) => c.start_date)
-    .sort((a, b) => new Date(a.start_date || 0).getTime() - new Date(b.start_date || 0).getTime())[0];
+    .sort((a, b) => new Date(c.start_date as string | number).getTime() - new Date(b.start_date as string | number).getTime())[0];
   const nextStart = nextCourse?.start_date ? new Date(nextCourse.start_date) : null;
   const daysRemaining = nextStart ? Math.ceil((nextStart.getTime() - Date.now()) / (1000 * 60 * 60 * 24)) : null;
 
