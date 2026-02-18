@@ -103,79 +103,34 @@ export default async function StudentPage() {
     bookings = bookingRows || [];
   }
 
+  // Nächster Kurs für Countdown (falls vorhanden)
+  const nextCourse = (courses || [])
+    .filter((c) => c.start_date)
+    .sort((a, b) => new Date(a.start_date || 0).getTime() - new Date(b.start_date || 0).getTime())[0];
+  const start = nextCourse?.start_date ? new Date(nextCourse.start_date) : null;
+  const today = new Date();
+  const days = start ? Math.ceil((start.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)) : null;
+
   return (
-    <div className="space-y-6">
-      <div className="bg-white/10 border border-white/15 rounded-xl p-5 shadow-lg">
-        <p className="text-[12px] uppercase tracking-[0.28em] text-pink-200 mb-1">Willkommen</p>
-        <p className="text-2xl font-semibold text-white">
-          Hallo {student?.name ?? (user?.user_metadata as any)?.full_name ?? 'Teilnehmer'}, schön dass du da bist.
-        </p>
-        <p className="text-sm text-white/80 mt-1">Deine Übersicht</p>
-      </div>
-
-      {/* Profilbox entfernt, damit Inhalte nach oben rücken */}
-
-      <h2 className="text-xl font-semibold text-white">Kurs Counter</h2>
-
-      <div className="grid gap-5 grid-cols-1 lg:grid-cols-2">
-        {(courses ?? []).map((c) => {
-          const start = c.start_date ? new Date(c.start_date) : null;
-          const today = new Date();
-          const days = start ? Math.ceil((start.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)) : null;
-          return (
-            <div
-              key={c.id}
-              className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-slate-900/80 via-slate-900/60 to-slate-800/70 shadow-2xl text-white p-5 space-y-4"
-            >
-              <div className="absolute -right-10 -top-10 h-40 w-40 bg-pink-500/30 rounded-full blur-3xl" />
-              <div className="absolute -left-14 bottom-0 h-32 w-32 bg-purple-500/20 rounded-full blur-3xl" />
-
-              <div className="flex items-center justify-between relative">
-                <div className="space-y-1">
-                  <p className="text-xs uppercase tracking-[0.2em] text-pink-200">Kurs</p>
-                  <h3 className="text-xl font-semibold">{c.title}</h3>
-                </div>
-                <div className="rounded-xl bg-gradient-to-r from-pink-500 to-purple-600 text-white px-4 py-2 shadow-lg ring-1 ring-white/20">
-                  {start ? (
-                    <>
-                      <p className="text-[10px] uppercase tracking-[0.22em] text-white/80">Noch</p>
-                      <p className="text-lg font-bold leading-tight animate-pulse">
-                        {days !== null && days >= 0 ? `${days} Tage` : 'läuft / vorbei'}
-                      </p>
-                      <p className="text-[10px] uppercase tracking-[0.22em] text-white/80">bis Kursbeginn</p>
-                    </>
-                  ) : (
-                    <>
-                      <p className="text-[10px] uppercase tracking-[0.22em] text-white/80">Termin</p>
-                      <p className="text-lg font-bold leading-tight">folgt</p>
-                      <p className="text-[10px] uppercase tracking-[0.22em] text-white/80">&nbsp;</p>
-                    </>
-                  )}
-                </div>
-              </div>
-
-              <div className="relative rounded-xl border border-white/10 bg-white/5 px-4 py-3 backdrop-blur">
-                <div className="flex items-center gap-3 text-sm text-white/80">
-                  <span className="inline-flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-                  {start ? (
-                    <>
-                      <span>Kursstart:</span>
-                      <span className="font-semibold text-white">{start.toLocaleDateString()}</span>
-                    </>
-                  ) : (
-                    <span>Kursstart wird noch bekanntgegeben</span>
-                  )}
-                </div>
-              </div>
-
-              {c.description && (
-                <p className="text-sm text-white/80 leading-relaxed relative">
-                  {c.description}
-                </p>
-              )}
-            </div>
-          );
-        })}
+    <div className="space-y-8">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 bg-white/10 border border-white/15 rounded-xl p-6 shadow-lg relative overflow-hidden">
+        <div className="space-y-1">
+          <p className="text-[12px] uppercase tracking-[0.28em] text-pink-200 mb-1">Willkommen</p>
+          <p className="text-2xl font-semibold text-white">
+            Hallo {student?.name ?? (user?.user_metadata as any)?.full_name ?? 'Teilnehmer'}, schön dass du da bist.
+          </p>
+          <p className="text-sm text-white/80 mt-1">Deine Übersicht</p>
+        </div>
+        <div className="relative">
+          <div className="absolute -right-10 -top-10 h-32 w-32 bg-pink-500/30 rounded-full blur-3xl animate-pulse" />
+          <div className="rounded-2xl bg-gradient-to-r from-pink-500 via-rose-500 to-purple-600 text-white px-6 py-5 shadow-2xl ring-2 ring-white/30 min-w-[240px] text-center transform hover:scale-[1.02] transition">
+            <p className="text-[11px] uppercase tracking-[0.24em] text-white/80 mb-2">Noch</p>
+            <p className="text-3xl font-extrabold leading-tight drop-shadow-lg animate-pulse">
+              {start && days !== null && days >= 0 ? `${days} Tage` : start ? 'läuft / vorbei' : '—'}
+            </p>
+            <p className="text-[11px] uppercase tracking-[0.24em] text-white/80 mt-2">bis Kursbeginn</p>
+          </div>
+        </div>
       </div>
 
       <h2 className="text-xl font-semibold text-white">Meine Buchungen</h2>
