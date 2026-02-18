@@ -29,6 +29,28 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(new URL('/login', req.url));
   }
 
+  // Rolle laden (Policy erlaubt Self-Select)
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', session.user.id)
+    .maybeSingle();
+  const role = profile?.role || session.user.user_metadata?.role || null;
+
+  const isAdminPath = pathname.startsWith('/admin');
+  const isAdminApi = pathname.startsWith('/api/admin');
+
+  // Admin-Bereich strikt nur für admin
+  if ((isAdminPath || isAdminApi) && role !== 'admin') {
+    if (isAdminApi) {
+      return NextResponse.json({ error: 'forbidden' }, { status: 403 });
+    }
+    // redirect je nach Rolle
+    if (role === 'teacher') return NextResponse.redirect(new URL('/teacher', req.url));
+    if (role === 'student') return NextResponse.redirect(new URL('/student', req.url));
+    return NextResponse.redirect(new URL('/login', req.url));
+  }
+
   return res;
 }
 
