@@ -80,7 +80,7 @@ export default async function TeacherPage() {
       let participantMap = new Map<string, { name: string; email: string; phone?: string | null }[]>();
       const { data: enrollments } = await service
         .from('course_members')
-        .select('course_id, profiles(full_name, id)')
+        .select('course_id, profiles(full_name, id), created_at')
         .eq('role', 'student')
         .in('course_id', ids);
 
@@ -97,6 +97,7 @@ export default async function TeacherPage() {
         enrollments.forEach((e: any) => {
           const cid = e.course_id as string;
           const stu = studentMap.get(e.profiles?.id) || { name: e.profiles?.full_name ?? 'Teilnehmer', email: '' };
+          (stu as any).booking_date = e.created_at || null;
           const list = participantMap.get(cid) || [];
           list.push(stu);
           participantMap.set(cid, list);
