@@ -53,7 +53,7 @@ export default async function TeacherMaterialsPage() {
       .from('materials')
       .select('id, title, course_id, module_id, module_number, type, storage_path, cover_path, created_at, visibility, courses(title)')
       .in('course_id', courseIds)
-      .in('visibility', ['teachers', 'both']);
+      .or('visibility.eq.teachers,visibility.eq.both,visibility.is.null');
 
     materials = (materialRows || []).map((m) => ({
       id: m.id,
