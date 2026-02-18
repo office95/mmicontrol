@@ -32,8 +32,7 @@ export default function CourseListClient({ courses }: { courses: CourseCard[] })
       {courses.map((c) => (
         <div
           key={c.id}
-          className={`relative rounded-2xl border backdrop-blur bg-gradient-to-br ${colorForDate(c.start_date)} p-5 shadow-lg transition hover:shadow-2xl hover:-translate-y-[2px]`}
-          style={{ backgroundColor: 'transparent' }}
+          className={`relative rounded-2xl border border-white/15 backdrop-blur bg-transparent p-5 shadow-lg transition hover:shadow-2xl hover:-translate-y-[2px]`}
         >
           <div className="absolute -right-6 -top-6 h-16 w-16 rounded-full bg-white/20 blur-2xl" />
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
