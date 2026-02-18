@@ -5,6 +5,7 @@ import { useSupabase } from '@/providers/supabase-provider';
 import PartnerModal from '@/components/partner-modal';
 import ButtonLink from '@/components/button-link';
 import { renderStars } from '@/components/star-utils';
+import StatusBadge from '@/components/status-badge';
 
 type Partner = {
   id: string;
@@ -133,63 +134,69 @@ export default function PartnersPage() {
         />
       </div>
 
-      <div className="card p-6 shadow-xl text-slate-900">
+      <div className="card p-6 shadow-xl text-slate-900 space-y-3">
         {loading && <p className="text-sm text-slate-500">Lade Partner...</p>}
         {error && <p className="text-sm text-red-600">{error}</p>}
         {!loading && !filtered.length && <p className="text-sm text-slate-500">Keine Partner vorhanden.</p>}
         <div className="divide-y divide-slate-200">
           {filtered.map((p) => (
-            <div key={p.id} className="py-3 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-              <div className="space-y-1">
-                <button
-                  onClick={() => {
-                    setEditPartner(p);
-                    setOpenModal(true);
-                  }}
-                  className="text-left text-base font-bold text-ink hover:underline"
-                >
-                  {p.name}
-                </button>
-                <p className="text-xs text-slate-500 flex items-center gap-2 flex-wrap">
-                  <span>{p.state ?? '—'} · {p.country ?? '—'}</span>
-                  {p.active_courses !== undefined && (
-                    <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[11px]">
-                      ● Aktive Kurse: {p.active_courses}
-                    </span>
-                  )}
-                  {p.rating_avg !== null && p.rating_avg !== undefined && (
-                    <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-pink-50 text-pink-700 border border-pink-200 text-[11px]">
-                      {renderStars(p.rating_avg)}
-                      <span className="font-semibold">{p.rating_avg.toFixed(1)}</span>
-                    </span>
-                  )}
-                </p>
-              </div>
-              <div className="flex items-center gap-2 text-xs">
-                <button
-                  className="px-3 py-1 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100"
-                  onClick={() => {
-                    setEditPartner(p);
-                    setOpenModal(true);
-                  }}
-                >
-                  Bearbeiten
-                </button>
-                <button
-                  className="px-3 py-1 rounded-lg border border-red-300 text-red-600 hover:bg-red-50"
-                  onClick={async () => {
-                    if (!confirm('Diesen Partner wirklich löschen?')) return;
-                    const res = await fetch(`/api/admin/partners?id=${p.id}`, { method: 'DELETE' });
-                    if (res.ok) {
-                      load();
-                    } else {
-                      const d = await res.json().catch(() => ({}));
-                      alert(d.error || 'Löschen fehlgeschlagen');
-                    }
-                  }}
-                >
-                  Löschen
-                </button>
+            <div key={p.id} className="py-4 flex flex-col gap-3">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <button
+                      onClick={() => {
+                        setEditPartner(p);
+                        setOpenModal(true);
+                      }}
+                      className="text-left text-lg font-bold text-ink hover:underline"
+                    >
+                      {p.name}
+                    </button>
+                    <StatusBadge status={p.status} />
+                  </div>
+                  <p className="text-sm text-slate-600 flex items-center gap-2 flex-wrap">
+                    <span>{p.state ?? '—'} · {p.country ?? '—'}</span>
+                    {p.active_courses !== undefined && (
+                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[11px]">
+                        ● Aktive Kurse: {p.active_courses}
+                      </span>
+                    )}
+                    {p.rating_avg !== null && p.rating_avg !== undefined && (
+                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-pink-50 text-pink-700 border border-pink-200 text-[11px]">
+                        {renderStars(p.rating_avg)}
+                        <span className="font-semibold">{p.rating_avg.toFixed(1)}</span>
+                      </span>
+                    )}
+                  </p>
+                  <p className="text-xs text-slate-500">Angelegt am {new Date(p.created_at).toLocaleDateString()}</p>
+                </div>
+                <div className="flex items-center gap-2 text-xs">
+                  <button
+                    className="px-3 py-2 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100"
+                    onClick={() => {
+                      setEditPartner(p);
+                      setOpenModal(true);
+                    }}
+                  >
+                    Bearbeiten
+                  </button>
+                  <button
+                    className="px-3 py-2 rounded-lg border border-red-300 text-red-600 hover:bg-red-50"
+                    onClick={async () => {
+                      if (!confirm('Diesen Partner wirklich löschen?')) return;
+                      const res = await fetch(`/api/admin/partners?id=${p.id}`, { method: 'DELETE' });
+                      if (res.ok) {
+                        load();
+                      } else {
+                        const d = await res.json().catch(() => ({}));
+                        alert(d.error || 'Löschen fehlgeschlagen');
+                      }
+                    }}
+                  >
+                    Löschen
+                  </button>
+                </div>
               </div>
             </div>
           ))}
