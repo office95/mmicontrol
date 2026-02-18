@@ -114,7 +114,7 @@ export default async function TeacherPage() {
   // Nächster Kurs für Countdown
   const nextCourse = (courses || [])
     .filter((c) => c.start_date)
-    .sort((a, b) => new Date(c.start_date as string | number).getTime() - new Date(b.start_date as string | number).getTime())[0];
+    .sort((a, b) => new Date(a.start_date as string | number).getTime() - new Date(b.start_date as string | number).getTime())[0];
   const nextStart = nextCourse?.start_date ? new Date(nextCourse.start_date) : null;
   const daysRemaining = nextStart ? Math.ceil((nextStart.getTime() - Date.now()) / (1000 * 60 * 60 * 24)) : null;
 
