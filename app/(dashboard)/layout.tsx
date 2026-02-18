@@ -70,6 +70,14 @@ export default async function DashboardLayout({ children }: { children: ReactNod
 
   const permissions = await getPermissions(roleLabel);
 
+  // Admin: fehlende Slugs automatisch freischalten
+  if (roleLabel === 'admin' && PAGES.length) {
+    await service.from('role_permissions').upsert(
+      PAGES.map((p) => ({ role: 'admin', page_slug: p.slug, allowed: true })),
+      { onConflict: 'role,page_slug' }
+    );
+  }
+
   const links = [
     { href: '/admin', label: 'Dashboard', roles: ['admin'], slug: 'admin-dashboard', pin: 'top' },
     { href: '/admin/course-dates', label: 'Kurstermine', roles: ['admin'], slug: 'course-dates' },
