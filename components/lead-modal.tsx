@@ -60,7 +60,6 @@ export type LeadRow = {
   newsletter?: boolean;
   status?: string | null;
   notes?: { created_at: string; text: string; todo?: string }[];
-  birthdate?: string | null;
 };
 
 export default function LeadModal({
