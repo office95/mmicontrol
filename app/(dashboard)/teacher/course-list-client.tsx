@@ -1,5 +1,7 @@
 'use client';
 
+import { useState } from 'react';
+
 type Participant = { name: string; email: string; phone?: string | null; booking_date?: string | null };
 type CourseCard = {
   id: string;
