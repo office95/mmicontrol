@@ -104,11 +104,16 @@ export default async function TeacherPage() {
         });
       }
 
-      courses = courses.map((c) => ({
-        ...c,
-        start_date: dateMap.get(c.id) ?? null,
-        participants: participantMap.get(c.id) || [],
-      }));
+      courses = courses
+        .map((c) => ({
+          ...c,
+          start_date: dateMap.get(c.id) ?? null,
+          participants: participantMap.get(c.id) || [],
+        }))
+        // Nur Kurse mit Termin anzeigen
+        .filter((c) => c.start_date)
+        // Nach nächstem Termin sortieren (aufsteigend)
+        .sort((a, b) => new Date(a.start_date as string).getTime() - new Date(b.start_date as string).getTime());
     }
   }
 
