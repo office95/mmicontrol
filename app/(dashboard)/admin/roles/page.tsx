@@ -15,6 +15,13 @@ type TeacherRow = {
   partner_name: string | null;
   courses: { id: string; title: string }[];
 };
+type MemberRow = {
+  id: string;
+  full_name: string | null;
+  email: string | null;
+  role: Role;
+  approved?: boolean;
+};
 type Partner = { id: string; name: string | null };
 type Course = { id: string; title: string };
 
@@ -36,7 +43,7 @@ const PAGES = [
 export default function RolesPage() {
   const { supabase } = useSupabase();
   const router = useRouter();
-  const [tab, setTab] = useState<'pages' | 'teachers'>('pages');
+  const [tab, setTab] = useState<'pages' | 'teachers' | 'members'>('pages');
   const [perms, setPerms] = useState<PermissionRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -44,6 +51,8 @@ export default function RolesPage() {
   const [partners, setPartners] = useState<Partner[]>([]);
   const [courses, setCourses] = useState<Course[]>([]);
   const [savingTeacher, setSavingTeacher] = useState<string | null>(null);
+  const [members, setMembers] = useState<MemberRow[]>([]);
+  const [savingMember, setSavingMember] = useState<string | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -56,14 +65,16 @@ export default function RolesPage() {
       setPerms(data);
       setError(null);
     }
-    const [tRes, pRes, cRes] = await Promise.all([
+    const [tRes, pRes, cRes, mRes] = await Promise.all([
       fetch('/api/admin/teachers'),
       fetch('/api/admin/partners'),
       fetch('/api/admin/courses?minimal=1'),
+      fetch('/api/admin/members'),
     ]);
     if (tRes.ok) setTeachers(await tRes.json());
     if (pRes.ok) setPartners(await pRes.json());
     if (cRes.ok) setCourses(await cRes.json());
+    if (mRes.ok) setMembers(await mRes.json());
     setLoading(false);
   };
 
@@ -108,6 +119,36 @@ export default function RolesPage() {
     setSavingTeacher(null);
   };
 
+  const handleMemberRole = async (memberId: string, role: Role) => {
+    setSavingMember(memberId);
+    const res = await fetch('/api/admin/members', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: memberId, role }),
+    });
+    if (res.ok) {
+      const refreshed = await fetch('/api/admin/members').then((r) => r.json());
+      setMembers(refreshed);
+    } else {
+      const d = await res.json().catch(() => ({}));
+      setError(d.error || 'Speichern fehlgeschlagen');
+    }
+    setSavingMember(null);
+  };
+
+  const handleMemberDelete = async (memberId: string) => {
+    if (!confirm('Member wirklich löschen?')) return;
+    setSavingMember(memberId);
+    const res = await fetch(`/api/admin/members?id=${memberId}`, { method: 'DELETE' });
+    if (res.ok) {
+      setMembers((prev) => prev.filter((m) => m.id !== memberId));
+    } else {
+      const d = await res.json().catch(() => ({}));
+      setError(d.error || 'Löschen fehlgeschlagen');
+    }
+    setSavingMember(null);
+  };
+
   const courseOptions = useMemo(
     () => courses.sort((a, b) => (a.title || '').localeCompare(b.title || '')),
     [courses]
@@ -136,6 +177,12 @@ export default function RolesPage() {
           onClick={() => setTab('teachers')}
         >
           Dozenten
+        </button>
+        <button
+          className={`pb-2 ${tab === 'members' ? 'text-white border-b-2 border-pink-500' : 'text-slate-400'}`}
+          onClick={() => setTab('members')}
+        >
+          Members
         </button>
       </div>
 
@@ -244,6 +291,48 @@ export default function RolesPage() {
                   </p>
                 </div>
                 {savingTeacher === t.id && <p className="text-xs text-slate-500">Speichern...</p>}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {tab === 'members' && (
+        <div className="card p-6 shadow-xl text-slate-900 space-y-4">
+          {loading && <p className="text-sm text-slate-500">Lade...</p>}
+          {error && <p className="text-sm text-red-600">{error}</p>}
+          {!loading && members.length === 0 && (
+            <p className="text-sm text-slate-500">Keine Members gefunden.</p>
+          )}
+          <div className="grid md:grid-cols-2 gap-4">
+            {members.map((m) => (
+              <div key={m.id} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm space-y-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-semibold text-ink">{m.full_name || 'Ohne Name'}</p>
+                    <p className="text-xs text-slate-500">{m.email ?? '—'}</p>
+                  </div>
+                  <span className="px-2 py-1 text-[11px] rounded-full bg-slate-100 text-slate-700 border border-slate-200">{m.role}</span>
+                </div>
+                <div className="flex items-center gap-2 text-xs">
+                  {(['admin','teacher','student'] as Role[]).map((r) => (
+                    <button
+                      key={r}
+                      className={`px-3 py-1 rounded-lg border ${m.role === r ? 'border-pink-300 text-pink-700 bg-pink-50' : 'border-slate-300 text-slate-700 hover:bg-slate-100'}`}
+                      onClick={() => handleMemberRole(m.id, r)}
+                      disabled={savingMember === m.id}
+                    >
+                      {r}
+                    </button>
+                  ))}
+                  <button
+                    className="ml-auto px-3 py-1 rounded-lg border border-red-300 text-red-600 hover:bg-red-50"
+                    onClick={() => handleMemberDelete(m.id)}
+                    disabled={savingMember === m.id}
+                  >
+                    Löschen
+                  </button>
+                </div>
               </div>
             ))}
           </div>
