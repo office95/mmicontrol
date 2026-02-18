@@ -46,6 +46,7 @@ export async function POST(req: Request) {
     name,
     email,
     phone,
+    birthdate,
     country,
     state,
     interest_courses = [],
@@ -83,6 +84,7 @@ export async function POST(req: Request) {
       requested_at: requested_at || new Date().toISOString().slice(0, 10),
       status,
       notes,
+      birthdate,
     })
     .select(baseSelect)
     .single();

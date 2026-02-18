@@ -48,6 +48,7 @@ export type LeadRow = {
   name: string;
   email?: string | null;
   phone?: string | null;
+  birthdate?: string | null;
   country?: string | null;
   state?: string | null;
   interest_courses?: string[];
@@ -59,6 +60,7 @@ export type LeadRow = {
   newsletter?: boolean;
   status?: string | null;
   notes?: { created_at: string; text: string; todo?: string }[];
+  birthdate?: string | null;
 };
 
 export default function LeadModal({
@@ -78,6 +80,7 @@ export default function LeadModal({
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const [birthdate, setBirthdate] = useState('');
   const [country, setCountry] = useState<'Österreich' | 'Deutschland'>('Österreich');
   const [state, setState] = useState('');
   const [interestCourses, setInterestCourses] = useState<string[]>([]);
@@ -111,6 +114,7 @@ export default function LeadModal({
     setName(initial.name || '');
     setEmail(initial.email || '');
     setPhone(initial.phone || '');
+    setBirthdate(initial.birthdate || '');
     setCountry((initial.country as any) || 'Österreich');
     setState(initial.state || '');
     setInterestCourses(initial.interest_courses || []);
@@ -177,6 +181,7 @@ export default function LeadModal({
         newsletter,
         requested_at: requestedAt || new Date().toISOString().slice(0, 10),
         status,
+        birthdate: birthdate || null,
         notes,
       }),
     });
@@ -256,12 +261,20 @@ export default function LeadModal({
               <Field label="Email">
                 <input className="input" value={email} onChange={(e) => setEmail(e.target.value)} />
               </Field>
-              <Field label="Telefon">
-                <input className="input" value={phone} onChange={(e) => setPhone(e.target.value)} />
-              </Field>
-              <Field label="Land">
-                <select className="input" value={country} onChange={(e) => setCountry(e.target.value as any)}>
-                  <option>Österreich</option>
+            <Field label="Telefon">
+              <input className="input" value={phone} onChange={(e) => setPhone(e.target.value)} />
+            </Field>
+            <Field label="Geburtsdatum">
+              <input
+                type="date"
+                className="input"
+                value={birthdate}
+                onChange={(e) => setBirthdate(e.target.value)}
+              />
+            </Field>
+            <Field label="Land">
+              <select className="input" value={country} onChange={(e) => setCountry(e.target.value as any)}>
+                <option>Österreich</option>
                   <option>Deutschland</option>
                 </select>
               </Field>
