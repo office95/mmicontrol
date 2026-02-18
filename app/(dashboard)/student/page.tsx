@@ -82,18 +82,22 @@ export default async function StudentPage({ searchParams }: { searchParams: Reco
   }
 
   // Buchungen (service, OR auf email + student_id)
-  let bookings:
-    | {
-        id: string;
-        booking_date: string | null;
-        status: string;
-        amount: number | null;
-        course_title: string | null;
-        course_start: string | null;
-        partner_name: string | null;
-        student_name?: string | null;
-      }[]
-    | null = [];
+  let bookings: {
+    id: string;
+    booking_code: string | null;
+    booking_date: string | null;
+    status: string;
+    amount: number | null;
+    course_title: string | null;
+    course_start: string | null;
+    partner_name: string | null;
+    student_name?: string | null;
+    vat_rate?: number | null;
+    price_net?: number | null;
+    deposit?: number | null;
+    saldo?: number | null;
+    duration_hours?: number | null;
+  }[] | null = [];
 
   if (loginEmail) {
     const orParts = [`student_email.eq.${loginEmail}`];
@@ -101,11 +105,16 @@ export default async function StudentPage({ searchParams }: { searchParams: Reco
 
     const { data: bookingRows } = await service
       .from('bookings')
-      .select('id, booking_date, status, amount, course_title, course_start, partner_name')
+      .select('id, booking_code, booking_date, status, amount, course_title, course_start, partner_name, student_name, vat_rate, price_net, deposit, saldo, duration_hours')
       .or(orParts.join(','))
       .order('booking_date', { ascending: false });
     bookings = bookingRows || [];
   }
+
+  const bookingId = typeof searchParams?.booking === 'string' ? searchParams.booking : null;
+  const selectedBooking = bookingId
+    ? bookings?.find((b) => b.id === bookingId) || null
+    : null;
 
   const showProfile = searchParams?.profile === '1';
 
@@ -156,8 +165,14 @@ export default async function StudentPage({ searchParams }: { searchParams: Reco
               {b.amount != null && <span className="text-slate-500">· Betrag: {b.amount} €</span>}
               {b.partner_name && <span className="text-slate-500">· Anbieter: {b.partner_name}</span>}
             </div>
-            <div className="text-xs text-slate-500 mt-1">
-              Buchungsdatum: {b.booking_date ? new Date(b.booking_date).toLocaleDateString() : '—'}
+            <div className="text-xs text-slate-500 mt-1 flex items-center gap-3 flex-wrap">
+              <span>Buchungsdatum: {b.booking_date ? new Date(b.booking_date).toLocaleDateString() : '—'}</span>
+              <a
+                href={`/student?booking=${b.id}`}
+                className="inline-flex items-center rounded-md bg-slate-900 text-white px-3 py-1 text-[12px] font-semibold shadow-sm hover:bg-slate-800"
+              >
+                Details
+              </a>
             </div>
           </div>
         ))}
@@ -182,6 +197,49 @@ export default async function StudentPage({ searchParams }: { searchParams: Reco
             : null
         }
       />
+
+      {selectedBooking && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
+          <div className="w-full max-w-3xl rounded-2xl bg-white text-ink shadow-2xl p-6 relative">
+            <button
+              className="absolute top-3 right-3 text-slate-500 hover:text-ink"
+              onClick={() => (window.location.href = '/student')}
+            >
+              ×
+            </button>
+            <h3 className="text-2xl font-semibold mb-4">Kursübersicht</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+              {([
+                ['Kursteilnehmer', selectedBooking.student_name ?? '—'],
+                ['Buchungscode', selectedBooking.booking_code ?? '—'],
+                ['Buchungsdatum', selectedBooking.booking_date ? new Date(selectedBooking.booking_date).toLocaleDateString() : '—'],
+                ['Kurs', selectedBooking.course_title ?? '—'],
+                ['Kursstart', selectedBooking.course_start ? new Date(selectedBooking.course_start).toLocaleDateString() : '—'],
+                ['Anbieter', selectedBooking.partner_name ?? '—'],
+                ['Betrag (Brutto)', selectedBooking.amount != null ? `${Number(selectedBooking.amount).toFixed(2)} €` : '—'],
+                ['USt-Satz', selectedBooking.vat_rate != null ? `${(Number(selectedBooking.vat_rate) * 100).toFixed(1)} %` : '—'],
+                ['Netto', selectedBooking.price_net != null ? `${Number(selectedBooking.price_net).toFixed(2)} €` : '—'],
+                ['Anzahlung', selectedBooking.deposit != null ? `${Number(selectedBooking.deposit).toFixed(2)} €` : '—'],
+                ['Saldo', selectedBooking.saldo != null ? `${Number(selectedBooking.saldo).toFixed(2)} €` : '—'],
+                ['Dauer (h)', selectedBooking.duration_hours != null ? `${selectedBooking.duration_hours} h` : '—'],
+              ] as const).map(([label, value]) => (
+                <div key={label} className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+                  <p className="text-xs uppercase tracking-[0.12em] text-slate-500 mb-1">{label}</p>
+                  <p className="text-[15px] text-slate-800">{value}</p>
+                </div>
+              ))}
+            </div>
+            <div className="mt-6 flex justify-end">
+              <button
+                className="rounded-lg bg-slate-900 text-white px-4 py-2 hover:bg-slate-800"
+                onClick={() => (window.location.href = '/student')}
+              >
+                Schließen
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
