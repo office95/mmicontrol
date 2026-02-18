@@ -169,7 +169,7 @@ export default async function StudentPage({ searchParams }: { searchParams: Reco
               <span>Buchungsdatum: {b.booking_date ? new Date(b.booking_date).toLocaleDateString() : '—'}</span>
               <a
                 href={`/student?booking=${b.id}`}
-                className="inline-flex items-center rounded-md bg-slate-900 text-white px-3 py-1 text-[12px] font-semibold shadow-sm hover:bg-slate-800"
+                className="inline-flex items-center rounded-md bg-pink-600 text-white px-3 py-1 text-[12px] font-semibold shadow-sm hover:bg-pink-700 border border-pink-700"
               >
                 Details
               </a>
