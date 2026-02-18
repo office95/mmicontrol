@@ -32,7 +32,6 @@ export default function StudentsPage() {
   const [search, setSearch] = useState('');
   const [selected, setSelected] = useState<StudentRow | null>(null);
   const [converting, setConverting] = useState(false);
-  const [detailTab, setDetailTab] = useState<'profil' | 'lead' | 'note'>('profil');
 
   const load = async () => {
     setLoading(true);
@@ -50,10 +49,6 @@ export default function StudentsPage() {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [typeFilter]);
-
-  useEffect(() => {
-    setDetailTab('profil');
-  }, [selected?.id]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
