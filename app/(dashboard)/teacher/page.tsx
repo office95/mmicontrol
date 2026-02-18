@@ -1,5 +1,6 @@
 import { createSupabaseServerClient } from '@/lib/supabase-server';
 import { createClient } from '@supabase/supabase-js';
+import CourseListClient from './course-list-client';
 
 export default async function TeacherPage() {
   const supabase = createSupabaseServerClient();
@@ -23,6 +24,8 @@ export default async function TeacherPage() {
         title: string;
         description: string | null;
         start_date?: string | null;
+        duration_hours?: number | null;
+        participants: { name: string; email: string; phone?: string | null }[];
       }[]
     | null = [];
 
@@ -38,7 +41,7 @@ export default async function TeacherPage() {
     if (ids.length) {
       const { data: courseRows } = await service
         .from('courses')
-        .select('id, title, description')
+        .select('id, title, description, duration_hours')
         .in('id', ids);
       courses = courseRows || [];
 
@@ -66,9 +69,37 @@ export default async function TeacherPage() {
         }
       });
 
+      // Teilnehmer je Kurs laden (students auf Grund der Buchungen/Zuordnung)
+      let participantMap = new Map<string, { name: string; email: string; phone?: string | null }[]>();
+      const { data: enrollments } = await service
+        .from('course_members')
+        .select('course_id, profiles(full_name, id)')
+        .eq('role', 'student')
+        .in('course_id', ids);
+
+      if (enrollments?.length) {
+        const studentIds = Array.from(new Set(enrollments.map((e: any) => e.profiles?.id).filter(Boolean)));
+        let studentMap = new Map<string, { name: string; email: string; phone?: string | null }>();
+        if (studentIds.length) {
+          const { data: studentRows } = await service
+            .from('students')
+            .select('id, name, email, phone')
+            .in('id', studentIds);
+          studentRows?.forEach((s) => studentMap.set(s.id, { name: s.name ?? s.email ?? 'Teilnehmer', email: s.email ?? '', phone: s.phone }));
+        }
+        enrollments.forEach((e: any) => {
+          const cid = e.course_id as string;
+          const stu = studentMap.get(e.profiles?.id) || { name: e.profiles?.full_name ?? 'Teilnehmer', email: '' };
+          const list = participantMap.get(cid) || [];
+          list.push(stu);
+          participantMap.set(cid, list);
+        });
+      }
+
       courses = courses.map((c) => ({
         ...c,
         start_date: dateMap.get(c.id) ?? null,
+        participants: participantMap.get(c.id) || [],
       }));
     }
   }
@@ -106,25 +137,14 @@ export default async function TeacherPage() {
       </div>
 
       <div className="space-y-3">
-        <h2 className="text-xl font-semibold text-white">Meine Kurse</h2>
-        <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
-          {(courses ?? []).map((c) => (
-            <div key={c.id} className="card p-5 space-y-2 bg-white text-ink shadow-md border border-slate-100">
-              <p className="text-xs uppercase tracking-[0.14em] text-slate-500">Kurs</p>
-              <h3 className="text-xl font-semibold text-ink">{c.title}</h3>
-              <p className="text-slate-600 text-sm">{c.description}</p>
-              <p className="text-sm text-slate-500">
-                Nächster Start:{' '}
-                {c.start_date ? new Date(c.start_date).toLocaleDateString() : 'kein Termin'}
-              </p>
-            </div>
-          ))}
-          {!courses?.length && (
-            <p className="text-slate-200 bg-white/5 border border-white/10 rounded-lg p-4">
-              Noch keine Kurse zugewiesen.
-            </p>
-          )}
-        </div>
+        <h2 className="text-xl font-semibold text-white">Meine Kurse & Teilnehmer</h2>
+        {courses && courses.length > 0 ? (
+          <CourseListClient courses={courses} />
+        ) : (
+          <p className="text-slate-200 bg-white/5 border border-white/10 rounded-lg p-4">
+            Noch keine Kurse zugewiesen.
+          </p>
+        )}
       </div>
     </div>
   );
