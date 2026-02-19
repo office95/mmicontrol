@@ -230,6 +230,8 @@ export default async function TeacherPage() {
     };
     (leads || []).forEach((l: any) => {
       const valName = (l as any).interest_name;
+      const valCourses = (l as any).interest_courses;
+
       const handleName = (x: any) => {
         const raw = x?.toString().trim();
         if (!raw) return;
