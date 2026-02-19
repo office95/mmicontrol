@@ -168,9 +168,9 @@ export default function StudentsPage() {
                   {statusLabel[s.status] ?? s.status} · Angelegt: {new Date(s.created_at).toLocaleDateString()}
                 </p>
               </div>
-              <div className="flex flex-col md:flex-row items-start md:items-center gap-3 md:gap-4">
-                <BookingCard booking={s.latest_booking} />
-                <div className="flex items-center gap-2 text-xs">
+              <div className="w-full grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-3 items-start">
+                <BookingRow booking={s.latest_booking} />
+                <div className="flex items-center gap-2 text-xs justify-start lg:justify-end">
                   <button
                     className="px-3 py-1 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100"
                     onClick={() => openFor(s)}
@@ -225,40 +225,50 @@ export default function StudentsPage() {
   );
 }
 
-function BookingCard({ booking }: { booking?: StudentListRow['latest_booking'] }) {
-  if (!booking) {
-    return (
-      <div className="min-w-[240px] rounded-2xl border border-white/15 bg-white/10 backdrop-blur-xl px-4 py-3 text-white shadow-lg">
-        <p className="text-[11px] uppercase tracking-[0.16em] text-white/70 mb-1">Letzte Buchung</p>
-        <p className="text-sm text-white/70">Keine Buchung vorhanden.</p>
-      </div>
-    );
-  }
-  const statusColor =
-    booking.status === 'abgeschlossen'
-      ? 'bg-emerald-500/15 text-emerald-100 border-emerald-300/30'
-      : booking.status?.includes('Mahnung')
-        ? 'bg-amber-500/15 text-amber-100 border-amber-300/30'
-        : 'bg-white/10 text-white border-white/20';
-  const openTone = booking.open_amount <= 0 ? 'text-emerald-100' : 'text-amber-100';
+function BookingRow({ booking }: { booking?: StudentListRow['latest_booking'] }) {
+  const chips = booking
+    ? [
+        { label: 'Kurs', value: booking.course_title ?? '—' },
+        { label: 'Start', value: booking.course_start ? new Date(booking.course_start).toLocaleDateString() : '—' },
+        { label: 'Anbieter', value: booking.partner_name ?? '—' },
+        { label: 'Status', value: booking.status ?? '—' },
+        {
+          label: 'Saldo',
+          value: `${(booking.open_amount ?? 0).toFixed(2)} €`,
+          tone: (booking.open_amount ?? 0) <= 0 ? 'good' : 'warn',
+        },
+      ]
+    : [
+        { label: 'Kurs', value: '—' },
+        { label: 'Start', value: '—' },
+        { label: 'Anbieter', value: '—' },
+        { label: 'Status', value: '—' },
+        { label: 'Saldo', value: '—' },
+      ];
 
   return (
-    <div className="min-w-[260px] rounded-2xl border border-white/15 bg-gradient-to-br from-white/12 via-white/6 to-white/2 backdrop-blur-2xl px-4 py-3 text-white shadow-xl">
-      <div className="flex items-center justify-between mb-1">
-        <p className="text-[11px] uppercase tracking-[0.16em] text-white/70">Letzte Buchung</p>
-        <span className={`text-[11px] px-2 py-1 rounded-full border ${statusColor}`}>
-          {booking.status ?? '—'}
-        </span>
+    <div className="w-full overflow-hidden rounded-2xl border border-white/12 bg-white/8 backdrop-blur-xl shadow-lg">
+      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-0 divide-x divide-white/10 text-sm text-white">
+        {chips.map((c, idx) => (
+          <div key={idx} className="p-3">
+            <p className="text-[11px] uppercase tracking-[0.14em] text-white/60 mb-1">{c.label}</p>
+            <p
+              className={`font-semibold ${
+                c.tone === 'good' ? 'text-emerald-100' : c.tone === 'warn' ? 'text-amber-100' : 'text-white'
+              }`}
+            >
+              {c.value}
+            </p>
+          </div>
+        ))}
       </div>
-      <p className="text-base font-semibold leading-tight">{booking.course_title ?? '—'}</p>
-      <p className="text-xs text-white/70 mb-2">
-        {booking.course_start ? new Date(booking.course_start).toLocaleDateString() : '—'} · {booking.partner_name ?? '—'}
-      </p>
-      <div className="flex items-center gap-3 text-sm font-semibold">
-        <span className="text-white/80">Saldo</span>
-        <span className={openTone}>{booking.open_amount.toFixed(2)} €</span>
-        <span className="text-white/50 text-xs">({booking.paid_total.toFixed(2)} € bezahlt)</span>
-      </div>
+      {booking && (
+        <div className="px-3 py-2 text-[11px] text-white/60 flex items-center gap-3 bg-white/5 border-t border-white/10">
+          <span>Bezahlt: {(booking.paid_total ?? 0).toFixed(2)} €</span>
+          <span className="h-1 w-1 rounded-full bg-white/40" />
+          <span>Betrag: {(booking.amount ?? 0).toFixed(2)} €</span>
+        </div>
+      )}
     </div>
   );
 }
