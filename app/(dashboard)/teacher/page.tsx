@@ -219,7 +219,9 @@ export default async function TeacherPage() {
       if (d.getFullYear() === prevYear) yearBookingsPrev++;
     });
 
-    // Interests aus Leads.interest_name + Bookings.course_title
+    // Interests aus Leads.interest_name (+ ggf. ID->Titel) + Bookings.course_title
+    const courseTitleMap = new Map<string, string>();
+    (courses || []).forEach((c) => courseTitleMap.set(c.id, c.title));
     const freq: Record<string, number> = {};
     const inc = (key: string) => {
       const k = key?.toString().trim();
@@ -231,7 +233,11 @@ export default async function TeacherPage() {
       const handle = (x: any) => {
         const raw = x?.toString().trim();
         if (!raw) return;
-        inc(raw);
+        const mapped =
+          courseTitleMap.get(raw) ||
+          (/[0-9a-fA-F-]{36}/.test(raw) ? courseTitleMap.get(raw) : null) ||
+          raw;
+        inc(mapped);
       };
       if (Array.isArray(val)) val.forEach(handle);
       else if (typeof val === 'string') val.split(/[,;\n]+/).forEach(handle);
