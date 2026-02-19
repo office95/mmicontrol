@@ -1,67 +1,62 @@
-# LearnSpace (Music Mission Institute)
+# Music Mission Control – Dev Handbuch
 
-## Überblick (Stand: 17.02.2026)
-- Rollen: `admin`, `teacher`, `student`; neue User brauchen Admin-Approval (`profiles.approved`).
-- Tech: Next.js 14 (App Router), TypeScript, Tailwind, Supabase (Auth/DB/Storage), supabase-js v2.
-- Layout: Dunkler Gradient, Glas-Sidebar, Header mit Rollenanzeige.
-- Hauptseiten: `/admin`, `/admin/courses`, `/admin/materials`, `/admin/roles`, `/teacher`, `/student`.
+## Stack
+- Next.js 14, Tailwind CSS, TypeScript
+- Supabase (Auth, DB, RLS, Storage)
+- Deployment: Vercel; DB/Storage remain on Supabase
 
-## Features
-- **Auth**: E-Mail/Passwort. Seiten: `/login`, `/register`, `/forgot` (Reset-Mail), `/reset` (neues Passwort).
-- **Kurse**: CRUD, Preis Brutto/Netto, USt %, USt-Betrag €, Anzahlung, Saldo, Kategorie, Status (aktiv/inaktiv), Archiv/Reactivate.
-- **Materialien**: `/admin/materials`, Modal mit Kurs-Dropdown, mehreren Zeilen (Titel, Modul 1–20, Sichtbarkeit, Datei, Cover). Liste mit Archivieren/Löschen.
-- **RBAC**: Tabelle `role_permissions` (unique role+page_slug). UI `/admin/roles` toggelt Sichtbarkeit. Sidebar + Middleware respektieren die Flags.
-- **Rollenanzeige**: Header + Sidebar zeigen aktuelle Rolle.
-
-## ENV (.env.local)
+## Lokales Setup
+1) `.env.local` anlegen
 ```
-NEXT_PUBLIC_SUPABASE_URL=https://<project>.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon_key>
-SUPABASE_URL=https://<project>.supabase.co
-SUPABASE_ANON_KEY=<anon_key>
-SUPABASE_SERVICE_ROLE_KEY=<service_role_key>
-NEXT_PUBLIC_APP_URL=http://localhost:3011
+NEXT_PUBLIC_SUPABASE_URL=...
+NEXT_PUBLIC_SUPABASE_ANON_KEY=...
+SUPABASE_URL=...
+SUPABASE_ANON_KEY=...
+SUPABASE_SERVICE_ROLE_KEY=...
 ```
-Ports/Domain anpassen; Supabase Auth Redirect auf `/reset`.
-
-## Dev-Server
+2) Install & Start
 ```
-cd ~/Desktop/Learnspace
-npm run dev -- --hostname 127.0.0.1 --port 3011
+npm install
+npm run dev
 ```
-Bei Konflikt Port anpassen und `NEXT_PUBLIC_APP_URL`/Redirects mitziehen.
+Läuft auf http://localhost:3000 (Port-Konflikte vorher beenden).
 
-## Rollen & Rechte
-- Slugs: `admin-dashboard` (/admin), `admin-roles` (/admin/roles), `courses` (/admin/courses), `materials` (/admin/materials), `teacher-dashboard` (/teacher), `student-dashboard` (/student).
-- `/admin/roles` toggelt `role_permissions`; Sidebar filtert, Middleware blockt Aufruf.
+## RLS / Policies
+- Alle Kern-Tabellen haben RLS aktiviert. Policies liegen in `supabase_policies.sql` (letzte Version mit `cm_self_read`, um Rekursion zu vermeiden).
+- Admin immer volle Rechte über View `v_admin` (profiles.role = 'admin').
+- Materials: Teachers sehen visibility in ('teachers','both'), Students sehen ('students','both') und nur bei Kurszuordnung (course_members).
+- Bookings: Admin full, Teacher nur für eigene Kurstermine, Student für eigene E-Mail / user_id.
 
-## Auth/Reset
-- Supabase Redirect URL: `http://localhost:3011/reset`
-- Site URL: `http://localhost:3011`
+## Navigation & Rollenrechte
+- Seiten-Slugs: `dashboard`, `admin/bookings`, `admin/leads`, `admin/materials`, `admin/partners`, `admin/courses`, `admin/course-dates`, `admin/students`, `admin/members`, `teacher`, `teacher/materials`, `student`, `student/materials`, `partner`.
+- Im Layout werden beim Admin fehlende Slugs automatisch in `role_permissions` erlaubt.
+- Rollensteuerung UI: Seite Rollen & Rechte (Tab Seiten) steuert Sichtbarkeit; neue Seiten erscheinen automatisch, Admin standardmäßig erlaubt.
 
-## Wichtige Dateien
-- `app/(dashboard)/layout.tsx` – Header/Sidebar, Permissions-Filter (Service-Client).
-- `middleware.ts` – prüft Session + `role_permissions`, Redirect bei `allowed=false`.
-- `app/(dashboard)/admin/roles/page.tsx` – Matrix mit Toggles (`router.refresh`).
-- `app/api/admin/permissions/route.ts` – GET/POST Upsert (onConflict role,page_slug), Admin-Check.
-- `components/material-modal.tsx` – Multi-Upload, Kurs-Dropdown, Module 1–20, Cover.
-- `components/admin-course-form.tsx`, `components/admin-course-list.tsx`, `components/course-modal.tsx` – Kurs-CRUD.
-- Auth-Seiten: `app/(auth)/(login|register|forgot|reset)/page.tsx`.
+## Wichtige Screens
+- Admin Dashboard: Partner-KPIs je Partner (Buchungen Monat/Jahr + VJ, Umsatz Monat/Jahr + VJ).
+- Leads & Kursteilnehmer: getrennte Views (Merge verworfen). Leads-Tab behält Notizen/Kanban.
+- Teacher Dashboard: zeigt nur Kurse mit Startdatum, Teilnehmerliste Popups, Kursunterlagen-Filter nach Kurszuordnung.
+- Student Dashboard: Countdown im Hero; Kursunterlagen gleiches Hero mit Countdown.
 
-## DB & Policies (Kurz)
-- Tabellen: `profiles`, `courses`, `modules`, `course_members`, `materials`, `quizzes`, `quiz_questions`, `quiz_attempts`, `integrations`, `role_permissions`.
-- RLS aktiv; Admin via `public.is_admin(uid)` bekommt Vollzugriff.
+## APIs/Routes (Server Actions / API-Routen)
+- `/api/admin/members` (Profiles/Rollen), `/api/admin/permissions` (role_permissions), `/api/admin/bookings`, `/api/teacher/courses` (Teilnehmerlisten), `/api/teacher/materials` (gefiltert nach course_members + visibility).
 
-## Recovery / Admin setzen
+## Deployment
+- Vercel baut Branch `main`. .env Variablen in Vercel hinterlegen (siehe oben).
+- Supabase bleibt Single Source of Truth; Storage-Bucket `materials` privat.
+
+## SQL Helpers
+- Policies anwenden: Datei `supabase_policies.sql` im SQL-Editor ausführen.
+- Aktive Policies listen:
 ```
-update profiles set approved=true, role='admin' where id='UUID';
--- falls Profil fehlt:
-insert into profiles (id, full_name, role, approved)
-values ('UUID','Admin','admin',true)
-on conflict (id) do update set role='admin', approved=true;
+select schemaname, tablename, policyname, cmd
+from pg_policies
+order by schemaname, tablename, policyname;
 ```
 
-## Storage
-- Bucket `materials` (privat). Storage-Policy: Insert nur für Admin (`materials upload admin`).
-- Upload-Pfade: `course/{course_id}/module/{moduleNumber optional}/{timestamp}-{filename}`
+## Offen / ToDo
+- Mögliche spätere Fusion Leads/Kursteilnehmer unter "Kundenstamm" (zurückgestellt).
+- Konsistente UI-Themes weiter verfeinern.
 
+## Kontakt
+Christian Hasenbichler / Music Mission Control
