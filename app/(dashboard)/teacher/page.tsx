@@ -1,7 +1,6 @@
 import { createSupabaseServerClient } from '@/lib/supabase-server';
 import { createClient } from '@supabase/supabase-js';
-import CourseListClient from './course-list-client';
-import TeacherStatsClient from './stats-client';
+import DashboardClient from './dashboard-client';
 
 export default async function TeacherPage() {
   const supabase = createSupabaseServerClient();
@@ -392,19 +391,13 @@ export default async function TeacherPage() {
 
       <div className="space-y-3">
         <h2 className="text-xl font-semibold text-white">Performance-Übersicht</h2>
-        <TeacherStatsClient
+        <DashboardClient
           kpis={{ monthBookings, monthBookingsPrev, yearBookings, yearBookingsPrev }}
           interests={topInterests}
           sources={sources}
           notes={notes}
+          courses={courses || []}
         />
-        {courses && courses.length > 0 ? (
-          <CourseListClient courses={courses} />
-        ) : (
-          <p className="text-slate-200 bg-white/5 border border-white/10 rounded-lg p-4">
-            Noch keine Kurse zugewiesen.
-          </p>
-        )}
       </div>
     </div>
   );
