@@ -12,17 +12,17 @@ export default function CountdownFlip({
   const [flipped, setFlipped] = useState(false);
 
   useEffect(() => {
-    const id = setInterval(() => setFlipped((f) => !f), 3000);
+    const id = setInterval(() => setFlipped((f) => !f), 5000);
     return () => clearInterval(id);
   }, []);
 
-  const frontText = days !== null && days >= 0 ? `${days} Tage` : 'läuft / vorbei';
-  const backText = courseTitle || 'Noch kein Kurs';
+  const frontText = days !== null && days >= 0 ? `Noch ${days} Tage bis Kursbeginn` : 'Kurs läuft / vorbei';
+  const backText = courseTitle ? `Nächster Kurs: ${courseTitle}` : 'Noch kein Kurs geplant';
 
   return (
     <div className="relative h-16 perspective-1000">
       <div
-        className={`absolute inset-0 transition-transform duration-700 [transform-style:preserve-3d] ${
+        className={`absolute inset-0 transition-transform duration-900 ease-[cubic-bezier(0.3,0.7,0.2,1.1)] [transform-style:preserve-3d] ${
           flipped ? '[transform:rotateY(180deg)]' : ''
         }`}
       >
