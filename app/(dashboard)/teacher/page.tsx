@@ -152,9 +152,17 @@ export default async function TeacherPage() {
         start_date: dateMap.get(c.id) ?? null,
         participants: participantMap.get(c.id) || [],
       }))
-      .filter((c) => c.start_date)
-      .sort((a, b) => new Date(a.start_date as string).getTime() - new Date(b.start_date as string).getTime());
+      .sort((a, b) => {
+        const da = cDate(a.start_date);
+        const db = cDate(b.start_date);
+        if (da && db) return da.getTime() - db.getTime();
+        if (da && !db) return -1;
+        if (!da && db) return 1;
+        return a.title.localeCompare(b.title);
+      });
   }
+
+  const cDate = (d: string | null) => (d ? new Date(d) : null);
 
   // Nächster Kurs für Countdown
   const nextCourse = (courses || [])
