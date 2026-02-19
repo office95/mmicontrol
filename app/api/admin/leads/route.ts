@@ -8,7 +8,7 @@ const service = createClient(
 );
 
 const baseSelect =
-  'id, lead_code, salutation, requested_at, name, email, phone, country, state, interest_courses, interest_other, partner_id, source, source_note, lead_quality, newsletter, status, notes, created_at, partner:partners(id,name)';
+  'id, lead_code, salutation, skills, requested_at, name, email, phone, country, state, interest_courses, interest_other, partner_id, source, source_note, lead_quality, newsletter, status, notes, created_at, partner:partners(id,name)';
 
 async function enrich(leads: any[]) {
   // Map course ids to titles for display
@@ -44,6 +44,7 @@ export async function POST(req: Request) {
   const body = await req.json();
   const {
     salutation,
+    skills,
     name,
     email,
     phone,
@@ -71,6 +72,7 @@ export async function POST(req: Request) {
     .insert({
       lead_code,
       salutation,
+      skills,
       name,
       email,
       phone,
@@ -105,6 +107,7 @@ export async function PATCH(req: Request) {
   const update: Record<string, any> = {};
   if ('name' in body) update.name = body.name;
   if ('salutation' in body) update.salutation = body.salutation;
+  if ('skills' in body) update.skills = body.skills;
   if ('email' in body) update.email = body.email;
   if ('phone' in body) update.phone = body.phone;
   if ('country' in body) update.country = body.country;

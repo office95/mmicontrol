@@ -52,6 +52,7 @@ export type LeadRow = {
   birthdate?: string | null;
   country?: string | null;
   state?: string | null;
+  skills?: 'Basic' | 'Advanced' | 'Pro' | null;
   interest_courses?: string[];
   interest_other?: string | null;
   partner_id?: string | null;
@@ -78,6 +79,7 @@ export default function LeadModal({
   const [error, setError] = useState<string | null>(null);
 
   const [salutation, setSalutation] = useState<'Herr' | 'Frau' | 'Firma'>('Herr');
+  const [skills, setSkills] = useState<'Basic' | 'Advanced' | 'Pro'>('Basic');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -113,6 +115,7 @@ export default function LeadModal({
   useEffect(() => {
     if (!initial) return;
     setSalutation((initial.salutation as any) || 'Herr');
+    setSkills((initial.skills as any) || 'Basic');
     setName(initial.name || '');
     setEmail(initial.email || '');
     setPhone(initial.phone || '');
@@ -170,6 +173,7 @@ export default function LeadModal({
       body: JSON.stringify({
         id: initial?.id,
         salutation,
+        skills,
         name,
         email,
         phone,
@@ -267,6 +271,13 @@ export default function LeadModal({
               </Field>
               <Field label="Name*" required>
                 <input className="input" value={name} onChange={(e) => setName(e.target.value)} required />
+              </Field>
+              <Field label="Skills">
+                <select className="input" value={skills} onChange={(e) => setSkills(e.target.value as any)}>
+                  <option value="Basic">Basic</option>
+                  <option value="Advanced">Advanced</option>
+                  <option value="Pro">Pro</option>
+                </select>
               </Field>
               <Field label="Email">
                 <input className="input" value={email} onChange={(e) => setEmail(e.target.value)} />
