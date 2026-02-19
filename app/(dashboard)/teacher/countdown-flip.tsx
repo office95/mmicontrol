@@ -27,7 +27,7 @@ export default function CountdownFlip({
         }`}
       >
         <span className="text-[11px] uppercase tracking-[0.24em] text-white/70">Noch</span>
-        <span className="text-3xl font-extrabold leading-tight drop-shadow-lg text-white animate-pulse">
+        <span className="text-2xl md:text-3xl font-extrabold leading-tight drop-shadow-lg text-white animate-pulse max-w-full text-center px-2 break-words">
           {frontText}
         </span>
         <span className="text-[11px] uppercase tracking-[0.24em] text-white/70">bis Kursbeginn</span>
@@ -37,7 +37,7 @@ export default function CountdownFlip({
           flipped ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`}
       >
-        <span className="text-3xl font-extrabold leading-tight drop-shadow-lg text-white animate-pulse">
+        <span className="text-2xl md:text-3xl font-extrabold leading-tight drop-shadow-lg text-white animate-pulse max-w-full text-center px-4 break-words">
           {backText}
         </span>
       </div>
