@@ -46,17 +46,9 @@ export default async function TeacherPage() {
     }[]
   | null = [];
 
-  // 1) Kurs-IDs ermitteln: zuerst Zuordnung über course_members, dann Partner-Fallback
+  // 1) Kurs-IDs: ausschließlich über Partner (profiles.partner_id)
   let courseIds: string[] = [];
-  if (user?.id) {
-    const { data: memberships } = await service
-      .from('course_members')
-      .select('course_id')
-      .eq('user_id', user.id)
-      .eq('role', 'teacher');
-    courseIds = memberships?.map((m) => m.course_id).filter(Boolean) || [];
-  }
-  if (courseIds.length === 0 && teacherPartner) {
+  if (teacherPartner) {
     const { data: partnerCourses } = await service
       .from('courses')
       .select('id')
