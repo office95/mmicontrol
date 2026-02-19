@@ -328,9 +328,12 @@ export default function LeadModal({
                     onChange={() => toggleInterest(c.id)}
                   />
                   <div className="flex flex-col leading-tight">
-                    <span className="font-semibold">{c.title}</span>
-                    {c.category && (
-                      <span className="text-[11px] text-slate-500">{c.category}</span>
+                    <span className="font-semibold">
+                      {c.title}
+                      {c.category ? ` | ${c.category}` : ''}
+                    </span>
+                    {!c.category && (
+                      <span className="text-[11px] text-slate-500">keine Kategorie</span>
                     )}
                   </div>
                 </label>
