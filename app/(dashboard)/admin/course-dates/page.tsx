@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import ButtonLink from '@/components/button-link';
 import CourseDateModal, { CourseDateRow } from '@/components/course-date-modal';
+import AttendanceModal from '@/components/attendance-modal';
 
 type CourseDateListRow = {
   id: string;
@@ -34,6 +35,7 @@ export default function CourseDatesPage() {
   const [openModal, setOpenModal] = useState(false);
   const [editItem, setEditItem] = useState<CourseDateRow | null>(null);
   const [activeTab, setActiveTab] = useState<'list' | 'timeline'>('list');
+  const [attendanceCourse, setAttendanceCourse] = useState<{ id: string; title: string } | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -142,6 +144,12 @@ export default function CourseDatesPage() {
                   <span className={`px-3 py-1 rounded-full border border-slate-200 ${statusColor[t.status] ?? 'bg-slate-100 text-slate-700'}`}>
                     {t.status}
                   </span>
+                  <button
+                    className="px-3 py-1 rounded-lg border border-emerald-300 text-emerald-700 hover:bg-emerald-50"
+                    onClick={() => setAttendanceCourse({ id: t.course_id || t.id, title: t.course?.title ?? 'Kurs' })}
+                  >
+                    Anwesenheitsliste
+                  </button>
                   <button
                     className="px-3 py-1 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100"
                     onClick={() => {
@@ -321,6 +329,15 @@ export default function CourseDatesPage() {
             setOpenModal(false);
             setEditItem(null);
           }}
+        />
+      )}
+
+      {attendanceCourse && (
+        <AttendanceModal
+          courseId={attendanceCourse.id}
+          courseTitle={attendanceCourse.title}
+          readOnly
+          onClose={() => setAttendanceCourse(null)}
         />
       )}
     </div>
