@@ -124,6 +124,7 @@ export default function ProfileModal({ open, onClose, profile }: Props) {
                 onClick={() => {
                   setEditing(false);
                   setForm({
+                    salutation: (profile?.salutation as any) ?? "Herr",
                     name: profile?.name ?? "",
                     street: profile?.street ?? "",
                     zip: profile?.zip ?? "",
