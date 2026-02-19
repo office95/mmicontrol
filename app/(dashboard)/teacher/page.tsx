@@ -196,15 +196,12 @@ export default async function TeacherPage() {
     // Students nur aus relevanten Buchungen (Partner-Scope erfolgt über scopedBookings)
     const studentsAll = studentsBookings || [];
 
-    // Leads mit Partner für Quellen / Skills (statt note) – '*' um Schema-Mismatches zu vermeiden
-    const leads = teacherPartner
-      ? (
-          await service
-            .from('leads')
-            .select('*')
-            .eq('partner_id', teacherPartner)
-        ).data || []
-      : [];
+    // Alle Leads (service role, daher keine RLS-Beschränkung) für Interessen / Quellen
+    const leads = (
+      await service
+        .from('leads')
+        .select('*')
+    ).data || [];
 
 
     const isSameMonthYear = (d: Date, year: number, month: number) => d.getFullYear() === year && d.getMonth() === month;
