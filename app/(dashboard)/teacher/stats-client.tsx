@@ -1,9 +1,6 @@
 'use client';
 
 import { useMemo } from 'react';
-import dynamic from 'next/dynamic';
-
-const Chart = dynamic(() => import('react-apexcharts'), { ssr: false });
 
 type KPIs = {
   monthBookings: number;
@@ -20,34 +17,8 @@ export default function TeacherStatsClient({ kpis, interests, sources, notes }: 
 }) {
   const interestTags = interests.slice(0, 8);
 
-  const sourceChart = useMemo(() => ({
-    series: sources.map((s) => Number(s.value.toFixed(2))),
-    options: {
-      chart: { type: 'donut', toolbar: { show: false }, background: 'transparent' },
-      labels: sources.map((s) => s.label),
-      legend: { position: 'bottom', labels: { colors: '#e2e8f0' } },
-      dataLabels: { enabled: false },
-      tooltip: { y: { formatter: (v: number) => `${v.toFixed(1)}%` } },
-      stroke: { width: 0 },
-      colors: ['#22d3ee', '#a855f7', '#f97316', '#f43f5e', '#10b981', '#64748b'],
-    },
-  }), [sources]);
-
-  const notesChart = useMemo(() => ({
-    series: [{ data: notes.map((n) => Number(n.value.toFixed(2))) }],
-    options: {
-      chart: { type: 'bar', toolbar: { show: false }, background: 'transparent' },
-      xaxis: {
-        categories: notes.map((n) => n.label),
-        labels: { style: { colors: '#e2e8f0', fontSize: '12px' } },
-      },
-      yaxis: { labels: { style: { colors: '#e2e8f0' } } },
-      tooltip: { y: { formatter: (v: number) => `${v.toFixed(1)}%` } },
-      colors: ['#f472b6'],
-      grid: { borderColor: 'rgba(255,255,255,0.08)' },
-      dataLabels: { enabled: false },
-    },
-  }), [notes]);
+  const sourceDonut = useMemo(() => buildDonut(sources), [sources]);
+  const notesBars = useMemo(() => buildBars(notes), [notes]);
 
   return (
     <div className="space-y-4">
@@ -60,28 +31,21 @@ export default function TeacherStatsClient({ kpis, interests, sources, notes }: 
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <Card title="Leads-Quellen" className="lg:col-span-1">
-          {sources.length ? (
-            <Chart options={sourceChart.options as any} series={sourceChart.series} type="donut" height={260} />
-          ) : (
-            <Empty>Keine Daten</Empty>
-          )}
+          {sourceDonut ? <DonutChart {...sourceDonut} /> : <Empty>Keine Daten</Empty>}
         </Card>
         <Card title="Erfahrungen (note)" className="lg:col-span-2">
-          {notes.length ? (
-            <Chart options={notesChart.options as any} series={notesChart.series} type="bar" height={260} />
-          ) : (
-            <Empty>Keine Daten</Empty>
-          )}
+          {notesBars ? <BarChart {...notesBars} /> : <Empty>Keine Daten</Empty>}
         </Card>
       </div>
 
       <Card title="Top Interessen" className="">
         {interestTags.length ? (
           <div className="flex flex-wrap gap-2">
-            {interestTags.map((i) => (
+            {interestTags.map((i, idx) => (
               <span
                 key={i.label}
                 className="px-3 py-1 rounded-full border border-white/20 bg-white/10 text-white text-sm backdrop-blur"
+                style={{ borderColor: palette[idx % palette.length] + '33', color: '#fff' }}
               >
                 {i.label} · {i.count}x
               </span>
@@ -121,4 +85,88 @@ function Card({ title, className, children }: { title: string; className?: strin
 
 function Empty({ children }: { children: React.ReactNode }) {
   return <p className="text-sm text-white/70">{children}</p>;
+}
+
+// Donut
+const palette = ['#22d3ee', '#a855f7', '#f97316', '#f43f5e', '#10b981', '#64748b', '#c084fc'];
+
+type DonutData = { total: number; segments: { color: string; from: number; to: number; label: string; value: number }[] };
+
+function buildDonut(data: { label: string; value: number }[]): DonutData | null {
+  if (!data || !data.length) return null;
+  const total = data.reduce((s, d) => s + d.value, 0) || 1;
+  let acc = 0;
+  const segments = data.map((d, i) => {
+    const from = acc;
+    acc += d.value;
+    return {
+      color: palette[i % palette.length],
+      from: (from / total) * 360,
+      to: (acc / total) * 360,
+      label: d.label,
+      value: d.value,
+    };
+  });
+  return { total, segments };
+}
+
+function DonutChart({ total, segments }: DonutData) {
+  const gradient = segments
+    .map((s) => `${s.color} ${s.from.toFixed(2)}deg ${s.to.toFixed(2)}deg`)
+    .join(', ');
+  return (
+    <div className="flex flex-col items-center gap-3">
+      <div className="relative h-56 w-56">
+        <div
+          className="h-full w-full rounded-full"
+          style={{
+            background: `conic-gradient(${gradient})`,
+          }}
+        />
+        <div className="absolute inset-6 rounded-full bg-slate-900/70 backdrop-blur flex items-center justify-center text-white text-lg font-semibold">
+          100%
+        </div>
+      </div>
+      <div className="flex flex-wrap justify-center gap-2 text-xs text-white/80">
+        {segments.map((s, idx) => (
+          <span key={idx} className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-white/10 border border-white/15">
+            <span className="h-2 w-2 rounded-full" style={{ background: s.color }} />
+            {s.label} {(s.value / total * 100).toFixed(1)}%
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// Bars
+
+type BarData = { bars: { label: string; value: number; color: string }[] };
+
+function buildBars(data: { label: string; value: number }[]): BarData | null {
+  if (!data || !data.length) return null;
+  return {
+    bars: data.map((d, i) => ({ label: d.label, value: d.value, color: palette[i % palette.length] })),
+  };
+}
+
+function BarChart({ bars }: BarData) {
+  return (
+    <div className="space-y-3">
+      {bars.map((b, idx) => (
+        <div key={idx} className="space-y-1">
+          <div className="flex items-center justify-between text-xs text-white/80">
+            <span>{b.label}</span>
+            <span>{b.value.toFixed(1)}%</span>
+          </div>
+          <div className="h-2 rounded-full bg-white/10 overflow-hidden">
+            <div
+              className="h-full rounded-full"
+              style={{ width: `${Math.min(100, b.value)}%`, background: b.color }}
+            />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
 }
