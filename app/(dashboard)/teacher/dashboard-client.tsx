@@ -22,7 +22,7 @@ type CourseCard = {
   description: string | null;
   start_date: string | null;
   duration_hours?: number | null;
-  participants: { name: string; email: string; phone?: string | null; booking_date?: string | null }[];
+  participants: { name: string; email: string; phone?: string | null; booking_date?: string | null; student_id?: string | null }[];
   bookings_count?: number;
 };
 

@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
+import AttendanceModal from './attendance-modal';
 
 interface Course {
   id: string;
@@ -31,6 +32,7 @@ export default function AdminCourseList({
   const [showArchived, setShowArchived] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState('');
+  const [attendanceCourse, setAttendanceCourse] = useState<Course | null>(null);
 
   useEffect(() => {
     let ignore = false;
@@ -128,6 +130,12 @@ export default function AdminCourseList({
                 Bearbeiten
               </button>
               <button
+                className="text-xs px-3 py-1 rounded-lg border border-emerald-300 text-emerald-700 hover:bg-emerald-50"
+                onClick={() => setAttendanceCourse(c)}
+              >
+                Anwesenheitsliste
+              </button>
+              <button
                 className={`text-xs px-3 py-1 rounded-lg border ${
                   c.status === 'inactive'
                     ? 'border-emerald-300 text-emerald-700 hover:bg-emerald-50'
@@ -148,6 +156,15 @@ export default function AdminCourseList({
           </div>
         ))}
       </div>
+
+      {attendanceCourse && (
+        <AttendanceModal
+          courseId={attendanceCourse.id}
+          courseTitle={attendanceCourse.title}
+          readOnly
+          onClose={() => setAttendanceCourse(null)}
+        />
+      )}
     </div>
   );
 }

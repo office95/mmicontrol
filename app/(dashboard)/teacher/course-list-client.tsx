@@ -1,8 +1,9 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import AttendanceModal from '@/components/attendance-modal';
 
-type Participant = { name: string; email: string; phone?: string | null; booking_date?: string | null };
+type Participant = { name: string; email: string; phone?: string | null; booking_date?: string | null; student_id?: string | null };
 type CourseCard = {
   id: string;
   title: string;
@@ -24,6 +25,7 @@ const colorForDate = (start: string | null) => {
 
 export default function CourseListClient({ courses }: { courses: CourseCard[] }) {
   const [openId, setOpenId] = useState<string | null>(null);
+  const [attendanceCourse, setAttendanceCourse] = useState<CourseCard | null>(null);
 
   const selected = useMemo(() => courses.find((c) => c.id === openId) || null, [courses, openId]);
 
@@ -51,6 +53,12 @@ export default function CourseListClient({ courses }: { courses: CourseCard[] })
               onClick={() => setOpenId(c.id)}
             >
               Teilnehmer
+            </button>
+            <button
+              className="self-start md:self-center rounded-full border border-emerald-200 bg-emerald-500/20 px-4 py-2 text-sm text-white hover:bg-emerald-500/30 transition"
+              onClick={() => setAttendanceCourse(c)}
+            >
+              Anwesenheitsliste
             </button>
           </div>
         </div>
@@ -113,6 +121,20 @@ export default function CourseListClient({ courses }: { courses: CourseCard[] })
             </div>
           </div>
         </div>
+      )}
+
+      {attendanceCourse && (
+        <AttendanceModal
+          courseId={attendanceCourse.id}
+          courseTitle={attendanceCourse.title}
+          participants={attendanceCourse.participants.map((p) => ({
+            student_id: (p as any).student_id ?? null,
+            name: p.name,
+            email: p.email,
+            phone: p.phone,
+          }))}
+          onClose={() => setAttendanceCourse(null)}
+        />
       )}
     </div>
   );

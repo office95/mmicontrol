@@ -127,7 +127,7 @@ export default async function TeacherPage() {
     });
 
     // Teilnehmer via enrollments (optional)
-    let participantMap = new Map<string, { name: string; email: string; phone?: string | null }[]>();
+    let participantMap = new Map<string, { name: string; email: string; phone?: string | null; student_id?: string | null }[]>();
     const courseIdsForParticipants = Array.from(new Set([...
       courses.map((c) => c.id),
       ...(dates?.map((d) => d.course_id) || []),
@@ -142,17 +142,17 @@ export default async function TeacherPage() {
 
       if (enrollments?.length) {
         const studentIds = Array.from(new Set(enrollments.map((e: any) => e.profiles?.id).filter(Boolean)));
-        let studentMap = new Map<string, { name: string; email: string; phone?: string | null }>();
+        let studentMap = new Map<string, { name: string; email: string; phone?: string | null; student_id?: string | null }>();
         if (studentIds.length) {
           const { data: studentRows } = await service
             .from('students')
             .select('id, name, email, phone')
             .in('id', studentIds);
-          studentRows?.forEach((s) => studentMap.set(s.id, { name: s.name ?? s.email ?? 'Teilnehmer', email: s.email ?? '', phone: s.phone }));
+          studentRows?.forEach((s) => studentMap.set(s.id, { student_id: s.id, name: s.name ?? s.email ?? 'Teilnehmer', email: s.email ?? '', phone: s.phone }));
         }
         enrollments.forEach((e: any) => {
           const cid = e.course_id as string;
-          const stu = studentMap.get(e.profiles?.id) || { name: e.profiles?.full_name ?? 'Teilnehmer', email: '' };
+          const stu = studentMap.get(e.profiles?.id) || { student_id: e.profiles?.id ?? null, name: e.profiles?.full_name ?? 'Teilnehmer', email: '' };
           (stu as any).booking_date = e.created_at || null;
           const list = participantMap.get(cid) || [];
           list.push(stu);
@@ -180,7 +180,7 @@ export default async function TeacherPage() {
   }
 
   // Map für Teilnehmer aus Buchungen (wird im try gefüllt)
-  let bookingParticipants = new Map<string, { name: string; email: string; phone?: string | null; booking_date?: string | null }[]>();
+  let bookingParticipants = new Map<string, { name: string; email: string; phone?: string | null; booking_date?: string | null; student_id?: string | null }[]>();
 
   // Fallback: Wenn noch keine Kurse vorhanden, aber Partner gesetzt, nimm course_dates direkt
   if ((!courses || !courses.length) && teacherPartner) {
@@ -206,7 +206,7 @@ export default async function TeacherPage() {
     const fallbackCourseIds = Array.from(courseMap.keys());
 
     // Teilnehmer laden
-    let participantMap = new Map<string, { name: string; email: string; phone?: string | null }[]>();
+    let participantMap = new Map<string, { name: string; email: string; phone?: string | null; student_id?: string | null }[]>();
     if (fallbackCourseIds.length) {
       const { data: enrollments } = await service
         .from('course_members')
@@ -226,7 +226,7 @@ export default async function TeacherPage() {
         }
         enrollments.forEach((e: any) => {
           const cid = e.course_id as string;
-          const stu = studentMap.get(e.profiles?.id) || { name: e.profiles?.full_name ?? 'Teilnehmer', email: '' };
+          const stu = studentMap.get(e.profiles?.id) || { student_id: e.profiles?.id ?? null, name: e.profiles?.full_name ?? 'Teilnehmer', email: '' };
           (stu as any).booking_date = e.created_at || null;
           const list = participantMap.get(cid) || [];
           list.push(stu);
@@ -316,6 +316,7 @@ export default async function TeacherPage() {
       if (!cid) return;
       const stu = b.student_id ? studentById.get(b.student_id) : null;
       const participant = {
+        student_id: b.student_id ?? null,
         name: stu?.name ?? stu?.email ?? b.student_email ?? 'Teilnehmer',
         email: stu?.email ?? b.student_email ?? '',
         phone: stu?.phone ?? null,
