@@ -229,19 +229,30 @@ export default async function TeacherPage() {
       freq[k] = (freq[k] || 0) + 1;
     };
     (leads || []).forEach((l: any) => {
-      const val = (l as any).interest_name ?? (l as any).interest_courses;
-      const handle = (x: any) => {
+      const valName = (l as any).interest_name;
+      const valCourses = (l as any).interest_courses;
+
+      const handle = (x: any, allowMapFromCourses: boolean) => {
         const raw = x?.toString().trim();
         if (!raw) return;
         const mapped =
-          courseTitleMap.get(raw) ||
-          (/[0-9a-fA-F-]{36}/.test(raw) ? courseTitleMap.get(raw) : null) ||
-          raw;
+          allowMapFromCourses
+            ? courseTitleMap.get(raw) ||
+              (/[0-9a-fA-F-]{36}/.test(raw) ? courseTitleMap.get(raw) : null) ||
+              raw
+            : raw;
         inc(mapped);
       };
-      if (Array.isArray(val)) val.forEach(handle);
-      else if (typeof val === 'string') val.split(/[,;\n]+/).forEach(handle);
-      else handle(val);
+
+      if (valName) {
+        if (Array.isArray(valName)) valName.forEach((x) => handle(x, false));
+        else if (typeof valName === 'string') valName.split(/[,;\n]+/).forEach((x) => handle(x, false));
+        else handle(valName, false);
+      } else if (valCourses) {
+        if (Array.isArray(valCourses)) valCourses.forEach((x) => handle(x, true));
+        else if (typeof valCourses === 'string') valCourses.split(/[,;\n]+/).forEach((x) => handle(x, true));
+        else handle(valCourses, true);
+      }
     });
     (scopedBookings || []).forEach((b: any) => inc(b.course_title));
     topInterests = Object.entries(freq)
