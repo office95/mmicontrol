@@ -8,7 +8,8 @@ const service = createClient(
 
 const SELECT =
   `id, booking_code, booking_date, amount, status, student_id, course_id, course_date_id, partner_id,
-   course_title, course_start, partner_name, student_name, student_email, vat_rate, price_net, deposit, saldo, duration_hours`;
+   course_title, course_start, partner_name, student_name, student_email, vat_rate, price_net, deposit, saldo, duration_hours,
+   next_dunning_at, auto_dunning_enabled`;
 
 async function fillAmounts(rows: any | any[]) {
   const list = Array.isArray(rows) ? [...rows] : rows ? [{ ...rows }] : [];
@@ -115,6 +116,28 @@ export async function GET(req: Request) {
     (enriched as any).payments = payments ?? [];
     (enriched as any).paid_total = paid;
     (enriched as any).open_amount = Number((amount - paid).toFixed(2));
+  }
+
+  // Bei Listenansicht: Zahlungssummen je Buchung mitgeben
+  if (!id && Array.isArray(enriched) && enriched.length) {
+    const ids = Array.from(new Set((enriched as any[]).map((r) => r.id).filter(Boolean)));
+    if (ids.length) {
+      const { data: payAgg } = await service
+        .from('payments')
+        .select('booking_id, amount')
+        .in('booking_id', ids);
+      const sumByBooking = (payAgg ?? []).reduce<Record<string, number>>((acc, row: any) => {
+        const key = row.booking_id;
+        acc[key] = (acc[key] || 0) + Number(row.amount || 0);
+        return acc;
+      }, {});
+      (enriched as any[]).forEach((row: any) => {
+        const paid = sumByBooking[row.id] || 0;
+        const amount = row.amount ?? 0;
+        row.paid_total = paid;
+        row.open_amount = Number((amount - paid).toFixed(2));
+      });
+    }
   }
 
   return NextResponse.json(enriched);
