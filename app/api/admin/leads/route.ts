@@ -24,10 +24,21 @@ async function enrich(leads: any[]) {
     const { data } = await service.from('courses').select('id,title').in('id', ids);
     courseMap = Object.fromEntries((data ?? []).map((c) => [c.id, c.title]));
   }
-  return leads.map((l) => ({
-    ...l,
-    interest_titles: (l.interest_courses || []).map((id: string) => courseMap[id] || id),
-  }));
+  return leads.map((l) => {
+    const titles: string[] = (l.interest_courses || []).map((id: string) => courseMap[id] || id);
+    if (l.interest_other) {
+      // interest_other kann mehrere Einträge enthalten, getrennt durch "|"
+      const extras = l.interest_other
+        .split(/\s*\|\s*/)
+        .map((s: string) => s.trim())
+        .filter(Boolean);
+      titles.push(...extras);
+    }
+    return {
+      ...l,
+      interest_titles: titles,
+    };
+  });
 }
 
 export async function GET() {
