@@ -145,8 +145,9 @@ export default function CourseDatesPage() {
                     {t.status}
                   </span>
                   <button
-                    className="px-3 py-1 rounded-lg border border-emerald-300 text-emerald-700 hover:bg-emerald-50"
-                    onClick={() => setAttendanceCourse({ id: t.course_id || t.id, title: t.course?.title ?? 'Kurs' })}
+                    className="px-3 py-1 rounded-lg border border-emerald-300 text-emerald-700 hover:bg-emerald-50 disabled:opacity-50"
+                    disabled={!t.course_id}
+                    onClick={() => t.course_id && setAttendanceCourse({ id: t.course_id, title: t.course?.title ?? 'Kurs' })}
                   >
                     Anwesenheitsliste
                   </button>
