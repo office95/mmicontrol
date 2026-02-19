@@ -105,13 +105,13 @@ export default function StudentsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-xs uppercase tracking-[0.2em] text-pink-200">Admin</p>
-          <h1 className="text-3xl font-semibold text-white">Kursteilnehmer</h1>
-          <p className="text-sm text-slate-200">Teilnehmer verwalten, markieren und bearbeiten.</p>
+          <p className="text-xs uppercase tracking-[0.2em] text-pink-600">Admin</p>
+          <h1 className="text-3xl font-semibold text-slate-900">Kursteilnehmer</h1>
+          <p className="text-sm text-slate-600">Teilnehmer verwalten, markieren und bearbeiten.</p>
         </div>
         <div className="flex items-center gap-2">
           <button
-            className="inline-flex items-center justify-center h-10 px-4 rounded-lg bg-white/15 border border-white/25 text-sm font-semibold text-white hover:bg-white/25"
+            className="inline-flex items-center justify-center h-10 px-4 rounded-lg bg-white border border-slate-200 text-sm font-semibold text-slate-900 hover:bg-slate-50"
             onClick={() => { setEditItem(null); setOpenModal(true); }}
           >
             Neuer Kursteilnehmer
@@ -120,7 +120,7 @@ export default function StudentsPage() {
         </div>
       </div>
 
-      <div className="flex items-center gap-3 flex-wrap">
+      <div className="flex items-center gap-3 flex-wrap text-slate-800">
         <select
           className="input max-w-xs h-8 py-1 text-sm"
           value={filterStatus}
@@ -247,14 +247,14 @@ function BookingRow({ booking }: { booking?: StudentListRow['latest_booking'] })
       ];
 
   return (
-    <div className="w-full overflow-hidden rounded-2xl border border-white/12 bg-white/8 backdrop-blur-xl shadow-lg">
-      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-0 divide-x divide-white/10 text-sm text-white">
+    <div className="w-full overflow-hidden rounded-2xl border border-slate-200/70 bg-white/80 backdrop-blur-xl shadow-lg">
+      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-0 divide-x divide-slate-200 text-sm text-slate-900">
         {chips.map((c, idx) => (
           <div key={idx} className="p-3">
-            <p className="text-[11px] uppercase tracking-[0.14em] text-white/60 mb-1">{c.label}</p>
+            <p className="text-[11px] uppercase tracking-[0.14em] text-slate-500 mb-1">{c.label}</p>
             <p
               className={`font-semibold ${
-                c.tone === 'good' ? 'text-emerald-100' : c.tone === 'warn' ? 'text-amber-100' : 'text-white'
+                c.tone === 'good' ? 'text-emerald-600' : c.tone === 'warn' ? 'text-amber-600' : 'text-slate-900'
               }`}
             >
               {c.value}
@@ -263,7 +263,7 @@ function BookingRow({ booking }: { booking?: StudentListRow['latest_booking'] })
         ))}
       </div>
       {booking && (
-        <div className="px-3 py-2 text-[11px] text-white/60 flex items-center gap-3 bg-white/5 border-t border-white/10">
+        <div className="px-3 py-2 text-[11px] text-slate-600 flex items-center gap-3 bg-slate-50 border-t border-slate-200">
           <span>Bezahlt: {(booking.paid_total ?? 0).toFixed(2)} €</span>
           <span className="h-1 w-1 rounded-full bg-white/40" />
           <span>Betrag: {(booking.amount ?? 0).toFixed(2)} €</span>
