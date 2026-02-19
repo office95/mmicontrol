@@ -15,8 +15,6 @@ export default function TeacherStatsClient({ kpis, interests, sources, notes }: 
   sources: { label: string; value: number }[];
   notes: { label: string; value: number }[];
 }) {
-  const interestTags = interests.slice(0, 8);
-
   const sourceDonut = useMemo(() => buildDonut(sources), [sources]);
   const notesBars = useMemo(() => buildBars(notes), [notes]);
 
@@ -38,16 +36,20 @@ export default function TeacherStatsClient({ kpis, interests, sources, notes }: 
       </div>
 
       <Card title="Top Interessen" className="">
-        {interestTags.length ? (
-          <div className="flex flex-wrap gap-2">
-            {interestTags.map((i, idx) => (
-              <span
+        {interests.slice(0, 3).length ? (
+          <div className="grid sm:grid-cols-3 gap-3">
+            {interests.slice(0, 3).map((i, idx) => (
+              <div
                 key={i.label}
-                className="px-3 py-1 rounded-full border border-white/20 bg-white/10 text-white text-sm backdrop-blur"
-                style={{ borderColor: palette[idx % palette.length] + '33', color: '#fff' }}
+                className="relative overflow-hidden rounded-2xl border border-white/15 bg-gradient-to-br from-white/12 via-white/6 to-transparent backdrop-blur p-4 shadow-lg"
               >
-                {i.label} · {i.count}x
-              </span>
+                <div className="absolute -right-6 -top-6 h-20 w-20 rounded-full blur-3xl opacity-40"
+                  style={{ background: palette[idx % palette.length] }} />
+                <p className="text-xs uppercase tracking-[0.2em] text-white/60 mb-1">
+                  {idx + 1}. Platz
+                </p>
+                <p className="text-lg font-semibold text-white drop-shadow-sm">{i.label}</p>
+              </div>
             ))}
           </div>
         ) : (

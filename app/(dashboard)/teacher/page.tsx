@@ -219,9 +219,7 @@ export default async function TeacherPage() {
       if (d.getFullYear() === prevYear) yearBookingsPrev++;
     });
 
-    // Interests aus Leads.interest_courses + Bookings.course_title
-    const courseTitleMap = new Map<string, string>();
-    (courses || []).forEach((c) => courseTitleMap.set(c.id, c.title));
+    // Interests aus Leads.interest_name + Bookings.course_title
     const freq: Record<string, number> = {};
     const inc = (key: string) => {
       const k = key?.toString().trim();
@@ -229,12 +227,11 @@ export default async function TeacherPage() {
       freq[k] = (freq[k] || 0) + 1;
     };
     (leads || []).forEach((l: any) => {
-      const val = (l as any).interest_courses;
+      const val = (l as any).interest_name ?? (l as any).interest_courses;
       const handle = (x: any) => {
         const raw = x?.toString().trim();
         if (!raw) return;
-        const mapped = courseTitleMap.get(raw) ?? raw;
-        inc(mapped);
+        inc(raw);
       };
       if (Array.isArray(val)) val.forEach(handle);
       else if (typeof val === 'string') val.split(/[,;\n]+/).forEach(handle);
@@ -243,7 +240,7 @@ export default async function TeacherPage() {
     (scopedBookings || []).forEach((b: any) => inc(b.course_title));
     topInterests = Object.entries(freq)
       .sort((a, b) => b[1] - a[1])
-      .slice(0, 8)
+      .slice(0, 3)
       .map(([label, count]) => ({ label, count }));
 
     // Source pie (Leads + Students-Fallback)
