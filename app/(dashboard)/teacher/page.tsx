@@ -174,6 +174,66 @@ export default async function TeacherPage() {
       });
   }
 
+  // Fallback: Wenn noch keine Kurse vorhanden, aber Partner gesetzt, nimm course_dates direkt
+  if ((!courses || !courses.length) && teacherPartner) {
+    const { data: partnerDates } = await service
+      .from('course_dates')
+      .select('course_id, start_date, courses(id,title,description,duration_hours)')
+      .eq('partner_id', teacherPartner);
+
+    const courseMap = new Map<string, any>();
+    const dateMap = new Map<string, string | null>();
+    partnerDates?.forEach((d: any) => {
+      if (d.courses?.id) {
+        courseMap.set(d.courses.id, {
+          id: d.courses.id,
+          title: d.courses.title,
+          description: d.courses.description ?? null,
+          duration_hours: d.courses.duration_hours ?? null,
+        });
+        if (d.start_date) dateMap.set(d.courses.id, d.start_date);
+      }
+    });
+
+    const fallbackCourseIds = Array.from(courseMap.keys());
+
+    // Teilnehmer laden
+    let participantMap = new Map<string, { name: string; email: string; phone?: string | null }[]>();
+    if (fallbackCourseIds.length) {
+      const { data: enrollments } = await service
+        .from('course_members')
+        .select('course_id, profiles(full_name, id), created_at')
+        .eq('role', 'student')
+        .in('course_id', fallbackCourseIds);
+
+      if (enrollments?.length) {
+        const studentIds = Array.from(new Set(enrollments.map((e: any) => e.profiles?.id).filter(Boolean)));
+        let studentMap = new Map<string, { name: string; email: string; phone?: string | null }>();
+        if (studentIds.length) {
+          const { data: studentRows } = await service
+            .from('students')
+            .select('id, name, email, phone')
+            .in('id', studentIds);
+          studentRows?.forEach((s) => studentMap.set(s.id, { name: s.name ?? s.email ?? 'Teilnehmer', email: s.email ?? '', phone: s.phone }));
+        }
+        enrollments.forEach((e: any) => {
+          const cid = e.course_id as string;
+          const stu = studentMap.get(e.profiles?.id) || { name: e.profiles?.full_name ?? 'Teilnehmer', email: '' };
+          (stu as any).booking_date = e.created_at || null;
+          const list = participantMap.get(cid) || [];
+          list.push(stu);
+          participantMap.set(cid, list);
+        });
+      }
+    }
+
+    courses = fallbackCourseIds.map((id) => ({
+      ...courseMap.get(id),
+      start_date: dateMap.get(id) ?? null,
+      participants: participantMap.get(id) || [],
+    }));
+  }
+
   const cDate = (d: string | null) => (d ? new Date(d) : null);
 
   // Nächster Kurs für Countdown
