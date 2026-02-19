@@ -11,11 +11,17 @@ const baseSelect =
   'id, lead_code, salutation, skills, requested_at, name, email, phone, country, state, interest_courses, interest_other, partner_id, source, source_note, lead_quality, newsletter, status, notes, created_at, partner:partners(id,name)';
 
 async function enrich(leads: any[]) {
+  // Pseudo-Kurse, die nicht in der courses-Tabelle stehen
+  const EXTRA_TITLES: Record<string, string> = {
+    'extra-prof-audio': 'Professional Audio Diploma',
+    'extra-bachelor': 'Bachelor',
+  };
+
   // Map course ids to titles for display
   const toArray = (val: any): string[] => {
     if (Array.isArray(val)) return val.filter(Boolean).map(String);
     if (typeof val === 'string') {
-      // allow comma/semicolon/pipe separated strings
+      // allow comma/semicolon/pipe/line separated strings
       return val
         .split(/[,;|\n]+/)
         .map((s) => s.trim())
@@ -28,17 +34,25 @@ async function enrich(leads: any[]) {
     new Set(
       leads
         .flatMap((l) => toArray(l.interest_courses))
-        .filter((v: any): v is string => !!v)
+        .filter((v: any): v is string => !!v && !v.startsWith('extra-'))
     )
   );
+
   let courseMap: Record<string, string> = {};
   if (ids.length) {
     const { data } = await service.from('courses').select('id,title').in('id', ids);
     courseMap = Object.fromEntries((data ?? []).map((c) => [c.id, c.title]));
   }
+
   return leads.map((l) => {
     const interestArray = toArray(l.interest_courses);
-    const titles: string[] = interestArray.map((id: string) => courseMap[id] || id);
+    const titles: string[] = interestArray.map((id: string) => {
+      if (courseMap[id]) return courseMap[id];
+      if (EXTRA_TITLES[id]) return EXTRA_TITLES[id];
+      if (id.startsWith('extra-')) return id.replace(/^extra-/, '').replace(/[-_]/g, ' ');
+      return id;
+    });
+
     if (l.interest_other) {
       // interest_other kann mehrere Einträge enthalten, getrennt durch "|"
       const extras = l.interest_other
