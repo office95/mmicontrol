@@ -89,7 +89,7 @@ function Kpi({
     (diff !== null
       ? showPercent
         ? `${sign} Δ ${Math.abs(diff)} (${pct !== null ? `${pct.toFixed(1)}%` : 'n/a'}) vs. VJ`
-        : `${sign} vs. VJ: ${compare}`
+        : `${sign} Δ ${Math.abs(diff)} (${pct !== null ? `${pct.toFixed(1)}%` : 'n/a'}) vs. VJ`
       : '—');
   return (
     <div className="rounded-2xl border border-white/15 bg-white/8 backdrop-blur-xl p-4 text-white shadow-lg">
