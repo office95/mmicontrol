@@ -165,17 +165,22 @@ export default async function TeacherPage() {
 
   try {
     const courseIds = courses?.map((c) => c.id) ?? [];
+    const partnerCourseIds = new Set(
+      (courses || []).map((c: any) => c.id)
+    );
     // Buchungen: wenn Partner gesetzt -> direkt nach partner_id filtern (robuster als Kurs-Schnittmenge)
     const { data: bookings, error: bookingsErr } = await service
       .from('bookings')
       .select('id, course_id, course_date_id, student_id, booking_date, partner_id, amount, course_dates(course_id)');
 
     const bookingsData = bookingsErr ? [] : bookings || [];
-    // Partner-First: wenn Partner gesetzt, nimm Buchungen mit gleicher partner_id; zusätzlich alle Kurs-Buchungen (falls partner_id fehlt)
+    // Partner-First: wenn Partner gesetzt, nimm Buchungen mit gleicher partner_id ODER Kurs-Zuordnung (falls partner_id fehlt)
     const scopedBookingsRaw = bookingsData.filter((b: any) => {
       const cid = b.course_id as string | null;
       const cdCid = (b as any).course_dates?.course_id as string | null;
-      const inCourse = (cid && courseIds.includes(cid)) || (cdCid && courseIds.includes(cdCid));
+      const inCourse =
+        (cid && (courseIds.includes(cid) || partnerCourseIds.has(cid))) ||
+        (cdCid && (courseIds.includes(cdCid) || partnerCourseIds.has(cdCid)));
       const partnerMatch = teacherPartner ? (b.partner_id ?? null) === teacherPartner : true;
       return partnerMatch || inCourse;
     });
