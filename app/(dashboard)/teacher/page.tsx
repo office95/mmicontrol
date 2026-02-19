@@ -53,7 +53,16 @@ export default async function TeacherPage() {
       .eq('user_id', user.id)
       .eq('role', 'teacher');
 
-    const ids = memberships?.map((m) => m.course_id).filter(Boolean) || [];
+    let ids = memberships?.map((m) => m.course_id).filter(Boolean) || [];
+
+    // Fallback: wenn keine Kurs-Memberships, Kurse nach Partner laden
+    if (ids.length === 0 && teacherPartner) {
+      const { data: partnerCourses } = await service
+        .from('courses')
+        .select('id')
+        .eq('partner_id', teacherPartner);
+      ids = partnerCourses?.map((c) => c.id as string).filter(Boolean) || [];
+    }
 
     if (ids.length) {
       const { data: courseRows } = await service
@@ -62,10 +71,9 @@ export default async function TeacherPage() {
         .in('id', ids);
 
       const filteredCourses = teacherPartner
-        ? (courseRows || []).filter((c: any) => c.partner_id === teacherPartner)
+        ? (courseRows || []).filter((c: any) => (c.partner_id ?? null) === teacherPartner)
         : (courseRows || []);
 
-      // Fallback: wenn Filter alles rausnimmt, nimm lieber alle Kurse des Dozenten
       const effectiveCourses = filteredCourses.length ? filteredCourses : courseRows || [];
 
       courses = effectiveCourses.map((c) => ({
@@ -77,7 +85,6 @@ export default async function TeacherPage() {
         participants: [],
       }));
 
-      // Nächstes Kursdatum je Kurs
       const { data: dates } = await service
         .from('course_dates')
         .select('course_id, start_date')
@@ -135,9 +142,7 @@ export default async function TeacherPage() {
           start_date: dateMap.get(c.id) ?? null,
           participants: participantMap.get(c.id) || [],
         }))
-        // Nur Kurse mit Termin anzeigen
         .filter((c) => c.start_date)
-        // Nach nächstem Termin sortieren (aufsteigend)
         .sort((a, b) => new Date(a.start_date as string).getTime() - new Date(b.start_date as string).getTime());
     }
   }
