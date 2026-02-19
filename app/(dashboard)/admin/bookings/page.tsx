@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import ButtonLink from '@/components/button-link';
 
 type BookingRow = {
@@ -46,6 +47,8 @@ type PaymentRow = {
 };
 
 export default function BookingsPage() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const [items, setItems] = useState<BookingRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -83,6 +86,14 @@ export default function BookingsPage() {
   };
 
   useEffect(() => { load(); }, []);
+
+  // Öffne Modal direkt, wenn ?id=... gesetzt ist (z. B. von Kursteilnehmer-Ansicht)
+  useEffect(() => {
+    const presetId = searchParams.get('id');
+    if (presetId) {
+      loadOne(presetId);
+    }
+  }, [searchParams]);
 
   const loadOne = async (id: string) => {
     const res = await fetch(`/api/admin/bookings?id=${id}`);
@@ -211,7 +222,12 @@ export default function BookingsPage() {
           <div className="w-full max-w-5xl rounded-2xl bg-white text-ink shadow-2xl p-6 relative max-h-[90vh] overflow-y-auto">
             <button
               className="absolute top-3 right-3 text-slate-500 hover:text-ink"
-              onClick={() => setSelected(null)}
+              onClick={() => {
+                setSelected(null);
+                const params = new URLSearchParams(searchParams.toString());
+                params.delete('id');
+                router.replace(`/admin/bookings${params.toString() ? `?${params.toString()}` : ''}`);
+              }}
             >
               ×
             </button>

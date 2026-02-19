@@ -199,7 +199,7 @@ export default function StudentsPage() {
                         return new Date(b.booking_date || 0).getTime() - new Date(a.booking_date || 0).getTime();
                       });
                       const target = byOpen[0];
-                      router.push(`/admin/bookings/${target.id}`);
+                      router.push(`/admin/bookings?id=${target.id}`);
                     }}
                   >
                     Buchung ansehen
