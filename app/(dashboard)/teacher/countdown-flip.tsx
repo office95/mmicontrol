@@ -16,8 +16,8 @@ export default function CountdownFlip({
     return () => clearInterval(id);
   }, []);
 
-  const frontText = days !== null && days >= 0 ? `Noch ${days} Tage bis Kursbeginn` : 'Kurs läuft / vorbei';
-  const backText = courseTitle ? `Nächster Kurs: ${courseTitle}` : 'Noch kein Kurs geplant';
+  const frontText = days !== null && days >= 0 ? `Noch ${days} Tage` : 'Kurs läuft / vorbei';
+  const backText = courseTitle ? courseTitle : 'Noch kein Kurs geplant';
 
   return (
     <div className="relative h-16" style={{ perspective: '1000px' }}>
