@@ -222,60 +222,65 @@ export default async function TeacherPage() {
     // Interests: nur Leads -> interest_name (primär), Fallback interest_courses via Kurs-Map
     const courseTitleMap = new Map<string, string>();
     (courses || []).forEach((c) => courseTitleMap.set(c.id, c.title));
+
     const freq: Record<string, number> = {};
-    const inc = (key: string) => {
-      const k = key?.toString().trim();
+    const inc = (label: string) => {
+      const k = label?.toString().trim();
       if (!k) return;
       freq[k] = (freq[k] || 0) + 1;
     };
-    (leads || []).forEach((l: any) => {
-      const valName = (l as any).interest_name;
-      const valCourses = (l as any).interest_courses;
 
-      const handleName = (x: any) => {
-        const raw = x?.toString().trim();
-        if (!raw) return;
-        inc(raw);
+    const extractLabels = (lead: any): string[] => {
+      const out: string[] = [];
+      const valName = lead?.interest_name;
+      const valCourses = lead?.interest_courses;
+
+      const pushTitle = (v: any) => {
+        if (!v) return;
+        if (typeof v === 'string') {
+          v.split(/[,;\n]+/).forEach((s) => inc(s));
+        } else if (Array.isArray(v)) {
+          v.forEach((item) => pushTitle(item));
+        } else if (typeof v === 'object') {
+          // allow objects like { title, name, label }
+          const candidate = (v.title ?? v.name ?? v.label ?? '').toString();
+          if (candidate) inc(candidate);
+        } else {
+          inc(String(v));
+        }
       };
-      const handleCourse = (x: any) => {
-        const raw = x?.toString().trim();
-        if (!raw) return;
-        const mapped = courseTitleMap.get(raw) || raw;
-        inc(mapped);
+
+      const pushCourseIds = (v: any) => {
+        if (!v) return;
+        const handleId = (id: any) => {
+          const mapped = courseTitleMap.get(String(id)) || String(id);
+          inc(mapped);
+        };
+        if (Array.isArray(v)) v.forEach(handleId);
+        else if (typeof v === 'string') v.split(/[,;\n]+/).forEach(handleId);
+        else handleId(v);
       };
 
       if (valName) {
-        if (Array.isArray(valName)) valName.forEach(handleName);
-        else if (typeof valName === 'string') valName.split(/[,;\n]+/).forEach(handleName);
-        else handleName(valName);
+        pushTitle(valName);
       } else if (valCourses) {
-        if (Array.isArray(valCourses)) valCourses.forEach(handleCourse);
-        else if (typeof valCourses === 'string') valCourses.split(/[,;\n]+/).forEach(handleCourse);
-        else handleCourse(valCourses);
+        pushCourseIds(valCourses);
       }
-    });
-    // Ranking mit Platz 1/2/3, Tie-Groups
-    const sorted = Object.entries(freq).sort((a, b) => b[1] - a[1]);
-    const ranks: { place: number; labels: string[] }[] = [];
-    let lastCount: number | null = null;
-    for (const [label, count] of sorted) {
-      if (!ranks.length) {
-        ranks.push({ place: 1, labels: [label] });
-        lastCount = count;
-        continue;
-      }
+      return out;
+    };
 
-      const last = ranks[ranks.length - 1];
-      if (count === lastCount) {
-        last.labels.push(label);
-      } else if (ranks.length < 3) {
-        ranks.push({ place: ranks.length + 1, labels: [label] });
-        lastCount = count;
-      } else {
-        break;
-      }
-    }
-    topInterests = ranks;
+    (leads || []).forEach((l: any) => extractLabels(l));
+
+    // Ranking mit Platz 1/2/3, Tie-Groups
+    const sorted = Object.entries(freq)
+      .map(([label, count]) => ({ label, count }))
+      .sort((a, b) => b.count - a.count);
+
+    const distinctCounts = Array.from(new Set(sorted.map((s) => s.count))).slice(0, 3);
+    topInterests = distinctCounts.map((cnt, idx) => ({
+      place: idx + 1,
+      labels: sorted.filter((s) => s.count === cnt).map((s) => s.label),
+    }));
 
     // Source pie (Leads + Students-Fallback)
     const sourceFreq: Record<string, number> = {};
