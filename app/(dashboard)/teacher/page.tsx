@@ -159,7 +159,7 @@ export default async function TeacherPage() {
   let monthBookingsPrev = 0;
   let yearBookings = 0;
   let yearBookingsPrev = 0;
-  let topInterests: { place: number; labels: string[] }[] = [];
+  let topInterests: { place: number; label: string }[] = [];
   let sources: { label: string; value: number }[] = [];
   let notes: { label: string; value: number }[] = [];
 
@@ -224,14 +224,19 @@ export default async function TeacherPage() {
     (courses || []).forEach((c) => courseTitleMap.set(c.id, c.title));
 
     const freq: Record<string, number> = {};
-    const inc = (label: string) => {
-      const k = label?.toString().trim();
-      if (!k) return;
-      freq[k] = (freq[k] || 0) + 1;
+    const mapLabel = (label: string) => {
+      const trimmed = label?.toString().trim();
+      if (!trimmed) return null;
+      return courseTitleMap.get(trimmed) || trimmed;
     };
 
-    const extractLabels = (lead: any): string[] => {
-      const out: string[] = [];
+    const inc = (label: string) => {
+      const mapped = mapLabel(label);
+      if (!mapped) return;
+      freq[mapped] = (freq[mapped] || 0) + 1;
+    };
+
+    const extractLabels = (lead: any) => {
       const valName = lead?.interest_name;
       const valCourses = lead?.interest_courses;
 
@@ -242,8 +247,7 @@ export default async function TeacherPage() {
         } else if (Array.isArray(v)) {
           v.forEach((item) => pushTitle(item));
         } else if (typeof v === 'object') {
-          // allow objects like { title, name, label }
-          const candidate = (v.title ?? v.name ?? v.label ?? '').toString();
+          const candidate = (v.title ?? v.name ?? v.label ?? v.id ?? '').toString();
           if (candidate) inc(candidate);
         } else {
           inc(String(v));
@@ -266,21 +270,16 @@ export default async function TeacherPage() {
       } else if (valCourses) {
         pushCourseIds(valCourses);
       }
-      return out;
     };
 
     (leads || []).forEach((l: any) => extractLabels(l));
 
-    // Ranking mit Platz 1/2/3, Tie-Groups
+    // Ranking: Top 3 Einträge strikt nach Häufigkeit (keine Platz-Gruppierung)
     const sorted = Object.entries(freq)
       .map(([label, count]) => ({ label, count }))
-      .sort((a, b) => b.count - a.count);
+      .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
 
-    const distinctCounts = Array.from(new Set(sorted.map((s) => s.count))).slice(0, 3);
-    topInterests = distinctCounts.map((cnt, idx) => ({
-      place: idx + 1,
-      labels: sorted.filter((s) => s.count === cnt).map((s) => s.label),
-    }));
+    topInterests = sorted.slice(0, 3).map((s, idx) => ({ place: idx + 1, label: s.label }));
 
     // Source pie (Leads + Students-Fallback)
     const sourceFreq: Record<string, number> = {};

@@ -11,7 +11,7 @@ type KPIs = {
 
 export default function TeacherStatsClient({ kpis, interests, sources, notes }: {
   kpis: KPIs;
-  interests: { place: number; labels: string[] }[];
+  interests: { place: number; label: string }[];
   sources: { label: string; value: number }[];
   notes: { label: string; value: number }[];
 }) {
@@ -23,11 +23,7 @@ export default function TeacherStatsClient({ kpis, interests, sources, notes }: 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <Kpi title="Buchungen Monat" value={kpis.monthBookings} compare={kpis.monthBookingsPrev} />
         <Kpi title="Buchungen Jahr" value={kpis.yearBookings} compare={kpis.yearBookingsPrev} />
-        <Kpi
-          title="Top Interesse"
-          value={interests[0]?.labels?.join(', ') || '—'}
-          compareLabel=""
-        />
+        <Kpi title="Top Interesse" value={interests[0]?.label ?? '—'} compareLabel="" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -52,9 +48,7 @@ export default function TeacherStatsClient({ kpis, interests, sources, notes }: 
                 <p className="text-xs uppercase tracking-[0.2em] text-white/60 mb-1">
                   {i.place}. Platz
                 </p>
-                <p className="text-lg font-semibold text-white drop-shadow-sm">
-                  {i.labels.join(', ')}
-                </p>
+                <p className="text-lg font-semibold text-white drop-shadow-sm">{i.label}</p>
               </div>
             ))}
           </div>
