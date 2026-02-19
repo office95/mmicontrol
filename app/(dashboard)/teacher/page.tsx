@@ -606,17 +606,14 @@ export default async function TeacherPage() {
         </div>
       </div>
 
-      <div className="space-y-3">
-        <h2 className="text-xl font-semibold text-white">Performance-Übersicht</h2>
-        <DashboardClient
-          kpis={{ monthBookings, monthBookingsPrev, yearBookings, yearBookingsPrev }}
-          interests={topInterests}
-          sources={sources}
-          notes={notes}
-          courses={courses || []}
-          materials={materials || []}
-        />
-      </div>
+      <DashboardClient
+        kpis={{ monthBookings, monthBookingsPrev, yearBookings, yearBookingsPrev }}
+        interests={topInterests}
+        sources={sources}
+        notes={notes}
+        courses={courses || []}
+        materials={materials || []}
+      />
     </div>
   );
 }
