@@ -16,6 +16,17 @@ export default async function TeacherPage() {
 
   const loginEmail = (user?.email || '').toLowerCase();
   const fullName = (user?.user_metadata as any)?.full_name || loginEmail || 'Dozent';
+
+  // Partner-Zuordnung des Dozenten (aus profiles.partner_id)
+  let teacherPartner: string | null = null;
+  if (user?.id) {
+    const { data: profile } = await service
+      .from('profiles')
+      .select('partner_id')
+      .eq('id', user.id)
+      .maybeSingle();
+    teacherPartner = (profile as any)?.partner_id ?? null;
+  }
   const registeredAt = user?.created_at ? new Date(user.created_at) : null;
 
   const now = new Date();
@@ -47,8 +58,12 @@ export default async function TeacherPage() {
     if (ids.length) {
       const { data: courseRows } = await service
         .from('courses')
-        .select('id, title, description, duration_hours')
-        .in('id', ids);
+        .select('id, title, description, duration_hours, partner_id')
+        .in('id', ids)
+        .maybeThrow();
+      const filteredCourses = teacherPartner
+        ? (courseRows || []).filter((c: any) => c.partner_id === teacherPartner)
+        : (courseRows || []);
       courses = (courseRows || []).map((c) => ({
         id: c.id as string,
         title: c.title as string,
@@ -143,10 +158,14 @@ export default async function TeacherPage() {
     const courseIds = courses.map((c) => c.id);
     const { data: bookings } = await service
       .from('bookings')
-      .select('id, course_id, student_id, booking_date')
-      .in('course_id', courseIds);
+      .select('id, course_id, student_id, booking_date, partner_id')
+      .in('course_id', courseIds)
+      .maybeThrow();
+    const scopedBookings = teacherPartner
+      ? (bookings || []).filter((b: any) => b.partner_id === teacherPartner)
+      : bookings || [];
 
-    const studentIds = Array.from(new Set((bookings || []).map((b) => b.student_id).filter(Boolean)));
+    const studentIds = Array.from(new Set(scopedBookings.map((b) => b.student_id).filter(Boolean)));
 
     const { data: students } = studentIds.length
       ? await service
@@ -157,7 +176,7 @@ export default async function TeacherPage() {
 
     const isSameMonthYear = (d: Date, year: number, month: number) => d.getFullYear() === year && d.getMonth() === month;
 
-    (bookings || []).forEach((b) => {
+    scopedBookings.forEach((b) => {
       if (!b.booking_date) return;
       const d = new Date(b.booking_date);
       if (isSameMonthYear(d, currentYear, currentMonth)) monthBookings++;
