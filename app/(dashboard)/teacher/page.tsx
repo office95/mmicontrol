@@ -171,7 +171,7 @@ export default async function TeacherPage() {
     // Buchungen: wenn Partner gesetzt -> direkt nach partner_id filtern (robuster als Kurs-Schnittmenge)
     const { data: bookings, error: bookingsErr } = await service
       .from('bookings')
-      .select('id, course_id, course_date_id, student_id, booking_date, partner_id, amount, course_dates(course_id)');
+      .select('id, course_id, course_date_id, student_id, booking_date, created_at, partner_id, amount, course_dates(course_id)');
 
     const bookingsData = bookingsErr ? [] : bookings || [];
     // Partner-First: wenn Partner gesetzt, nimm Buchungen mit gleicher partner_id ODER Kurs-Zuordnung (falls partner_id fehlt)
@@ -218,8 +218,9 @@ export default async function TeacherPage() {
     const isSameMonthYear = (d: Date, year: number, month: number) => d.getFullYear() === year && d.getMonth() === month;
 
     scopedBookings.forEach((b) => {
-      if (!b.booking_date) return;
-      const d = new Date(b.booking_date);
+      const dateStr = b.booking_date || b.created_at;
+      if (!dateStr) return;
+      const d = new Date(dateStr);
       if (isSameMonthYear(d, currentYear, currentMonth)) monthBookings++;
       if (isSameMonthYear(d, prevYear, currentMonth)) monthBookingsPrev++;
       if (d.getFullYear() === currentYear) yearBookings++;
