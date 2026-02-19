@@ -604,7 +604,6 @@ export default async function TeacherPage() {
         <div className="relative">
           <div className="absolute -right-10 -top-10 h-32 w-32 bg-pink-500/30 rounded-full blur-3xl animate-pulse" />
           <div className="rounded-2xl bg-gradient-to-r from-pink-500 via-rose-500 to-purple-600 text-white px-6 py-5 shadow-2xl ring-2 ring-white/30 min-w-[240px] text-center transform hover:scale-[1.02] transition">
-            <p className="text-[11px] uppercase tracking-[0.24em] text-white/80 mb-2">Noch</p>
             <CountdownFlip days={daysRemaining} courseTitle={nextCourse?.title ?? 'Noch kein Kurs'} />
           </div>
         </div>
