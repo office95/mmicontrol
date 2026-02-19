@@ -252,7 +252,7 @@ export default function AttendanceModal({
                             <input
                               type="text"
                               disabled={readOnly || entry?.status !== 'absent'}
-                              className="input h-9 w-full text-xs disabled:opacity-50"
+                              className="input h-9 w-full text-xs disabled:opacity-50 bg-white border-slate-300 text-slate-800 placeholder-slate-400"
                               placeholder="Notiz"
                               value={entry?.note ?? ''}
                               onChange={(e) => updateEntry(p.student_id, 'absent', e.target.value)}
