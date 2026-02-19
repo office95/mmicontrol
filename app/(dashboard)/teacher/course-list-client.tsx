@@ -43,23 +43,27 @@ export default function CourseListClient({ courses }: { courses: CourseCard[] })
               <h3 className="text-xl font-semibold text-white drop-shadow-sm">{c.title}</h3>
               <p className="text-sm text-white/80">{c.description}</p>
             </div>
-            <div className="flex flex-wrap gap-2 text-[13px] font-medium">
-              <span className="px-3 py-1 rounded-full bg-white/20 text-white border border-white/30">Start: {formatDate(c.start_date)}</span>
-              <span className="px-3 py-1 rounded-full bg-white/20 text-white border border-white/30">Dauer: {c.duration_hours != null ? `${c.duration_hours} h` : '—'}</span>
-              <span className="px-3 py-1 rounded-full bg-white/20 text-white border border-white/30">TN: {c.participants.length}</span>
+            <div className="flex flex-col gap-2 text-[13px] font-medium text-white/90">
+              <div className="flex gap-3">
+                <span>Start: <strong>{formatDate(c.start_date)}</strong></span>
+                <span>· Dauer: <strong>{c.duration_hours != null ? `${c.duration_hours} h` : '—'}</strong></span>
+                <span>· TN: <strong>{c.participants.length}</strong></span>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  className="rounded-full border border-white/60 bg-white/10 px-4 py-2 text-sm text-white hover:bg-white/20 transition"
+                  onClick={() => setOpenId(c.id)}
+                >
+                  Teilnehmer
+                </button>
+                <button
+                  className="rounded-full border border-pink-200 bg-pink-500/20 px-4 py-2 text-sm text-white hover:bg-pink-500/30 transition"
+                  onClick={() => setAttendanceCourse(c)}
+                >
+                  Anwesenheitsliste
+                </button>
+              </div>
             </div>
-            <button
-              className="self-start md:self-center rounded-full border border-white/60 bg-white/20 px-4 py-2 text-sm text-white hover:bg-white/30 transition"
-              onClick={() => setOpenId(c.id)}
-            >
-              Teilnehmer
-            </button>
-            <button
-              className="self-start md:self-center rounded-full border border-emerald-200 bg-emerald-500/20 px-4 py-2 text-sm text-white hover:bg-emerald-500/30 transition"
-              onClick={() => setAttendanceCourse(c)}
-            >
-              Anwesenheitsliste
-            </button>
           </div>
         </div>
       ))}
