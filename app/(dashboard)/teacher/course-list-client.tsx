@@ -51,20 +51,20 @@ export default function CourseListClient({ courses }: { courses: CourseCard[] })
                 </div>
                 <p className="text-sm text-white/80">{c.description}</p>
               </div>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <button
-                className="rounded-full border border-white/60 bg-white/10 px-4 py-2 text-sm text-white hover:bg-white/20 transition"
-                onClick={() => setOpenId(c.id)}
-              >
-                Teilnehmer
-              </button>
-              <button
-                className="rounded-full border border-pink-200 bg-pink-500/20 px-4 py-2 text-sm text-white hover:bg-pink-500/30 transition"
-                onClick={() => setAttendanceCourse(c)}
-              >
-                Anwesenheitsliste
-              </button>
+              <div className="flex flex-wrap gap-2 md:justify-end">
+                <button
+                  className="rounded-full border border-white/60 bg-white/10 px-4 py-2 text-sm text-white hover:bg-white/20 transition"
+                  onClick={() => setOpenId(c.id)}
+                >
+                  Teilnehmer
+                </button>
+                <button
+                  className="rounded-full border border-pink-200 bg-pink-500/20 px-4 py-2 text-sm text-white hover:bg-pink-500/30 transition"
+                  onClick={() => setAttendanceCourse(c)}
+                >
+                  Anwesenheitsliste
+                </button>
+              </div>
             </div>
           </div>
         </div>
