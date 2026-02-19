@@ -46,14 +46,23 @@ export default async function TeacherPage() {
     }[]
   | null = [];
 
-  // 1) Kurs-IDs: ausschließlich über Partner (profiles.partner_id)
+  // 1) Kurs-IDs: Schnittmenge aus Kurs-Memberships des Dozenten UND/ODER Partner-Kurse
   let courseIds: string[] = [];
+  if (user?.id) {
+    const { data: memberships } = await service
+      .from('course_members')
+      .select('course_id')
+      .eq('user_id', user.id)
+      .eq('role', 'teacher');
+    courseIds = memberships?.map((m) => m.course_id).filter(Boolean) || [];
+  }
   if (teacherPartner) {
     const { data: partnerCourses } = await service
       .from('courses')
       .select('id')
       .eq('partner_id', teacherPartner);
-    courseIds = partnerCourses?.map((c) => c.id as string).filter(Boolean) || [];
+    const partnerIds = partnerCourses?.map((c) => c.id as string).filter(Boolean) || [];
+    courseIds = Array.from(new Set([...courseIds, ...partnerIds]));
   }
 
   // 2) Kurse laden (nach Partner gefiltert, falls gesetzt)
@@ -64,12 +73,10 @@ export default async function TeacherPage() {
       .in('id', courseIds);
 
     const filteredCourses = teacherPartner
-      ? (courseRows || []).filter((c: any) => (c.partner_id ?? null) === teacherPartner)
+      ? (courseRows || []).filter((c: any) => (c.partner_id ?? null) === teacherPartner || courseIds.includes(c.id as string))
       : (courseRows || []);
 
-    const effectiveCourses = filteredCourses.length ? filteredCourses : courseRows || [];
-
-    courses = effectiveCourses.map((c) => ({
+    courses = filteredCourses.map((c) => ({
       id: c.id as string,
       title: c.title as string,
       description: (c as any).description ?? null,
@@ -156,7 +163,7 @@ export default async function TeacherPage() {
   let sources: { label: string; value: number }[] = [];
   let notes: { label: string; value: number }[] = [];
 
-  if (user?.id) {
+  if (true) { // immer laufen lassen, Daten sind bereits partnerscopiert
     const courseIds = courses?.map((c) => c.id) ?? [];
     const { data: bookings, error: bookingsErr } = await service
       .from('bookings')
@@ -164,16 +171,15 @@ export default async function TeacherPage() {
     const scopedBookingsRaw = bookingsErr ? [] : bookings || [];
 
     // Buchungen gehören, wenn:
-    // - course_id in Kursen des Dozenten, oder
-    // - course_date.course_id in Kursen des Dozenten
+    // - course_id in Kursen des Dozenten/Partners, oder
+    // - course_date.course_id in Kursen des Dozenten/Partners, oder
+    // - partner_id passt zum Dozenten-Partner (falls gesetzt)
     const scopedBookings = scopedBookingsRaw.filter((b: any) => {
       const cid = b.course_id as string | null;
       const cdCid = (b as any).course_dates?.course_id as string | null;
       const inCourse = (cid && courseIds.includes(cid)) || (cdCid && courseIds.includes(cdCid));
-      if (!inCourse) return false;
-      // Partner-Check: nur derselbe Partner oder kein Partner am Booking
-      if (teacherPartner) return (b.partner_id ?? null) === teacherPartner || b.partner_id == null;
-      return true;
+      const partnerMatch = teacherPartner ? (b.partner_id ?? null) === teacherPartner : true;
+      return inCourse || partnerMatch;
     });
 
     const studentIds = Array.from(new Set(scopedBookings.map((b) => b.student_id).filter(Boolean)));
