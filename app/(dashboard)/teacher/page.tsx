@@ -205,12 +205,12 @@ export default async function TeacherPage() {
     // Students nur aus relevanten Buchungen (Partner-Scope erfolgt über scopedBookings)
     const studentsAll = studentsBookings || [];
 
-    // Leads mit Partner für Quellen / Skills (statt note)
+    // Leads mit Partner für Quellen / Skills (statt note) – '*' um Schema-Mismatches zu vermeiden
     const leads = teacherPartner
       ? (
           await service
             .from('leads')
-            .select('id, source, skills')
+            .select('*')
             .eq('partner_id', teacherPartner)
         ).data || []
       : [];
@@ -267,7 +267,7 @@ export default async function TeacherPage() {
       const key = (val || 'Keine Angabe').toString().trim() || 'Keine Angabe';
       noteFreq[key] = (noteFreq[key] || 0) + 1;
     };
-    (leads || []).forEach((l: any) => addNote(l.skills));
+    (leads || []).forEach((l: any) => addNote(l.skills ?? l.note));
     if (!Object.keys(noteFreq).length) {
       (studentsAll || []).forEach((s: any) => addNote(s.note));
     }
