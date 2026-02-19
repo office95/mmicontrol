@@ -179,7 +179,7 @@ export default async function TeacherPage() {
       const cdCid = (b as any).course_dates?.course_id as string | null;
       const inCourse = (cid && courseIds.includes(cid)) || (cdCid && courseIds.includes(cdCid));
       const partnerMatch = teacherPartner ? (b.partner_id ?? null) === teacherPartner : true;
-      return inCourse || partnerMatch;
+      return partnerMatch || inCourse;
     });
 
     const studentIds = Array.from(new Set(scopedBookings.map((b) => b.student_id).filter(Boolean)));
