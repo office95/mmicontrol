@@ -12,10 +12,22 @@ const baseSelect =
 
 async function enrich(leads: any[]) {
   // Map course ids to titles for display
+  const toArray = (val: any): string[] => {
+    if (Array.isArray(val)) return val.filter(Boolean).map(String);
+    if (typeof val === 'string') {
+      // allow comma/semicolon/pipe separated strings
+      return val
+        .split(/[,;|\n]+/)
+        .map((s) => s.trim())
+        .filter(Boolean);
+    }
+    return [];
+  };
+
   const ids = Array.from(
     new Set(
       leads
-        .flatMap((l) => l.interest_courses || [])
+        .flatMap((l) => toArray(l.interest_courses))
         .filter((v: any): v is string => !!v)
     )
   );
@@ -25,7 +37,8 @@ async function enrich(leads: any[]) {
     courseMap = Object.fromEntries((data ?? []).map((c) => [c.id, c.title]));
   }
   return leads.map((l) => {
-    const titles: string[] = (l.interest_courses || []).map((id: string) => courseMap[id] || id);
+    const interestArray = toArray(l.interest_courses);
+    const titles: string[] = interestArray.map((id: string) => courseMap[id] || id);
     if (l.interest_other) {
       // interest_other kann mehrere Einträge enthalten, getrennt durch "|"
       const extras = l.interest_other
@@ -36,6 +49,7 @@ async function enrich(leads: any[]) {
     }
     return {
       ...l,
+      interest_courses: interestArray,
       interest_titles: titles,
     };
   });
