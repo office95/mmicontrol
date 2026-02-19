@@ -175,7 +175,7 @@ export default function AttendanceModal({
                   {new Date(s.date).toLocaleDateString()}
                 </button>
               ))}
-              {!sessions.length && <span className="text-sm text-white/70">Noch keine Kurstage.</span>}
+              {!sessions.length && <span className="text-sm text-slate-600">Noch keine Kurstage.</span>}
             </div>
             {!readOnly && (
               <div className="flex gap-2 items-center ml-auto">
@@ -206,10 +206,10 @@ export default function AttendanceModal({
               <div className="overflow-x-auto">
                 <table className="min-w-full text-sm text-slate-800">
                   <thead>
-                    <tr className="text-left text-white/60 uppercase text-[11px] tracking-[0.12em]">
-                      <th className="py-2 pr-3 text-slate-500">Teilnehmer</th>
-                      <th className="py-2 pr-3 text-slate-500">Status</th>
-                      <th className="py-2 pr-3 text-slate-500">Notiz</th>
+                    <tr className="text-left uppercase text-[11px] tracking-[0.12em] text-slate-600">
+                      <th className="py-2 pr-3">Teilnehmer</th>
+                      <th className="py-2 pr-3">Status</th>
+                      <th className="py-2 pr-3">Notiz</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-200">
