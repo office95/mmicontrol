@@ -159,7 +159,7 @@ export default async function TeacherPage() {
   let monthBookingsPrev = 0;
   let yearBookings = 0;
   let yearBookingsPrev = 0;
-  let topInterests: { label: string; count: number }[] = [];
+  let topInterests: { place: number; labels: string[] }[] = [];
   let sources: { label: string; value: number }[] = [];
   let notes: { label: string; value: number }[] = [];
 
@@ -219,7 +219,7 @@ export default async function TeacherPage() {
       if (d.getFullYear() === prevYear) yearBookingsPrev++;
     });
 
-    // Interests: Leads -> interest_name (primär), Leads->interest_courses (Fallback via Kurs-Map), Bookings -> course_title
+    // Interests: nur Leads -> interest_name (primär), Fallback interest_courses via Kurs-Map
     const courseTitleMap = new Map<string, string>();
     (courses || []).forEach((c) => courseTitleMap.set(c.id, c.title));
     const freq: Record<string, number> = {};
@@ -254,11 +254,28 @@ export default async function TeacherPage() {
         else handleCourse(valCourses);
       }
     });
-    (scopedBookings || []).forEach((b: any) => inc(b.course_title));
-    topInterests = Object.entries(freq)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 3)
-      .map(([label, count]) => ({ label, count }));
+    // Ranking mit Platz 1/2/3, Tie-Groups
+    const sorted = Object.entries(freq).sort((a, b) => b[1] - a[1]);
+    const ranks: { place: number; labels: string[] }[] = [];
+    let lastCount: number | null = null;
+    for (const [label, count] of sorted) {
+      if (!ranks.length) {
+        ranks.push({ place: 1, labels: [label] });
+        lastCount = count;
+        continue;
+      }
+
+      const last = ranks[ranks.length - 1];
+      if (count === lastCount) {
+        last.labels.push(label);
+      } else if (ranks.length < 3) {
+        ranks.push({ place: ranks.length + 1, labels: [label] });
+        lastCount = count;
+      } else {
+        break;
+      }
+    }
+    topInterests = ranks;
 
     // Source pie (Leads + Students-Fallback)
     const sourceFreq: Record<string, number> = {};

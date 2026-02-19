@@ -11,7 +11,7 @@ type KPIs = {
 
 export default function TeacherStatsClient({ kpis, interests, sources, notes }: {
   kpis: KPIs;
-  interests: { label: string; count: number }[];
+  interests: { place: number; labels: string[] }[];
   sources: { label: string; value: number }[];
   notes: { label: string; value: number }[];
 }) {
@@ -23,7 +23,11 @@ export default function TeacherStatsClient({ kpis, interests, sources, notes }: 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <Kpi title="Buchungen Monat" value={kpis.monthBookings} compare={kpis.monthBookingsPrev} />
         <Kpi title="Buchungen Jahr" value={kpis.yearBookings} compare={kpis.yearBookingsPrev} />
-        <Kpi title="Top Interesse" value={interests[0]?.label ?? '—'} compareLabel="" />
+        <Kpi
+          title="Top Interesse"
+          value={interests[0]?.labels?.join(', ') || '—'}
+          compareLabel=""
+        />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -40,15 +44,17 @@ export default function TeacherStatsClient({ kpis, interests, sources, notes }: 
           <div className="grid sm:grid-cols-3 gap-3">
             {interests.slice(0, 3).map((i, idx) => (
               <div
-                key={i.label}
+                key={i.place}
                 className="relative overflow-hidden rounded-2xl border border-white/15 bg-gradient-to-br from-white/12 via-white/6 to-transparent backdrop-blur p-4 shadow-lg"
               >
                 <div className="absolute -right-6 -top-6 h-20 w-20 rounded-full blur-3xl opacity-40"
                   style={{ background: palette[idx % palette.length] }} />
                 <p className="text-xs uppercase tracking-[0.2em] text-white/60 mb-1">
-                  {idx + 1}. Platz
+                  {i.place}. Platz
                 </p>
-                <p className="text-lg font-semibold text-white drop-shadow-sm">{i.label}</p>
+                <p className="text-lg font-semibold text-white drop-shadow-sm">
+                  {i.labels.join(', ')}
+                </p>
               </div>
             ))}
           </div>
