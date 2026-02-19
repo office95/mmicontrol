@@ -74,16 +74,17 @@ export default async function TeacherPage() {
     courseIds = Array.from(new Set([...courseIds, ...dateCourseIds]));
   }
 
-  // 2) Kurse laden (nach Partner gefiltert, falls gesetzt)
-  if (courseIds.length) {
+  // 2) Kurse laden (Partner + IDs)
+  if (teacherPartner || courseIds.length) {
     const { data: courseRows } = await service
       .from('courses')
       .select('id, title, description, duration_hours, partner_id')
-      .in('id', courseIds);
+      .or([
+        courseIds.length ? `id.in.(${courseIds.join(',')})` : '',
+        teacherPartner ? `partner_id.eq.${teacherPartner}` : '',
+      ].filter(Boolean).join(','));
 
-    const filteredCourses = teacherPartner
-      ? (courseRows || []).filter((c: any) => (c.partner_id ?? null) === teacherPartner || courseIds.includes(c.id as string))
-      : (courseRows || []);
+    const filteredCourses = courseRows || [];
 
     courses = filteredCourses.map((c) => ({
       id: c.id as string,
@@ -94,11 +95,15 @@ export default async function TeacherPage() {
       participants: [],
     }));
 
-    // Termine holen
+    // Termine holen (alle zugehörigen Kurs-IDs oder Partner)
+    const dateFilter = teacherPartner
+      ? { partner_id: teacherPartner }
+      : courseIds.length ? { course_id: courseIds } : {};
+
     const { data: dates } = await service
       .from('course_dates')
       .select('course_id, start_date')
-      .in('course_id', courseIds);
+      .match(dateFilter as any);
 
     const dateMap = new Map<string, string | null>();
     const today = new Date();
@@ -120,30 +125,37 @@ export default async function TeacherPage() {
 
     // Teilnehmer via enrollments (optional)
     let participantMap = new Map<string, { name: string; email: string; phone?: string | null }[]>();
-    const { data: enrollments } = await service
-      .from('course_members')
-      .select('course_id, profiles(full_name, id), created_at')
-      .eq('role', 'student')
-      .in('course_id', courseIds);
+    const courseIdsForParticipants = Array.from(new Set([...
+      courses.map((c) => c.id),
+      ...(dates?.map((d) => d.course_id) || []),
+    ]));
 
-    if (enrollments?.length) {
-      const studentIds = Array.from(new Set(enrollments.map((e: any) => e.profiles?.id).filter(Boolean)));
-      let studentMap = new Map<string, { name: string; email: string; phone?: string | null }>();
-      if (studentIds.length) {
-        const { data: studentRows } = await service
-          .from('students')
-          .select('id, name, email, phone')
-          .in('id', studentIds);
-        studentRows?.forEach((s) => studentMap.set(s.id, { name: s.name ?? s.email ?? 'Teilnehmer', email: s.email ?? '', phone: s.phone }));
+    if (courseIdsForParticipants.length) {
+      const { data: enrollments } = await service
+        .from('course_members')
+        .select('course_id, profiles(full_name, id), created_at')
+        .eq('role', 'student')
+        .in('course_id', courseIdsForParticipants);
+
+      if (enrollments?.length) {
+        const studentIds = Array.from(new Set(enrollments.map((e: any) => e.profiles?.id).filter(Boolean)));
+        let studentMap = new Map<string, { name: string; email: string; phone?: string | null }>();
+        if (studentIds.length) {
+          const { data: studentRows } = await service
+            .from('students')
+            .select('id, name, email, phone')
+            .in('id', studentIds);
+          studentRows?.forEach((s) => studentMap.set(s.id, { name: s.name ?? s.email ?? 'Teilnehmer', email: s.email ?? '', phone: s.phone }));
+        }
+        enrollments.forEach((e: any) => {
+          const cid = e.course_id as string;
+          const stu = studentMap.get(e.profiles?.id) || { name: e.profiles?.full_name ?? 'Teilnehmer', email: '' };
+          (stu as any).booking_date = e.created_at || null;
+          const list = participantMap.get(cid) || [];
+          list.push(stu);
+          participantMap.set(cid, list);
+        });
       }
-      enrollments.forEach((e: any) => {
-        const cid = e.course_id as string;
-        const stu = studentMap.get(e.profiles?.id) || { name: e.profiles?.full_name ?? 'Teilnehmer', email: '' };
-        (stu as any).booking_date = e.created_at || null;
-        const list = participantMap.get(cid) || [];
-        list.push(stu);
-        participantMap.set(cid, list);
-      });
     }
 
     courses = courses
