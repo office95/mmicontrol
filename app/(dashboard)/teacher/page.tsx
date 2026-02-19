@@ -220,6 +220,8 @@ export default async function TeacherPage() {
     });
 
     // Interests aus Leads.interest_courses + Bookings.course_title
+    const courseTitleMap = new Map<string, string>();
+    (courses || []).forEach((c) => courseTitleMap.set(c.id, c.title));
     const freq: Record<string, number> = {};
     const inc = (key: string) => {
       const k = key?.toString().trim();
@@ -228,8 +230,15 @@ export default async function TeacherPage() {
     };
     (leads || []).forEach((l: any) => {
       const val = (l as any).interest_courses;
-      if (Array.isArray(val)) val.forEach((x) => inc(x));
-      else if (typeof val === 'string') val.split(/[,;\n]+/).forEach((x) => inc(x));
+      const handle = (x: any) => {
+        const raw = x?.toString().trim();
+        if (!raw) return;
+        const mapped = courseTitleMap.get(raw) ?? raw;
+        inc(mapped);
+      };
+      if (Array.isArray(val)) val.forEach(handle);
+      else if (typeof val === 'string') val.split(/[,;\n]+/).forEach(handle);
+      else handle(val);
     });
     (scopedBookings || []).forEach((b: any) => inc(b.course_title));
     topInterests = Object.entries(freq)
