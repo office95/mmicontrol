@@ -12,7 +12,44 @@ const SELECT =
 export async function GET() {
   const { data, error } = await service.from('students').select(SELECT).order('created_at', { ascending: false });
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
-  return NextResponse.json(data);
+
+  // Latest booking per student + saldo
+  const studentIds = (data ?? []).map((s) => s.id);
+  if (!studentIds.length) return NextResponse.json(data);
+
+  const { data: bookings } = await service
+    .from('bookings')
+    .select('id, student_id, course_title, course_start, partner_name, status, amount')
+    .in('student_id', studentIds)
+    .order('booking_date', { ascending: false });
+
+  const latestByStudent = new Map<string, any>();
+  (bookings ?? []).forEach((b) => {
+    const existing = latestByStudent.get(b.student_id);
+    if (!existing || new Date(b.course_start || 0) > new Date(existing.course_start || 0)) {
+      latestByStudent.set(b.student_id, b);
+    }
+  });
+
+  const bookingIds = Array.from(latestByStudent.values()).map((b: any) => b.id);
+  const { data: payments } = await service
+    .from('payments')
+    .select('booking_id, amount')
+    .in('booking_id', bookingIds.length ? bookingIds : ['00000000-0000-0000-0000-000000000000']);
+  const payMap = (payments ?? []).reduce<Record<string, number>>((acc, p: any) => {
+    acc[p.booking_id] = (acc[p.booking_id] || 0) + Number(p.amount || 0);
+    return acc;
+  }, {});
+
+  const enriched = (data ?? []).map((s) => {
+    const b = latestByStudent.get(s.id);
+    if (!b) return s;
+    const paid = payMap[b.id] || 0;
+    const open = Number(((b.amount ?? 0) - paid).toFixed(2));
+    return { ...s, latest_booking: { ...b, paid_total: paid, open_amount: open } };
+  });
+
+  return NextResponse.json(enriched);
 }
 
 export async function POST(req: Request) {

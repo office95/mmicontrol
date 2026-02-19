@@ -26,6 +26,16 @@ type StudentListRow = {
   is_problem: boolean;
   problem_note: string | null;
   created_at: string;
+  latest_booking?: {
+    id: string;
+    course_title: string | null;
+    course_start: string | null;
+    partner_name: string | null;
+    status: string | null;
+    amount: number | null;
+    paid_total: number;
+    open_amount: number;
+  };
 };
 
 const statusLabel: Record<string, string> = { active: 'Aktiv', inactive: 'Inaktiv' };
@@ -158,33 +168,36 @@ export default function StudentsPage() {
                   {statusLabel[s.status] ?? s.status} · Angelegt: {new Date(s.created_at).toLocaleDateString()}
                 </p>
               </div>
-              <div className="flex items-center gap-2 text-xs">
-                <button
-                  className="px-3 py-1 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100"
-                  onClick={() => openFor(s)}
-                >
-                  Bearbeiten
-                </button>
-                <button
-                  className="px-3 py-1 rounded-lg border border-slate-300 text-indigo-600 hover:bg-indigo-50"
-                  onClick={() => setBookingFor(s)}
-                >
-                  Buchung erfassen
-                </button>
-                <button
-                  className="px-3 py-1 rounded-lg border border-red-300 text-red-600 hover:bg-red-50"
-                  onClick={async () => {
-                    if (!confirm('Diesen Kursteilnehmer löschen?')) return;
-                    const res = await fetch(`/api/admin/students?id=${s.id}`, { method: 'DELETE' });
-                    if (res.ok) load();
-                    else {
-                      const d = await res.json().catch(() => ({}));
-                      alert(d.error || 'Löschen fehlgeschlagen');
-                    }
-                  }}
-                >
-                  Löschen
-                </button>
+              <div className="flex flex-col md:flex-row items-start md:items-center gap-3 md:gap-4">
+                <BookingCard booking={s.latest_booking} />
+                <div className="flex items-center gap-2 text-xs">
+                  <button
+                    className="px-3 py-1 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100"
+                    onClick={() => openFor(s)}
+                  >
+                    Bearbeiten
+                  </button>
+                  <button
+                    className="px-3 py-1 rounded-lg border border-slate-300 text-indigo-600 hover:bg-indigo-50"
+                    onClick={() => setBookingFor(s)}
+                  >
+                    Buchung erfassen
+                  </button>
+                  <button
+                    className="px-3 py-1 rounded-lg border border-red-300 text-red-600 hover:bg-red-50"
+                    onClick={async () => {
+                      if (!confirm('Diesen Kursteilnehmer löschen?')) return;
+                      const res = await fetch(`/api/admin/students?id=${s.id}`, { method: 'DELETE' });
+                      if (res.ok) load();
+                      else {
+                        const d = await res.json().catch(() => ({}));
+                        alert(d.error || 'Löschen fehlgeschlagen');
+                      }
+                    }}
+                  >
+                    Löschen
+                  </button>
+                </div>
               </div>
             </div>
           ))}
@@ -208,6 +221,44 @@ export default function StudentsPage() {
           onClose={() => setBookingFor(null)}
         />
       )}
+    </div>
+  );
+}
+
+function BookingCard({ booking }: { booking?: StudentListRow['latest_booking'] }) {
+  if (!booking) {
+    return (
+      <div className="min-w-[240px] rounded-2xl border border-white/15 bg-white/10 backdrop-blur-xl px-4 py-3 text-white shadow-lg">
+        <p className="text-[11px] uppercase tracking-[0.16em] text-white/70 mb-1">Letzte Buchung</p>
+        <p className="text-sm text-white/70">Keine Buchung vorhanden.</p>
+      </div>
+    );
+  }
+  const statusColor =
+    booking.status === 'abgeschlossen'
+      ? 'bg-emerald-500/15 text-emerald-100 border-emerald-300/30'
+      : booking.status?.includes('Mahnung')
+        ? 'bg-amber-500/15 text-amber-100 border-amber-300/30'
+        : 'bg-white/10 text-white border-white/20';
+  const openTone = booking.open_amount <= 0 ? 'text-emerald-100' : 'text-amber-100';
+
+  return (
+    <div className="min-w-[260px] rounded-2xl border border-white/15 bg-gradient-to-br from-white/12 via-white/6 to-white/2 backdrop-blur-2xl px-4 py-3 text-white shadow-xl">
+      <div className="flex items-center justify-between mb-1">
+        <p className="text-[11px] uppercase tracking-[0.16em] text-white/70">Letzte Buchung</p>
+        <span className={`text-[11px] px-2 py-1 rounded-full border ${statusColor}`}>
+          {booking.status ?? '—'}
+        </span>
+      </div>
+      <p className="text-base font-semibold leading-tight">{booking.course_title ?? '—'}</p>
+      <p className="text-xs text-white/70 mb-2">
+        {booking.course_start ? new Date(booking.course_start).toLocaleDateString() : '—'} · {booking.partner_name ?? '—'}
+      </p>
+      <div className="flex items-center gap-3 text-sm font-semibold">
+        <span className="text-white/80">Saldo</span>
+        <span className={openTone}>{booking.open_amount.toFixed(2)} €</span>
+        <span className="text-white/50 text-xs">({booking.paid_total.toFixed(2)} € bezahlt)</span>
+      </div>
     </div>
   );
 }
