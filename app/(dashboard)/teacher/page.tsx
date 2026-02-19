@@ -187,25 +187,31 @@ export default async function TeacherPage() {
     const { data: studentsBookings } = studentIds.length
       ? await service
           .from('students')
-          .select('id, interest_courses, source, note')
+          .select('id, interest_courses, source, note, partner_id')
           .in('id', studentIds)
       : { data: [] as any[] };
 
-    // Zusätzlich: alle Students, die direkt dem Partner zugeordnet sind (falls Feld existiert), damit Quellen/Interessen nicht leer bleiben
-    const { data: studentsPartner } = teacherPartner
+    // zusätzliche Students reinholen, die direkt dem Partner zugeordnet sind
+    const { data: partnerStudents } = teacherPartner
       ? await service
           .from('students')
           .select('id, interest_courses, source, note, partner_id')
           .eq('partner_id', teacherPartner)
       : { data: [] as any[] };
 
-    const students = [...(studentsBookings || []), ...(studentsPartner || [])];
+    // Students vereinigen (ID-basiert unique)
+    const studentMap = new Map<string, any>();
+    (studentsBookings || []).forEach((s: any) => studentMap.set(s.id, s));
+    (partnerStudents || []).forEach((s: any) => {
+      if (!studentMap.has(s.id)) studentMap.set(s.id, s);
+    });
+    const studentsAll = Array.from(studentMap.values());
 
-    // Leads mit Partner für Quellen/Noten
+    // Leads mit Partner für Quellen / Skills (statt note)
     const { data: leads } = teacherPartner
       ? await service
           .from('leads')
-          .select('id, source, note')
+          .select('id, source, skills')
           .eq('partner_id', teacherPartner)
       : { data: [] as any[] };
 
@@ -227,7 +233,7 @@ export default async function TeacherPage() {
       if (!k) return;
       freq[k] = (freq[k] || 0) + 1;
     };
-    (students || []).forEach((s: any) => {
+    (studentsAll || []).forEach((s: any) => {
       const val = s.interest_courses;
       if (Array.isArray(val)) val.forEach((x) => inc(String(x)));
       else if (typeof val === 'string') val.split(/[,;\n]+/).forEach((x) => inc(x));
@@ -237,25 +243,34 @@ export default async function TeacherPage() {
       .slice(0, 8)
       .map(([label, count]) => ({ label, count }));
 
-    // Source pie (Students + Leads)
+    // Source pie (Leads + Students-Fallback)
     const sourceFreq: Record<string, number> = {};
     const addSource = (val: string | null | undefined) => {
       const key = (val || 'Unbekannt').trim() || 'Unbekannt';
       sourceFreq[key] = (sourceFreq[key] || 0) + 1;
     };
-    (students || []).forEach((s: any) => addSource(s.source));
     (leads || []).forEach((l: any) => addSource(l.source));
+    // Fallback: wenn keine Leads, nimm Student-Quellen
+    if (!Object.keys(sourceFreq).length) {
+      (studentsAll || []).forEach((s: any) => addSource(s.source));
+    }
     const totalSources = Object.values(sourceFreq).reduce((a, b) => a + b, 0) || 1;
     sources = Object.entries(sourceFreq).map(([label, value]) => ({ label, value: (value / totalSources) * 100 }));
 
-    // Notes distribution (Students + Leads)
+    // Skills/Erfahrungen aus Leads (skills Feld), Fallback note aus Students
     const noteFreq: Record<string, number> = {};
-    const addNote = (val: string | null | undefined) => {
-      const key = (val || 'Keine Angabe').trim() || 'Keine Angabe';
+    const addNote = (val: string | string[] | null | undefined) => {
+      if (Array.isArray(val)) {
+        val.forEach((v) => addNote(v));
+        return;
+      }
+      const key = (val || 'Keine Angabe').toString().trim() || 'Keine Angabe';
       noteFreq[key] = (noteFreq[key] || 0) + 1;
     };
-    (students || []).forEach((s: any) => addNote(s.note));
-    (leads || []).forEach((l: any) => addNote(l.note));
+    (leads || []).forEach((l: any) => addNote(l.skills));
+    if (!Object.keys(noteFreq).length) {
+      (studentsAll || []).forEach((s: any) => addNote(s.note));
+    }
     const totalNotes = Object.values(noteFreq).reduce((a, b) => a + b, 0) || 1;
     notes = Object.entries(noteFreq).map(([label, value]) => ({ label, value: (value / totalNotes) * 100 }));
   }
