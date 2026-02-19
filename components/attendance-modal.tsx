@@ -123,15 +123,15 @@ export default function AttendanceModal({
   );
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-6xl rounded-3xl bg-gradient-to-br from-slate-900 via-slate-850 to-slate-900 text-white shadow-2xl border border-white/10 relative max-h-[90vh] overflow-hidden">
-        <div className="absolute -right-24 -top-24 h-56 w-56 bg-emerald-500/10 blur-3xl" />
-        <div className="absolute -left-16 -bottom-16 h-48 w-48 bg-pink-500/10 blur-3xl" />
+    <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+      <div className="w-full max-w-6xl rounded-3xl bg-white text-ink shadow-2xl border border-slate-200 relative max-h-[90vh] overflow-hidden">
+        <div className="absolute -right-24 -top-24 h-56 w-56 bg-emerald-200/40 blur-3xl" />
+        <div className="absolute -left-16 -bottom-16 h-48 w-48 bg-pink-200/40 blur-3xl" />
 
         <div className="flex items-start justify-between gap-3 px-6 pt-6 pb-4 relative z-10">
           <div className="space-y-1">
-            <p className="text-xs uppercase tracking-[0.2em] text-white/60">Anwesenheitsliste</p>
-            <h3 className="text-2xl font-semibold text-white drop-shadow-sm">{courseTitle}</h3>
+            <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Anwesenheitsliste</p>
+            <h3 className="text-2xl font-semibold text-ink drop-shadow-sm">{courseTitle}</h3>
             <div className="flex gap-2 flex-wrap">
               {badge(readOnly ? 'Ansicht' : 'Bearbeitung')}
               {selectedSession && badge(new Date(selectedSession.date).toLocaleDateString())}
@@ -152,10 +152,10 @@ export default function AttendanceModal({
                 <button
                   key={s.id}
                   onClick={() => setSelectedSessionId(s.id)}
-                  className={`px-3 py-2 rounded-xl text-sm border backdrop-blur ${
+                  className={`px-3 py-2 rounded-xl text-sm border ${
                     selectedSessionId === s.id
-                      ? 'bg-emerald-500/20 border-emerald-400 text-white'
-                      : 'bg-white/5 border-white/15 text-white/80 hover:bg-white/10'
+                      ? 'bg-emerald-100 border-emerald-300 text-emerald-900'
+                      : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
                   }`}
                 >
                   {new Date(s.date).toLocaleDateString()}
@@ -167,12 +167,12 @@ export default function AttendanceModal({
               <div className="flex gap-2 items-center ml-auto">
                 <input
                   type="date"
-                  className="input h-10 text-sm bg-white/5 border-white/15 text-white placeholder-white/50"
+                  className="input h-10 text-sm"
                   value={newDate}
                   onChange={(e) => setNewDate(e.target.value)}
                 />
                 <button
-                  className="rounded-xl bg-emerald-500 text-slate-900 px-4 py-2 text-sm font-semibold shadow hover:bg-emerald-400 disabled:opacity-50"
+                  className="rounded-xl bg-emerald-500 text-white px-4 py-2 text-sm font-semibold shadow hover:bg-emerald-400 disabled:opacity-50"
                   onClick={addSession}
                   disabled={!newDate}
                 >
@@ -182,35 +182,30 @@ export default function AttendanceModal({
             )}
           </div>
 
-          {error && <p className="text-sm text-red-300">{error}</p>}
-          {loading && <p className="text-sm text-white/70">Lade...</p>}
+          {error && <p className="text-sm text-red-600">{error}</p>}
+          {loading && <p className="text-sm text-slate-500">Lade...</p>}
         </div>
 
         {selectedSession && (
           <div className="relative z-10 px-6 pb-6">
-            <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur p-4 shadow-inner">
+            <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-inner">
               <div className="overflow-x-auto">
-                <table className="min-w-full text-sm text-white/90">
+                <table className="min-w-full text-sm text-slate-800">
                   <thead>
                     <tr className="text-left text-white/60 uppercase text-[11px] tracking-[0.12em]">
-                      <th className="py-2 pr-3">Teilnehmer</th>
-                      <th className="py-2 pr-3">Kontakt</th>
-                      <th className="py-2 pr-3">Status</th>
-                      <th className="py-2 pr-3">Notiz</th>
+                      <th className="py-2 pr-3 text-slate-500">Teilnehmer</th>
+                      <th className="py-2 pr-3 text-slate-500">Status</th>
+                      <th className="py-2 pr-3 text-slate-500">Notiz</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-white/5">
+                  <tbody className="divide-y divide-slate-100">
                     {participants.map((p) => {
                       const entry = entryMap.get(p.student_id ?? '') || null;
                       return (
                         <tr key={p.student_id ?? p.email}>
                           <td className="py-2 pr-3">
-                            <div className="font-semibold text-white">{p.name}</div>
-                            <div className="text-xs text-white/60">{p.student_id ? 'Student' : 'Gast'}</div>
-                          </td>
-                          <td className="py-2 pr-3 text-white/80">
-                            <div>{p.email}</div>
-                            <div className="text-xs text-white/60">{p.phone || '—'}</div>
+                            <div className="font-semibold text-ink">{p.name}</div>
+                            <div className="text-xs text-slate-500">{p.student_id ? 'Student' : 'Gast'}</div>
                           </td>
                           <td className="py-2 pr-3">
                             <div className="flex items-center gap-2">
@@ -219,8 +214,8 @@ export default function AttendanceModal({
                                 onClick={() => updateEntry(p.student_id, 'present', entry?.note)}
                                 className={`px-3 py-1 rounded-lg border text-xs ${
                                   entry?.status === 'present'
-                                    ? 'bg-emerald-500/20 border-emerald-300 text-emerald-100'
-                                    : 'bg-white/5 border-white/15 text-white/70 hover:bg-white/10'
+                                    ? 'bg-emerald-100 border-emerald-300 text-emerald-800'
+                                    : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
                                 }`}
                               >
                                 anwesend
@@ -230,8 +225,8 @@ export default function AttendanceModal({
                                 onClick={() => updateEntry(p.student_id, 'absent', entry?.note)}
                                 className={`px-3 py-1 rounded-lg border text-xs ${
                                   entry?.status === 'absent'
-                                    ? 'bg-amber-500/20 border-amber-300 text-amber-100'
-                                    : 'bg-white/5 border-white/15 text-white/70 hover:bg-white/10'
+                                    ? 'bg-amber-100 border-amber-300 text-amber-800'
+                                    : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
                                 }`}
                               >
                                 abwesend
@@ -242,7 +237,7 @@ export default function AttendanceModal({
                             <input
                               type="text"
                               disabled={readOnly || entry?.status !== 'absent'}
-                              className="input h-9 w-full text-xs bg-white/5 border-white/15 text-white placeholder-white/40 disabled:opacity-50"
+                              className="input h-9 w-full text-xs disabled:opacity-50"
                               placeholder="Notiz"
                               value={entry?.note ?? ''}
                               onChange={(e) => updateEntry(p.student_id, 'absent', e.target.value)}
