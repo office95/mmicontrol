@@ -105,13 +105,13 @@ export default function StudentsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-xs uppercase tracking-[0.2em] text-pink-600">Admin</p>
-          <h1 className="text-3xl font-semibold text-slate-900">Kursteilnehmer</h1>
-          <p className="text-sm text-slate-600">Teilnehmer verwalten, markieren und bearbeiten.</p>
+          <p className="text-xs uppercase tracking-[0.2em] text-pink-200">Admin</p>
+          <h1 className="text-3xl font-semibold text-white">Kursteilnehmer</h1>
+          <p className="text-sm text-slate-200">Teilnehmer verwalten, markieren und bearbeiten.</p>
         </div>
         <div className="flex items-center gap-2">
           <button
-            className="inline-flex items-center justify-center h-10 px-4 rounded-lg bg-white border border-slate-200 text-sm font-semibold text-slate-900 hover:bg-slate-50"
+            className="inline-flex items-center justify-center h-10 px-4 rounded-lg bg-white/15 border border-white/25 text-sm font-semibold text-white hover:bg-white/25"
             onClick={() => { setEditItem(null); setOpenModal(true); }}
           >
             Neuer Kursteilnehmer
