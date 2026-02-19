@@ -56,11 +56,11 @@ export default async function TeacherPage() {
     const ids = memberships?.map((m) => m.course_id).filter(Boolean) || [];
 
     if (ids.length) {
-      const { data: courseRows } = await service
+      const { data: courseRows, error: courseErr } = await service
         .from('courses')
         .select('id, title, description, duration_hours, partner_id')
-        .in('id', ids)
-        .maybeThrow();
+        .in('id', ids);
+      if (courseErr) throw courseErr;
       const filteredCourses = teacherPartner
         ? (courseRows || []).filter((c: any) => c.partner_id === teacherPartner)
         : (courseRows || []);
@@ -156,11 +156,11 @@ export default async function TeacherPage() {
 
   if (user?.id && courses && courses.length) {
     const courseIds = courses.map((c) => c.id);
-    const { data: bookings } = await service
+    const { data: bookings, error: bookingsErr } = await service
       .from('bookings')
       .select('id, course_id, student_id, booking_date, partner_id')
-      .in('course_id', courseIds)
-      .maybeThrow();
+      .in('course_id', courseIds);
+    if (bookingsErr) throw bookingsErr;
     const scopedBookings = teacherPartner
       ? (bookings || []).filter((b: any) => b.partner_id === teacherPartner)
       : bookings || [];
