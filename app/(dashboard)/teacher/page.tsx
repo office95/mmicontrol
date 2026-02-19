@@ -161,9 +161,8 @@ export default async function TeacherPage() {
       .from('bookings')
       .select('id, course_id, student_id, booking_date, partner_id, amount');
     const scopedBookingsRaw = bookingsErr ? [] : bookings || [];
-    const scopedBookings = teacherPartner
-      ? scopedBookingsRaw.filter((b: any) => b.partner_id === teacherPartner || courseIds.includes(b.course_id as string))
-      : scopedBookingsRaw.filter((b: any) => courseIds.includes(b.course_id as string));
+    // Nur Buchungen der gefilterten Kurse (die bereits auf Partner eingeschränkt sind)
+    const scopedBookings = scopedBookingsRaw.filter((b: any) => courseIds.includes(b.course_id as string));
 
     const studentIds = Array.from(new Set(scopedBookings.map((b) => b.student_id).filter(Boolean)));
 
