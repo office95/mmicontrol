@@ -1,6 +1,7 @@
 import { createSupabaseServerClient } from '@/lib/supabase-server';
 import { createClient } from '@supabase/supabase-js';
 import CourseListClient from './course-list-client';
+import TeacherStatsClient from './stats-client';
 
 export default async function TeacherPage() {
   const supabase = createSupabaseServerClient();
@@ -16,6 +17,11 @@ export default async function TeacherPage() {
   const loginEmail = (user?.email || '').toLowerCase();
   const fullName = (user?.user_metadata as any)?.full_name || loginEmail || 'Dozent';
   const registeredAt = user?.created_at ? new Date(user.created_at) : null;
+
+  const now = new Date();
+  const currentMonth = now.getMonth();
+  const currentYear = now.getFullYear();
+  const prevYear = currentYear - 1;
 
   // Kurse über course_members (role = teacher)
   let courses:
@@ -124,6 +130,78 @@ export default async function TeacherPage() {
   const nextStart = nextCourse?.start_date ? new Date(nextCourse.start_date) : null;
   const daysRemaining = nextStart ? Math.ceil((nextStart.getTime() - Date.now()) / (1000 * 60 * 60 * 24)) : null;
 
+  // Buchungen und Students für KPIs
+  let monthBookings = 0;
+  let monthBookingsPrev = 0;
+  let yearBookings = 0;
+  let yearBookingsPrev = 0;
+  let topInterests: { label: string; count: number }[] = [];
+  let sources: { label: string; value: number }[] = [];
+  let notes: { label: string; value: number }[] = [];
+
+  if (user?.id && courses && courses.length) {
+    const courseIds = courses.map((c) => c.id);
+    const { data: bookings } = await service
+      .from('bookings')
+      .select('id, course_id, student_id, booking_date')
+      .in('course_id', courseIds);
+
+    const studentIds = Array.from(new Set((bookings || []).map((b) => b.student_id).filter(Boolean)));
+
+    const { data: students } = studentIds.length
+      ? await service
+          .from('students')
+          .select('id, interest_courses, source, note')
+          .in('id', studentIds)
+      : { data: [] as any[] };
+
+    const isSameMonthYear = (d: Date, year: number, month: number) => d.getFullYear() === year && d.getMonth() === month;
+
+    (bookings || []).forEach((b) => {
+      if (!b.booking_date) return;
+      const d = new Date(b.booking_date);
+      if (isSameMonthYear(d, currentYear, currentMonth)) monthBookings++;
+      if (isSameMonthYear(d, prevYear, currentMonth)) monthBookingsPrev++;
+      if (d.getFullYear() === currentYear) yearBookings++;
+      if (d.getFullYear() === prevYear) yearBookingsPrev++;
+    });
+
+    // Interests
+    const freq: Record<string, number> = {};
+    const inc = (key: string) => {
+      const k = key.trim();
+      if (!k) return;
+      freq[k] = (freq[k] || 0) + 1;
+    };
+    (students || []).forEach((s: any) => {
+      const val = s.interest_courses;
+      if (Array.isArray(val)) val.forEach((x) => inc(String(x)));
+      else if (typeof val === 'string') val.split(/[,;\n]+/).forEach((x) => inc(x));
+    });
+    topInterests = Object.entries(freq)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 8)
+      .map(([label, count]) => ({ label, count }));
+
+    // Source pie
+    const sourceFreq: Record<string, number> = {};
+    (students || []).forEach((s: any) => {
+      const key = (s.source || 'Unbekannt').trim() || 'Unbekannt';
+      sourceFreq[key] = (sourceFreq[key] || 0) + 1;
+    });
+    const totalSources = Object.values(sourceFreq).reduce((a, b) => a + b, 0) || 1;
+    sources = Object.entries(sourceFreq).map(([label, value]) => ({ label, value: (value / totalSources) * 100 }));
+
+    // Notes distribution
+    const noteFreq: Record<string, number> = {};
+    (students || []).forEach((s: any) => {
+      const key = (s.note || 'Keine Angabe').trim() || 'Keine Angabe';
+      noteFreq[key] = (noteFreq[key] || 0) + 1;
+    });
+    const totalNotes = Object.values(noteFreq).reduce((a, b) => a + b, 0) || 1;
+    notes = Object.entries(noteFreq).map(([label, value]) => ({ label, value: (value / totalNotes) * 100 }));
+  }
+
   return (
     <div className="space-y-8">
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 bg-white/10 border border-white/15 rounded-xl p-6 shadow-lg relative overflow-hidden">
@@ -151,6 +229,12 @@ export default async function TeacherPage() {
 
       <div className="space-y-3">
         <h2 className="text-xl font-semibold text-white">Meine Kurse & Teilnehmer</h2>
+        <TeacherStatsClient
+          kpis={{ monthBookings, monthBookingsPrev, yearBookings, yearBookingsPrev }}
+          interests={topInterests}
+          sources={sources}
+          notes={notes}
+        />
         {courses && courses.length > 0 ? (
           <CourseListClient courses={courses} />
         ) : (
