@@ -297,16 +297,29 @@ export default async function TeacherPage() {
 
     (leads || []).forEach((l: any) => extractLabels(l));
 
-    // Ranking mit Ties: bis zu 3 Plätze, jeweils alle Labels gleicher Häufigkeit
+    // Ranking mit Ties: bis zu Platz 3; Platz wechselt nur bei niedrigerem Count
     const sorted = Object.entries(freq)
       .map(([label, count]) => ({ label, count }))
       .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
 
-    const distinctCounts = Array.from(new Set(sorted.map((s) => s.count))).slice(0, 3);
-    topInterests = distinctCounts.map((cnt, idx) => ({
-      place: idx + 1,
-      labels: sorted.filter((s) => s.count === cnt).map((s) => s.label),
-    }));
+    const ranks: { place: number; labels: string[]; count: number }[] = [];
+    let place = 1;
+    let prevCount: number | null = null;
+    for (const row of sorted) {
+      if (prevCount !== null && row.count < prevCount) {
+        place += 1;
+      }
+      if (place > 3) break;
+
+      const existing = ranks.find((r) => r.place === place && r.count === row.count);
+      if (existing) {
+        existing.labels.push(row.label);
+      } else {
+        ranks.push({ place, labels: [row.label], count: row.count });
+      }
+      prevCount = row.count;
+    }
+    topInterests = ranks.map(({ place, labels }) => ({ place, labels }));
 
     // Source pie (Leads + Students-Fallback)
     const sourceFreq: Record<string, number> = {};
