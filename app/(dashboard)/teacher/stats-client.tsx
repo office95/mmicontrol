@@ -42,7 +42,7 @@ export default function TeacherStatsClient({ kpis, interests, sources, notes }: 
         </Card>
       </div>
 
-      <Card title="Top Interessen" className="">
+      <Card title="Top Kursanfragen Music Mission gesamt" className="">
         {interests.slice(0, 3).length ? (
           <div className="grid sm:grid-cols-3 gap-3">
             {interests.slice(0, 3).map((i, idx) => (
