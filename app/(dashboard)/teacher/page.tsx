@@ -45,7 +45,7 @@ export default async function TeacherPage() {
     }[]
   | null = [];
 
-  // 1) Kurs-IDs: Schnittmenge aus Kurs-Memberships des Dozenten UND/ODER Partner-Kurse
+  // 1) Kurs-IDs: Schnittmenge aus Kurs-Memberships des Dozenten UND/ODER Partner-Kurse sowie Kurs-Termine des Partners
   let courseIds: string[] = [];
   if (user?.id) {
     const { data: memberships } = await service
@@ -62,6 +62,16 @@ export default async function TeacherPage() {
       .eq('partner_id', teacherPartner);
     const partnerIds = partnerCourses?.map((c) => c.id as string).filter(Boolean) || [];
     courseIds = Array.from(new Set([...courseIds, ...partnerIds]));
+  }
+
+  // Kurs-Termine nach Partner ziehen (falls Partner gesetzt)
+  if (teacherPartner) {
+    const { data: partnerDates } = await service
+      .from('course_dates')
+      .select('course_id')
+      .eq('partner_id', teacherPartner);
+    const dateCourseIds = partnerDates?.map((d) => d.course_id as string).filter(Boolean) || [];
+    courseIds = Array.from(new Set([...courseIds, ...dateCourseIds]));
   }
 
   // 2) Kurse laden (nach Partner gefiltert, falls gesetzt)
