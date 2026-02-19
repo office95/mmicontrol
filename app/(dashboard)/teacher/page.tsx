@@ -163,7 +163,7 @@ export default async function TeacherPage() {
   let sources: { label: string; value: number }[] = [];
   let notes: { label: string; value: number }[] = [];
 
-  if (true) { // immer laufen lassen, Daten sind bereits partnerscopiert
+  try {
     const courseIds = courses?.map((c) => c.id) ?? [];
     const { data: bookings, error: bookingsErr } = await service
       .from('bookings')
@@ -264,6 +264,15 @@ export default async function TeacherPage() {
     }
     const totalNotes = Object.values(noteFreq).reduce((a, b) => a + b, 0) || 1;
     notes = Object.entries(noteFreq).map(([label, value]) => ({ label, value: (value / totalNotes) * 100 }));
+  } catch (err) {
+    console.error('Teacher dashboard data error', err);
+    monthBookings = 0;
+    monthBookingsPrev = 0;
+    yearBookings = 0;
+    yearBookingsPrev = 0;
+    topInterests = [];
+    sources = [];
+    notes = [];
   }
 
   return (
