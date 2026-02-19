@@ -606,7 +606,6 @@ export default async function TeacherPage() {
           <div className="rounded-2xl bg-gradient-to-r from-pink-500 via-rose-500 to-purple-600 text-white px-6 py-5 shadow-2xl ring-2 ring-white/30 min-w-[240px] text-center transform hover:scale-[1.02] transition">
             <p className="text-[11px] uppercase tracking-[0.24em] text-white/80 mb-2">Noch</p>
             <CountdownFlip days={daysRemaining} courseTitle={nextCourse?.title ?? 'Noch kein Kurs'} />
-            <p className="text-[11px] uppercase tracking-[0.24em] text-white/80 mt-2">bis Kursbeginn / Kursname</p>
           </div>
         </div>
       </div>
