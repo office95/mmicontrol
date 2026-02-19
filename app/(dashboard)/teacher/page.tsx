@@ -253,8 +253,9 @@ export default async function TeacherPage() {
 
     // Source pie (Leads + Students-Fallback)
     const sourceFreq: Record<string, number> = {};
-    const addSource = (val: string | null | undefined) => {
-      const key = (val || 'Unbekannt').trim() || 'Unbekannt';
+    const addSource = (val: any) => {
+      if (Array.isArray(val)) val = val.join(', ');
+      const key = (typeof val === 'string' ? val : String(val ?? 'Unbekannt')).trim() || 'Unbekannt';
       sourceFreq[key] = (sourceFreq[key] || 0) + 1;
     };
     (leads || []).forEach((l: any) => addSource(l.source));
