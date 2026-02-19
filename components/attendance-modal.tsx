@@ -87,11 +87,6 @@ export default function AttendanceModal({
 
   const updateEntry = async (student_id: string | null, status: 'present' | 'absent', note?: string | null) => {
     if (readOnly || !selectedSession) return;
-    if (status === 'absent' && !note?.trim()) {
-      setError('Bitte eine Notiz bei abwesend angeben.');
-      return;
-    }
-
     const res = await fetch('/api/attendance/entry', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -214,7 +209,7 @@ export default function AttendanceModal({
                     <tr className="text-left text-white/60 uppercase text-[11px] tracking-[0.12em]">
                       <th className="py-2 pr-3 text-slate-500">Teilnehmer</th>
                       <th className="py-2 pr-3 text-slate-500">Status</th>
-                      <th className="py-2 pr-3 text-slate-600 text-sm">Notiz</th>
+                      <th className="py-2 pr-3 text-slate-500">Notiz</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-200">
@@ -258,10 +253,9 @@ export default function AttendanceModal({
                               type="text"
                               disabled={readOnly || entry?.status !== 'absent'}
                               className="input h-9 w-full text-xs disabled:opacity-50 bg-white border-slate-300 text-slate-800 placeholder-slate-400"
-                              placeholder="Notiz (Pflicht bei abwesend)"
+                              placeholder="Notiz"
                               value={entry?.note ?? ''}
                               onChange={(e) => updateEntry(p.student_id, 'absent', e.target.value)}
-                              required={entry?.status === 'absent'}
                             />
                           </td>
                         </tr>
