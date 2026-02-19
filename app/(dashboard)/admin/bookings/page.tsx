@@ -226,10 +226,9 @@ export default function BookingsPage() {
                 setSelected(null);
                 const params = new URLSearchParams(searchParams.toString());
                 params.delete('id');
-                router.replace({
-                  pathname: '/admin/bookings',
-                  query: Object.fromEntries(params),
-                });
+                const query = params.toString();
+                const url = `/admin/bookings${query ? `?${query}` : ''}`;
+                router.replace(url as any);
               }}
             >
               ×
