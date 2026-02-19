@@ -47,13 +47,15 @@ export default async function TeacherPage() {
 
   // 1) Kurs-IDs: Schnittmenge aus Kurs-Memberships des Dozenten UND/ODER Partner-Kurse sowie Kurs-Termine des Partners
   let courseIds: string[] = [];
+  let courseMemberIds: string[] = [];
   if (user?.id) {
     const { data: memberships } = await service
       .from('course_members')
       .select('course_id')
       .eq('user_id', user.id)
       .eq('role', 'teacher');
-    courseIds = memberships?.map((m) => m.course_id).filter(Boolean) || [];
+    courseMemberIds = memberships?.map((m) => m.course_id).filter(Boolean) || [];
+    courseIds = [...courseMemberIds];
   }
   if (teacherPartner) {
     const { data: partnerCourses } = await service
@@ -534,7 +536,12 @@ export default async function TeacherPage() {
   }));
 
   // Materialien für die Kurse laden (Sichtbarkeit teachers/both)
-  const courseIdsForMaterials = Array.from(new Set((courses || []).map((c) => c.id)));
+  const courseIdsForMaterials = Array.from(
+    new Set([
+      ...courseMemberIds, // strikt nach Vorgabe: nur Kursunterlagen der Kurse, in denen der Dozent Mitglied ist
+      ...(courses || []).map((c) => c.id), // fallback, falls oben leer
+    ]).values()
+  );
   let materials:
     | {
         id: string;
