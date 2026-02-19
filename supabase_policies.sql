@@ -138,6 +138,7 @@ create policy cd_teacher_student_select on course_dates for select using (
 drop policy if exists bookings_admin_all on bookings;
 drop policy if exists bookings_teacher_view on bookings;
 drop policy if exists bookings_student_view on bookings;
+drop policy if exists bookings_partner_teacher_view on bookings;
 create policy bookings_admin_all on bookings for all using (auth.uid() in (select id from v_admin));
 create policy bookings_teacher_view on bookings for select using (
   auth.uid() in (
@@ -151,6 +152,16 @@ create policy bookings_student_view on bookings for select using (
   lower(bookings.student_email) = lower(auth.email())
   or bookings.student_id = auth.uid()
 );
+-- Lehrer dürfen Buchungen sehen, wenn ihr Partner mit booking.partner_id übereinstimmt
+create policy bookings_partner_teacher_view on bookings for select using (
+  exists (
+    select 1 from profiles p
+    where p.id = auth.uid()
+      and p.partner_id is not null
+      and p.partner_id = bookings.partner_id
+      and p.role = 'teacher'
+  )
+);
 
 -- 11) storage.objects (materials bucket upload nur Admin)
 -- Hinweis: Policy nur anwenden, wenn Bucket 'materials' existiert und privat ist.
@@ -162,3 +173,20 @@ create policy bookings_student_view on bookings for select using (
 --     bucket_id = 'materials'
 --     and auth.uid() in (select id from v_admin)
 --   );
+
+-- 12) leads (Partner-Leads für Teacher sichtbar)
+alter table if exists public.leads enable row level security;
+drop policy if exists leads_admin_all on leads;
+drop policy if exists leads_partner_teacher_view on leads;
+create policy leads_admin_all on leads
+  for all using (auth.uid() in (select id from v_admin));
+create policy leads_partner_teacher_view on leads
+  for select using (
+    exists (
+      select 1 from profiles p
+      where p.id = auth.uid()
+        and p.partner_id is not null
+        and p.partner_id = leads.partner_id
+        and p.role = 'teacher'
+    )
+  );
