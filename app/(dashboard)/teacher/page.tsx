@@ -268,6 +268,7 @@ export default async function TeacherPage() {
   let sources: { label: string; value: number }[] = [];
   let notes: { label: string; value: number }[] = [];
 
+  let bookingsData: any[] = [];
   try {
     const courseIds = courses?.map((c) => c.id) ?? [];
     // Buchungen: Partner-filter, aber fallback auf Kurs-Zuordnung falls partner_id fehlt
@@ -275,7 +276,7 @@ export default async function TeacherPage() {
       .from('bookings')
       .select('id, course_id, course_date_id, student_id, booking_date, created_at, partner_id, amount, course_title, course_dates(course_id)');
 
-    const bookingsData = bookingsErr ? [] : bookings || [];
+    bookingsData = bookingsErr ? [] : bookings || [];
     const scopedBookingsRaw = bookingsData.filter((b: any) => {
       const partnerMatch = teacherPartner ? (b.partner_id ?? null) === teacherPartner : true;
       if (partnerMatch) return true;
@@ -302,7 +303,6 @@ export default async function TeacherPage() {
     const studentsAll = studentsBookings || [];
 
     // Teilnehmer aus Buchungen pro Kurs
-    const bookingParticipants = new Map<string, { name: string; email: string; phone?: string | null; booking_date?: string | null }[]>();
     const studentById = new Map<string, any>();
     studentsAll.forEach((s: any) => studentById.set(s.id, s));
 
@@ -490,6 +490,90 @@ export default async function TeacherPage() {
     notes = [];
   }
 
+  // Wenn nach obiger Verarbeitung keine Buchungs-Teilnehmer gefunden wurden, versuche erneut mit finalen Kurs-IDs
+  if (bookingParticipants.size === 0 && bookingsData.length && (courses?.length || 0) > 0) {
+    const courseIdSet = new Set((courses || []).map((c) => c.id));
+    const scopedBookingsAlt = bookingsData.filter((b: any) => {
+      const partnerMatch = teacherPartner ? (b.partner_id ?? null) === teacherPartner : true;
+      if (partnerMatch) return true;
+      const cid = b.course_id as string | null;
+      const cdCid = (b as any).course_dates?.course_id as string | null;
+      return (cid && courseIdSet.has(cid)) || (cdCid && courseIdSet.has(cdCid));
+    });
+
+    const studentIdsAlt = Array.from(new Set(scopedBookingsAlt.map((b: any) => b.student_id).filter(Boolean)));
+    const studentsAlt = studentIdsAlt.length
+      ? ((await service.from('students').select('*').in('id', studentIdsAlt)).data || [])
+      : [];
+    const studentByIdAlt = new Map<string, any>();
+    studentsAlt.forEach((s: any) => studentByIdAlt.set(s.id, s));
+
+    scopedBookingsAlt.forEach((b: any) => {
+      const cid = (b.course_id as string) || (b as any).course_dates?.course_id as string | undefined;
+      if (!cid) return;
+      const stu = b.student_id ? studentByIdAlt.get(b.student_id) : null;
+      const participant = {
+        name: stu?.name ?? stu?.email ?? b.student_email ?? 'Teilnehmer',
+        email: stu?.email ?? b.student_email ?? '',
+        phone: stu?.phone ?? null,
+        booking_date: b.booking_date || b.created_at || null,
+      };
+      const list = bookingParticipants.get(cid) || [];
+      list.push(participant);
+      bookingParticipants.set(cid, list);
+    });
+  }
+
+  // Buchungs-Teilnehmer in Kursobjekte einblenden
+  courses = (courses || []).map((c) => ({
+    ...c,
+    participants: [
+      ...(c.participants || []),
+      ...(bookingParticipants.get(c.id) || []),
+    ],
+  }));
+
+  // Materialien für die Kurse laden (Sichtbarkeit teachers/both)
+  const courseIdsForMaterials = Array.from(new Set((courses || []).map((c) => c.id)));
+  let materials:
+    | {
+        id: string;
+        title: string;
+        course_id: string;
+        course_title: string | null;
+        module_id: string | null;
+        module_number: number | null;
+        type: string | null;
+        storage_path: string | null;
+        cover_path: string | null;
+        created_at: string | null;
+        visibility: string | null;
+      }[]
+    | null = [];
+
+  if (courseIdsForMaterials.length) {
+    const { data: materialRows } = await service
+      .from('materials')
+      .select('id, title, course_id, module_id, module_number, type, storage_path, cover_path, created_at, visibility, courses(title)')
+      .in('course_id', courseIdsForMaterials)
+      .in('visibility', ['teachers', 'both']);
+
+    materials =
+      materialRows?.map((m: any) => ({
+        id: m.id,
+        title: m.title,
+        course_id: m.course_id,
+        course_title: m.courses?.title ?? null,
+        module_id: m.module_id ?? null,
+        module_number: m.module_number ?? null,
+        type: m.type ?? null,
+        storage_path: m.storage_path ?? null,
+        cover_path: m.cover_path ?? null,
+        created_at: m.created_at ?? null,
+        visibility: m.visibility ?? null,
+      })) || [];
+  }
+
   return (
     <div className="space-y-8">
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 bg-white/10 border border-white/15 rounded-xl p-6 shadow-lg relative overflow-hidden">
@@ -523,6 +607,7 @@ export default async function TeacherPage() {
           sources={sources}
           notes={notes}
           courses={courses || []}
+          materials={materials || []}
         />
       </div>
     </div>

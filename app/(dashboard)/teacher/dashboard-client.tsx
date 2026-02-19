@@ -30,12 +30,14 @@ export default function DashboardClient({
   sources,
   notes,
   courses,
+  materials,
 }: {
   kpis: KPIs;
   interests: InterestRank[];
   sources: PieSlice[];
   notes: PieSlice[];
   courses: CourseCard[];
+  materials: any[];
 }) {
   const [tab, setTab] = useState<'perf' | 'courses' | 'materials'>('perf');
 
@@ -73,7 +75,7 @@ export default function DashboardClient({
       )}
 
       {tab === 'materials' && (
-        <TeacherMaterials courses={courses} materials={[]} />
+        <TeacherMaterials courses={courses} materials={materials} />
       )}
     </div>
   );
