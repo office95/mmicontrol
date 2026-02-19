@@ -188,7 +188,7 @@ export default async function TeacherPage() {
       ? (
           await service
             .from('students')
-            .select('id, interest_courses, source, note')
+            .select('*')
             .in('id', studentIds)
         ).data || []
       : [];
@@ -261,7 +261,7 @@ export default async function TeacherPage() {
     };
     (leads || []).forEach((l: any) => addNote(l.skills ?? l.notes ?? l.note));
     if (!Object.keys(noteFreq).length) {
-      (studentsAll || []).forEach((s: any) => addNote(s.note));
+      (studentsAll || []).forEach((s: any) => addNote((s as any).notes ?? (s as any).note));
     }
     const totalNotes = Object.values(noteFreq).reduce((a, b) => a + b, 0) || 1;
     notes = Object.entries(noteFreq).map(([label, value]) => ({ label, value: (value / totalNotes) * 100 }));
