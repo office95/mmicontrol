@@ -23,7 +23,7 @@ export default function TeacherStatsClient({ kpis, interests, sources, notes }: 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <Kpi title="Buchungen Monat" value={kpis.monthBookings} compare={kpis.monthBookingsPrev} />
         <Kpi title="Buchungen Jahr" value={kpis.yearBookings} compare={kpis.yearBookingsPrev} />
-        <Kpi title="Top Interesse" value={interestTags[0]?.label ?? '—'} compareLabel={`${interestTags[0]?.count ?? 0}x`} />
+        <Kpi title="Top Interesse" value={interests[0]?.label ?? '—'} compareLabel="" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
