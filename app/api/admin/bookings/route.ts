@@ -102,6 +102,21 @@ export async function GET(req: Request) {
   const { data, error } = await q;
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
   const enriched = await fillAmounts(data);
+
+  // Wenn Einzel-Buchung, Zahlungen mitliefern
+  if (id && enriched) {
+    const { data: payments } = await service
+      .from('payments')
+      .select('id, payment_date, amount, method, note, created_at')
+      .eq('booking_id', id)
+      .order('payment_date', { ascending: false });
+    const paid = (payments ?? []).reduce((sum, p) => sum + Number(p.amount || 0), 0);
+    const amount = (enriched as any).amount ?? 0;
+    (enriched as any).payments = payments ?? [];
+    (enriched as any).paid_total = paid;
+    (enriched as any).open_amount = Number((amount - paid).toFixed(2));
+  }
+
   return NextResponse.json(enriched);
 }
 

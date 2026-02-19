@@ -20,9 +20,22 @@ type BookingRow = {
   deposit?: number | null;
   saldo?: number | null;
   duration_hours?: number | null;
+  payments?: PaymentRow[];
+  paid_total?: number;
+  open_amount?: number;
+  next_dunning_at?: string | null;
+  auto_dunning_enabled?: boolean | null;
 };
 
 const STATUSES = ['alle', 'offen', 'Anzahlung erhalten', 'abgeschlossen', 'Zahlungserinnerung', '1. Mahnung', '2. Mahnung', 'Inkasso', 'Storno', 'Archiv'];
+
+type PaymentRow = {
+  id: string;
+  payment_date: string;
+  amount: number;
+  method?: string | null;
+  note?: string | null;
+};
 
 export default function BookingsPage() {
   const [items, setItems] = useState<BookingRow[]>([]);
@@ -31,6 +44,13 @@ export default function BookingsPage() {
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('alle');
   const [selected, setSelected] = useState<BookingRow | null>(null);
+  const [payments, setPayments] = useState<PaymentRow[]>([]);
+  const [payDate, setPayDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [payAmount, setPayAmount] = useState('');
+  const [payMethod, setPayMethod] = useState('');
+  const [payNote, setPayNote] = useState('');
+  const [savingPayment, setSavingPayment] = useState(false);
+  const [statusSaving, setStatusSaving] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -47,6 +67,15 @@ export default function BookingsPage() {
   };
 
   useEffect(() => { load(); }, []);
+
+  const loadOne = async (id: string) => {
+    const res = await fetch(`/api/admin/bookings?id=${id}`);
+    const data = await res.json();
+    if (res.ok) {
+      setSelected(data);
+      setPayments(data.payments || []);
+    }
+  };
 
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -125,7 +154,7 @@ export default function BookingsPage() {
                   <td className="py-3 pr-4">
                     <button
                       type="button"
-                      onClick={(e) => { e.preventDefault(); setSelected(b); }}
+                      onClick={(e) => { e.preventDefault(); loadOne(b.id); }}
                       className="inline-flex items-center justify-center rounded-md px-3 py-1 text-sm font-semibold bg-pink-600 text-white hover:bg-pink-700 border border-pink-700 shadow-sm"
                     >
                       Details
@@ -140,46 +169,218 @@ export default function BookingsPage() {
 
       {selected && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
-          <div className="w-full max-w-3xl rounded-2xl bg-white text-ink shadow-2xl p-6 relative">
+          <div className="w-full max-w-5xl rounded-2xl bg-white text-ink shadow-2xl p-6 relative max-h-[90vh] overflow-y-auto">
             <button
               className="absolute top-3 right-3 text-slate-500 hover:text-ink"
               onClick={() => setSelected(null)}
             >
               ×
             </button>
-            <h3 className="text-2xl font-semibold mb-4">Kursübersicht</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-              {[ 
-                ['Kursteilnehmer', selected.student_name ?? '—'],
-                ['Buchungscode', selected.booking_code ?? '—'],
-                ['Buchungsdatum', selected.booking_date ? new Date(selected.booking_date).toLocaleDateString() : '—'],
-                ['Kurs', selected.course_title ?? '—'],
-                ['Kursstart', selected.course_start ? new Date(selected.course_start).toLocaleDateString() : '—'],
-                ['Anbieter', selected.partner_name ?? '—'],
-                ['Betrag (Brutto)', selected.amount != null ? `${Number(selected.amount).toFixed(2)} €` : '—'],
-                ['USt-Satz', selected.vat_rate != null ? `${(Number(selected.vat_rate) * 100).toFixed(1)} %` : '—'],
-                ['Netto', selected.price_net != null ? `${Number(selected.price_net).toFixed(2)} €` : '—'],
-                ['Anzahlung', selected.deposit != null ? `${Number(selected.deposit).toFixed(2)} €` : '—'],
-                ['Saldo', selected.saldo != null ? `${Number(selected.saldo).toFixed(2)} €` : '—'],
-                ['Dauer (h)', selected.duration_hours != null ? `${selected.duration_hours} h` : '—'],
-              ].map(([label, value]) => (
-                <div key={label} className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
-                  <p className="text-xs uppercase tracking-[0.12em] text-slate-500 mb-1">{label}</p>
-                  <p className="text-[15px] text-slate-800">{value}</p>
-                </div>
-              ))}
+            <h3 className="text-2xl font-semibold mb-2">Buchung verwalten</h3>
+            <p className="text-sm text-slate-600 mb-4">
+              {selected.student_name ?? '—'} · {selected.course_title ?? '—'} · Code {selected.booking_code ?? '—'}
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm mb-4">
+              <InfoCard label="Betrag brutto" value={selected.amount != null ? `${Number(selected.amount).toFixed(2)} €` : '—'} />
+              <InfoCard label="Offener Betrag" value={selected.open_amount != null ? `${Number(selected.open_amount).toFixed(2)} €` : selected.saldo != null ? `${Number(selected.saldo).toFixed(2)} €` : '—'} tone={selected.open_amount !== undefined ? (selected.open_amount <= 0 ? 'good' : 'warn') : undefined} />
+              <InfoCard label="Status" value={selected.status} />
+              <InfoCard label="Kursstart" value={selected.course_start ? new Date(selected.course_start).toLocaleDateString() : '—'} />
             </div>
-            <div className="mt-6 flex justify-end">
-              <button
-                className="rounded-lg bg-slate-900 text-white px-4 py-2 hover:bg-slate-800"
-                onClick={() => setSelected(null)}
-              >
-                Schließen
-              </button>
+
+            <div className="space-y-6">
+              <section className="rounded-xl border border-slate-200 bg-slate-50/70 p-4 shadow-sm">
+                <p className="text-xs font-semibold text-ink uppercase tracking-[0.15em] mb-3">Basis</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  {[
+                    ['Kursteilnehmer', selected.student_name ?? '—'],
+                    ['Buchungscode', selected.booking_code ?? '—'],
+                    ['Buchungsdatum', selected.booking_date ? new Date(selected.booking_date).toLocaleDateString() : '—'],
+                    ['Kurs', selected.course_title ?? '—'],
+                    ['Kursstart', selected.course_start ? new Date(selected.course_start).toLocaleDateString() : '—'],
+                    ['Anbieter', selected.partner_name ?? '—'],
+                    ['USt-Satz', selected.vat_rate != null ? `${(Number(selected.vat_rate) * 100).toFixed(1)} %` : '—'],
+                    ['Netto', selected.price_net != null ? `${Number(selected.price_net).toFixed(2)} €` : '—'],
+                    ['Anzahlung', selected.deposit != null ? `${Number(selected.deposit).toFixed(2)} €` : '—'],
+                    ['Saldo', selected.saldo != null ? `${Number(selected.saldo).toFixed(2)} €` : '—'],
+                    ['Dauer (h)', selected.duration_hours != null ? `${selected.duration_hours} h` : '—'],
+                  ].map(([label, value]) => (
+                    <div key={label} className="rounded-lg border border-slate-200 bg-white px-3 py-2">
+                      <p className="text-[11px] uppercase tracking-[0.12em] text-slate-500 mb-1">{label}</p>
+                      <p className="text-[15px] text-slate-800">{value}</p>
+                    </div>
+                  ))}
+                </div>
+              </section>
+
+              <section className="rounded-xl border border-slate-200 bg-slate-50/70 p-4 shadow-sm space-y-3">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-semibold text-ink uppercase tracking-[0.15em]">Zahlungen</p>
+                  <span className="text-xs text-slate-500">
+                    Bezahlt: {(selected.paid_total ?? 0).toFixed(2)} € · Offen: {(selected.open_amount ?? selected.saldo ?? 0).toFixed(2)} €
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-3 text-sm">
+                  <div>
+                    <label className="text-xs uppercase tracking-[0.12em] text-slate-500">Datum</label>
+                    <input type="date" className="input" value={payDate} onChange={(e) => setPayDate(e.target.value)} />
+                  </div>
+                  <div>
+                    <label className="text-xs uppercase tracking-[0.12em] text-slate-500">Betrag</label>
+                    <input type="number" className="input" value={payAmount} onChange={(e) => setPayAmount(e.target.value)} placeholder="0,00" />
+                  </div>
+                  <div>
+                    <label className="text-xs uppercase tracking-[0.12em] text-slate-500">Methode</label>
+                    <input className="input" value={payMethod} onChange={(e) => setPayMethod(e.target.value)} placeholder="Überweisung, Bar..." />
+                  </div>
+                  <div>
+                    <label className="text-xs uppercase tracking-[0.12em] text-slate-500">Kommentar</label>
+                    <input className="input" value={payNote} onChange={(e) => setPayNote(e.target.value)} placeholder="Verwendungszweck" />
+                  </div>
+                </div>
+                <div className="flex justify-end">
+                  <button
+                    className="rounded-lg bg-pink-600 text-white px-4 py-2 hover:bg-pink-700 shadow"
+                    disabled={savingPayment}
+                    onClick={async () => {
+                      if (!selected) return;
+                      setSavingPayment(true);
+                      const res = await fetch('/api/admin/payments', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          booking_id: selected.id,
+                          payment_date: payDate,
+                          amount: Number(payAmount || 0),
+                          method: payMethod || null,
+                          note: payNote || null,
+                        }),
+                      });
+                      setSavingPayment(false);
+                      if (res.ok) {
+                        setPayAmount('');
+                        setPayMethod('');
+                        setPayNote('');
+                        loadOne(selected.id);
+                        load(); // Liste aktualisieren
+                      } else {
+                        const d = await res.json().catch(() => ({}));
+                        alert(d.error || 'Zahlung konnte nicht gespeichert werden.');
+                      }
+                    }}
+                  >
+                    {savingPayment ? 'Speichern...' : 'Zahlung buchen'}
+                  </button>
+                </div>
+                <div className="rounded-lg border border-slate-200 bg-white divide-y divide-slate-100">
+                  {payments.length === 0 && <p className="p-3 text-sm text-slate-500">Noch keine Zahlungen.</p>}
+                  {payments.map((p) => (
+                    <div key={p.id} className="p-3 flex items-center justify-between text-sm">
+                      <div className="space-y-0.5">
+                        <p className="font-semibold text-ink">{new Date(p.payment_date).toLocaleDateString()} · {Number(p.amount).toFixed(2)} €</p>
+                        <p className="text-xs text-slate-500">{p.method || '—'} {p.note ? `· ${p.note}` : ''}</p>
+                      </div>
+                      <button
+                        className="text-xs text-red-600 hover:underline"
+                        onClick={async () => {
+                          if (!confirm('Zahlung löschen?')) return;
+                          const res = await fetch(`/api/admin/payments?id=${p.id}`, { method: 'DELETE' });
+                          if (res.ok && selected) {
+                            loadOne(selected.id);
+                            load();
+                          }
+                        }}
+                      >
+                        Löschen
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </section>
+
+              <section className="rounded-xl border border-slate-200 bg-slate-50/70 p-4 shadow-sm space-y-3">
+                <p className="text-xs font-semibold text-ink uppercase tracking-[0.15em]">Status & Mahnwesen</p>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm items-end">
+                  <div>
+                    <label className="text-xs uppercase tracking-[0.12em] text-slate-500">Status</label>
+                    <select
+                      className="input"
+                      value={selected.status}
+                      onChange={(e) => setSelected((prev) => prev ? { ...prev, status: e.target.value } : prev)}
+                    >
+                      {STATUSES.slice(1).map((s) => (
+                        <option key={s} value={s}>{s}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-xs uppercase tracking-[0.12em] text-slate-500">Nächste Mahnung am</label>
+                    <input
+                      type="date"
+                      className="input"
+                      value={(selected as any).next_dunning_at || ''}
+                      onChange={(e) => setSelected((prev: any) => prev ? { ...prev, next_dunning_at: e.target.value } : prev)}
+                    />
+                  </div>
+                  <div className="flex items-center gap-2 mt-6 text-sm text-slate-700">
+                    <input
+                      type="checkbox"
+                      checked={(selected as any).auto_dunning_enabled || false}
+                      onChange={(e) => setSelected((prev: any) => prev ? { ...prev, auto_dunning_enabled: e.target.checked } : prev)}
+                    />
+                    <span>Automatische Mahn-E-Mails aktiv</span>
+                  </div>
+                </div>
+                <div className="flex justify-end">
+                  <button
+                    className="rounded-lg bg-slate-900 text-white px-4 py-2 hover:bg-slate-800"
+                    disabled={statusSaving}
+                    onClick={async () => {
+                      if (!selected) return;
+                      setStatusSaving(true);
+                      const res = await fetch('/api/admin/bookings', {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          id: selected.id,
+                          status: selected.status,
+                          next_dunning_at: (selected as any).next_dunning_at || null,
+                          auto_dunning_enabled: (selected as any).auto_dunning_enabled ?? null,
+                        }),
+                      });
+                      setStatusSaving(false);
+                      if (!res.ok) {
+                        const d = await res.json().catch(() => ({}));
+                        alert(d.error || 'Status konnte nicht gespeichert werden.');
+                      } else {
+                        loadOne(selected.id);
+                        load();
+                      }
+                    }}
+                  >
+                    Status speichern
+                  </button>
+                </div>
+              </section>
             </div>
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function InfoCard({ label, value, tone }: { label: string; value: string; tone?: 'good' | 'warn' }) {
+  const cls =
+    tone === 'good'
+      ? 'text-emerald-700 bg-emerald-50 border-emerald-100'
+      : tone === 'warn'
+        ? 'text-amber-700 bg-amber-50 border-amber-100'
+        : 'text-slate-800 bg-white border-slate-200';
+  return (
+    <div className={`rounded-lg border px-3 py-2 ${cls}`}>
+      <p className="text-[11px] uppercase tracking-[0.12em] text-slate-500 mb-1">{label}</p>
+      <p className="text-[15px] font-semibold">{value}</p>
     </div>
   );
 }
