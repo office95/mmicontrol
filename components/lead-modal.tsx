@@ -136,11 +136,17 @@ export default function LeadModal({
   }, [initial]);
 
   const courseOptions: CourseCat[] = useMemo(() => {
-    // merge real + extra, sort, remove duplicates by id
+    // merge real + extra, remove duplicates, dann nach Kategorie + Titel sortieren
     const map = new Map<string, CourseCat>();
     courses.forEach((c: any) => map.set(c.id, { id: c.id, title: c.title, category: c.category }));
     EXTRA_COURSES.forEach((c) => map.set(c.id, c));
-    return Array.from(map.values()).sort((a, b) => a.title.localeCompare(b.title));
+
+    return Array.from(map.values()).sort((a, b) => {
+      const ca = (a.category || '').toLowerCase();
+      const cb = (b.category || '').toLowerCase();
+      if (ca !== cb) return ca.localeCompare(cb);
+      return a.title.localeCompare(b.title);
+    });
   }, [courses]);
   const partnerOptions = useMemo(
     () => partners.sort((a, b) => (a.name || '').localeCompare(b.name || '')),
@@ -328,12 +334,9 @@ export default function LeadModal({
                     onChange={() => toggleInterest(c.id)}
                   />
                   <div className="flex flex-col leading-tight">
-                    <span className="font-semibold">
-                      {c.title}
-                      {c.category ? ` | ${c.category}` : ''}
-                    </span>
-                    {!c.category && (
-                      <span className="text-[11px] text-slate-500">keine Kategorie</span>
+                    <span className="font-semibold">{c.title}</span>
+                    {c.category && (
+                      <span className="text-[11px] text-slate-500">{c.category}</span>
                     )}
                   </div>
                 </label>
