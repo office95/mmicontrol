@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import TeacherStatsClient from './stats-client';
 import CourseListClient from './course-list-client';
+import TeacherMaterials from './materials/teacher-materials-client';
 
 type KPIs = {
   monthBookings: number;
@@ -36,7 +37,7 @@ export default function DashboardClient({
   notes: PieSlice[];
   courses: CourseCard[];
 }) {
-  const [tab, setTab] = useState<'perf' | 'courses'>('perf');
+  const [tab, setTab] = useState<'perf' | 'courses' | 'materials'>('perf');
 
   return (
     <div className="space-y-3">
@@ -53,6 +54,12 @@ export default function DashboardClient({
         >
           Meine Kurse & Teilnehmer
         </button>
+        <button
+          className={`px-3 py-2 rounded-lg border ${tab === 'materials' ? 'border-pink-400 bg-pink-500/15 text-white' : 'border-white/20 bg-white/10'}`}
+          onClick={() => setTab('materials')}
+        >
+          Kursunterlagen
+        </button>
       </div>
 
       {tab === 'perf' && (
@@ -64,7 +71,10 @@ export default function DashboardClient({
           <p className="text-slate-200 bg-white/5 border border-white/10 rounded-lg p-4">Noch keine Kurse zugewiesen.</p>
         )
       )}
+
+      {tab === 'materials' && (
+        <TeacherMaterials courses={courses} materials={[]} />
+      )}
     </div>
   );
 }
-
