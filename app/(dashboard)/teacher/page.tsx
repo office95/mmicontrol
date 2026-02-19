@@ -288,8 +288,11 @@ export default async function TeacherPage() {
         else handleId(v);
       };
 
-      if (valName) pushTitle(valName);
-      if (valCourses) pushCourseIds(valCourses);
+      if (valName) {
+        pushTitle(valName);
+      } else if (valCourses) {
+        pushCourseIds(valCourses);
+      }
     };
 
     (leads || []).forEach((l: any) => extractLabels(l));
