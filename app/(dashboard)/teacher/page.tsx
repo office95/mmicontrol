@@ -223,6 +223,29 @@ export default async function TeacherPage() {
     const courseTitleMap = new Map<string, string>();
     (courses || []).forEach((c) => courseTitleMap.set(c.id, c.title));
 
+    // Zusätzliche Kurs-Titel aus Leads (interest_courses enthalten IDs)
+    const leadCourseIds = new Set<string>();
+    (leads || []).forEach((l: any) => {
+      const valCourses = l?.interest_courses;
+      const addId = (v: any) => {
+        const id = v?.toString().trim();
+        if (id) leadCourseIds.add(id);
+      };
+      if (Array.isArray(valCourses)) valCourses.forEach(addId);
+      else if (typeof valCourses === 'string') valCourses.split(/[,;\n]+/).forEach(addId);
+      else if (valCourses) addId(valCourses);
+    });
+
+    if (leadCourseIds.size) {
+      const { data: leadCourses } = await service
+        .from('courses')
+        .select('id, title')
+        .in('id', Array.from(leadCourseIds));
+      leadCourses?.forEach((c: any) => {
+        if (c?.id && c?.title) courseTitleMap.set(c.id, c.title);
+      });
+    }
+
     const freq: Record<string, number> = {};
     const mapLabel = (label: string) => {
       const trimmed = label?.toString().trim();
@@ -265,11 +288,8 @@ export default async function TeacherPage() {
         else handleId(v);
       };
 
-      if (valName) {
-        pushTitle(valName);
-      } else if (valCourses) {
-        pushCourseIds(valCourses);
-      }
+      if (valName) pushTitle(valName);
+      if (valCourses) pushCourseIds(valCourses);
     };
 
     (leads || []).forEach((l: any) => extractLabels(l));
