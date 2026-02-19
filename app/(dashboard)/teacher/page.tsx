@@ -184,23 +184,27 @@ export default async function TeacherPage() {
 
     const studentIds = Array.from(new Set(scopedBookings.map((b) => b.student_id).filter(Boolean)));
 
-    const { data: studentsBookings } = studentIds.length
-      ? await service
-          .from('students')
-          .select('id, interest_courses, source, note')
-          .in('id', studentIds)
-      : { data: [] as any[] };
+    const studentsBookings = studentIds.length
+      ? (
+          await service
+            .from('students')
+            .select('id, interest_courses, source, note')
+            .in('id', studentIds)
+        ).data || []
+      : [];
 
     // Students nur aus relevanten Buchungen (Partner-Scope erfolgt über scopedBookings)
     const studentsAll = studentsBookings || [];
 
     // Leads mit Partner für Quellen / Skills (statt note)
-    const { data: leads } = teacherPartner
-      ? await service
-          .from('leads')
-          .select('id, source, skills')
-          .eq('partner_id', teacherPartner)
-      : { data: [] as any[] };
+    const leads = teacherPartner
+      ? (
+          await service
+            .from('leads')
+            .select('id, source, skills')
+            .eq('partner_id', teacherPartner)
+        ).data || []
+      : [];
 
     const isSameMonthYear = (d: Date, year: number, month: number) => d.getFullYear() === year && d.getMonth() === month;
 
