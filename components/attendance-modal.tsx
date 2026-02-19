@@ -123,10 +123,10 @@ export default function AttendanceModal({
   );
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-6xl rounded-3xl bg-white text-ink shadow-2xl border border-slate-200 relative max-h-[90vh] overflow-hidden">
-        <div className="absolute -right-24 -top-24 h-56 w-56 bg-emerald-200/40 blur-3xl" />
-        <div className="absolute -left-16 -bottom-16 h-48 w-48 bg-pink-200/40 blur-3xl" />
+    <div className="fixed inset-0 z-50 bg-black/55 backdrop-blur-sm flex items-center justify-center p-4">
+      <div className="w-full max-w-6xl rounded-3xl bg-white text-ink shadow-2xl border border-slate-300 relative max-h-[90vh] overflow-hidden">
+        <div className="absolute -right-24 -top-24 h-56 w-56 bg-emerald-300/50 blur-3xl" />
+        <div className="absolute -left-16 -bottom-16 h-48 w-48 bg-pink-300/50 blur-3xl" />
 
         <div className="flex items-start justify-between gap-3 px-6 pt-6 pb-4 relative z-10">
           <div className="space-y-1">
@@ -154,8 +154,8 @@ export default function AttendanceModal({
                   onClick={() => setSelectedSessionId(s.id)}
                   className={`px-3 py-2 rounded-xl text-sm border ${
                     selectedSessionId === s.id
-                      ? 'bg-emerald-100 border-emerald-300 text-emerald-900'
-                      : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
+                      ? 'bg-pink-100 border-pink-300 text-pink-900'
+                      : 'bg-slate-50 border-slate-300 text-slate-700 hover:bg-white'
                   }`}
                 >
                   {new Date(s.date).toLocaleDateString()}
@@ -172,7 +172,7 @@ export default function AttendanceModal({
                   onChange={(e) => setNewDate(e.target.value)}
                 />
                 <button
-                  className="rounded-xl bg-emerald-500 text-white px-4 py-2 text-sm font-semibold shadow hover:bg-emerald-400 disabled:opacity-50"
+                  className="rounded-xl bg-pink-500 text-white px-4 py-2 text-sm font-semibold shadow hover:bg-pink-400 disabled:opacity-50"
                   onClick={addSession}
                   disabled={!newDate}
                 >
@@ -198,7 +198,7 @@ export default function AttendanceModal({
                       <th className="py-2 pr-3 text-slate-500">Notiz</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100">
+                  <tbody className="divide-y divide-slate-200">
                     {participants.map((p) => {
                       const entry = entryMap.get(p.student_id ?? '') || null;
                       return (
@@ -214,8 +214,8 @@ export default function AttendanceModal({
                                 onClick={() => updateEntry(p.student_id, 'present', entry?.note)}
                                 className={`px-3 py-1 rounded-lg border text-xs ${
                                   entry?.status === 'present'
-                                    ? 'bg-emerald-100 border-emerald-300 text-emerald-800'
-                                    : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
+                                    ? 'bg-emerald-100 border-emerald-400 text-emerald-800'
+                                    : 'bg-white border-slate-300 text-slate-700 hover:bg-slate-50'
                                 }`}
                               >
                                 anwesend
@@ -225,8 +225,8 @@ export default function AttendanceModal({
                                 onClick={() => updateEntry(p.student_id, 'absent', entry?.note)}
                                 className={`px-3 py-1 rounded-lg border text-xs ${
                                   entry?.status === 'absent'
-                                    ? 'bg-amber-100 border-amber-300 text-amber-800'
-                                    : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
+                                    ? 'bg-pink-100 border-pink-400 text-pink-800'
+                                    : 'bg-white border-slate-300 text-slate-700 hover:bg-slate-50'
                                 }`}
                               >
                                 abwesend
