@@ -186,7 +186,7 @@ export default function StudentsPage() {
                     Buchung erfassen
                   </button>
                   <button
-                    className="px-3 py-1 rounded-lg border border-emerald-300 text-emerald-700 hover:bg-emerald-50"
+                    className="px-3 py-1 rounded-lg bg-emerald-600 text-white font-semibold hover:bg-emerald-700 shadow-sm"
                     onClick={async () => {
                       const res = await fetch(`/api/admin/bookings?student_id=${s.id}`);
                       if (!res.ok) return alert('Buchungen konnten nicht geladen werden.');
