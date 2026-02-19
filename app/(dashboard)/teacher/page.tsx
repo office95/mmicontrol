@@ -168,7 +168,7 @@ export default async function TeacherPage() {
     // Buchungen: Partner-filter, aber fallback auf Kurs-Zuordnung falls partner_id fehlt
     const { data: bookings, error: bookingsErr } = await service
       .from('bookings')
-      .select('id, course_id, course_date_id, student_id, booking_date, created_at, partner_id, amount, course_dates(course_id)');
+      .select('id, course_id, course_date_id, student_id, booking_date, created_at, partner_id, amount, course_title, course_dates(course_id)');
 
     const bookingsData = bookingsErr ? [] : bookings || [];
     const scopedBookingsRaw = bookingsData.filter((b: any) => {
@@ -219,18 +219,19 @@ export default async function TeacherPage() {
       if (d.getFullYear() === prevYear) yearBookingsPrev++;
     });
 
-    // Interests
+    // Interests aus Leads.interest_courses + Bookings.course_title
     const freq: Record<string, number> = {};
     const inc = (key: string) => {
-      const k = key.trim();
+      const k = key?.toString().trim();
       if (!k) return;
       freq[k] = (freq[k] || 0) + 1;
     };
-    (studentsAll || []).forEach((s: any) => {
-      const val = s.interest_courses;
-      if (Array.isArray(val)) val.forEach((x) => inc(String(x)));
+    (leads || []).forEach((l: any) => {
+      const val = (l as any).interest_courses;
+      if (Array.isArray(val)) val.forEach((x) => inc(x));
       else if (typeof val === 'string') val.split(/[,;\n]+/).forEach((x) => inc(x));
     });
+    (scopedBookings || []).forEach((b: any) => inc(b.course_title));
     topInterests = Object.entries(freq)
       .sort((a, b) => b[1] - a[1])
       .slice(0, 8)
