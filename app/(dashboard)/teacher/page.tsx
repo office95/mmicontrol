@@ -162,12 +162,18 @@ export default async function TeacherPage() {
     const courseIds = courses.map((c) => c.id);
     const { data: bookings, error: bookingsErr } = await service
       .from('bookings')
-      .select('id, course_id, student_id, booking_date, partner_id, amount');
+      .select('id, course_id, course_date_id, student_id, booking_date, partner_id, amount, course_dates(course_id)');
     const scopedBookingsRaw = bookingsErr ? [] : bookings || [];
-    // Buchungen der Kurse, zusätzlich auf Partner, falls gesetzt
+
+    // Buchungen gehören, wenn:
+    // - course_id in Kursen des Dozenten, oder
+    // - course_date.course_id in Kursen des Dozenten
     const scopedBookings = scopedBookingsRaw.filter((b: any) => {
-      const inCourse = courseIds.includes(b.course_id as string);
+      const cid = b.course_id as string | null;
+      const cdCid = (b as any).course_dates?.course_id as string | null;
+      const inCourse = (cid && courseIds.includes(cid)) || (cdCid && courseIds.includes(cdCid));
       if (!inCourse) return false;
+      // Partner-Check: nur derselbe Partner oder kein Partner am Booking
       if (teacherPartner) return (b.partner_id ?? null) === teacherPartner || b.partner_id == null;
       return true;
     });
