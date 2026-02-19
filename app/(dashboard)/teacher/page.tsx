@@ -60,18 +60,19 @@ export default async function TeacherPage() {
         .from('courses')
         .select('id, title, description, duration_hours, partner_id')
         .in('id', ids);
-      if (courseErr) throw courseErr;
-      const filteredCourses = teacherPartner
-        ? (courseRows || []).filter((c: any) => c.partner_id === teacherPartner)
-        : (courseRows || []);
-      courses = (courseRows || []).map((c) => ({
-        id: c.id as string,
-        title: c.title as string,
-        description: (c as any).description ?? null,
-        duration_hours: (c as any).duration_hours ?? null,
-        start_date: null,
-        participants: [],
-      }));
+      if (!courseErr) {
+        const filteredCourses = teacherPartner
+          ? (courseRows || []).filter((c: any) => c.partner_id === teacherPartner)
+          : (courseRows || []);
+        courses = filteredCourses.map((c) => ({
+          id: c.id as string,
+          title: c.title as string,
+          description: (c as any).description ?? null,
+          duration_hours: (c as any).duration_hours ?? null,
+          start_date: null,
+          participants: [],
+        }));
+      }
 
       // Nächstes Kursdatum je Kurs
       const { data: dates } = await service
@@ -158,12 +159,11 @@ export default async function TeacherPage() {
     const courseIds = courses.map((c) => c.id);
     const { data: bookings, error: bookingsErr } = await service
       .from('bookings')
-      .select('id, course_id, student_id, booking_date, partner_id')
-      .in('course_id', courseIds);
-    if (bookingsErr) throw bookingsErr;
+      .select('id, course_id, student_id, booking_date, partner_id, amount');
+    const scopedBookingsRaw = bookingsErr ? [] : bookings || [];
     const scopedBookings = teacherPartner
-      ? (bookings || []).filter((b: any) => b.partner_id === teacherPartner)
-      : bookings || [];
+      ? scopedBookingsRaw.filter((b: any) => b.partner_id === teacherPartner || courseIds.includes(b.course_id as string))
+      : scopedBookingsRaw.filter((b: any) => courseIds.includes(b.course_id as string));
 
     const studentIds = Array.from(new Set(scopedBookings.map((b) => b.student_id).filter(Boolean)));
 
