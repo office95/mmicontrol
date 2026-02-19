@@ -120,16 +120,17 @@ export default function ProfileModal({ open, onClose, profile }: Props) {
           {editing && (
             <>
               <button
-                className="rounded-lg border border-slate-300 px-4 py-2 text-slate-600 hover:bg-slate-100"
-                onClick={() => {
-                  setEditing(false);
-                  setForm({
-                    salutation: (profile?.salutation as any) ?? "Herr",
-                    name: profile?.name ?? "",
-                    street: profile?.street ?? "",
-                    zip: profile?.zip ?? "",
-                    city: profile?.city ?? "",
-                    state: profile?.state ?? "",
+              className="rounded-lg border border-slate-300 px-4 py-2 text-slate-600 hover:bg-slate-100"
+              onClick={() => {
+                setEditing(false);
+                setForm({
+                  // salutation muss mit zurückgesetzt werden, sonst fehlt das Feld im State
+                  salutation: (profile?.salutation as any) ?? "Herr",
+                  name: profile?.name ?? "",
+                  street: profile?.street ?? "",
+                  zip: profile?.zip ?? "",
+                  city: profile?.city ?? "",
+                  state: profile?.state ?? "",
                     country: profile?.country ?? "",
                     phone: profile?.phone ?? "",
                     birthdate: profile?.birthdate ?? "",
