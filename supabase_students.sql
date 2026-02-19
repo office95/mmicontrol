@@ -2,6 +2,7 @@
 create table if not exists public.students (
   id uuid primary key default gen_random_uuid(),
   student_id text,
+  salutation text check (salutation in ('Herr','Frau','Firma')),
   name text not null,
   street text,
   zip text,

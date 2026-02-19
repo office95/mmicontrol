@@ -45,6 +45,7 @@ export type LeadRow = {
   id?: string;
   lead_code?: string | null;
   requested_at?: string | null;
+  salutation?: 'Herr' | 'Frau' | 'Firma' | null;
   name: string;
   email?: string | null;
   phone?: string | null;
@@ -76,6 +77,7 @@ export default function LeadModal({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const [salutation, setSalutation] = useState<'Herr' | 'Frau' | 'Firma'>('Herr');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -110,6 +112,7 @@ export default function LeadModal({
 
   useEffect(() => {
     if (!initial) return;
+    setSalutation((initial.salutation as any) || 'Herr');
     setName(initial.name || '');
     setEmail(initial.email || '');
     setPhone(initial.phone || '');
@@ -166,6 +169,7 @@ export default function LeadModal({
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         id: initial?.id,
+        salutation,
         name,
         email,
         phone,
@@ -254,6 +258,13 @@ export default function LeadModal({
               </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Field label="Anrede">
+                <select className="input" value={salutation} onChange={(e) => setSalutation(e.target.value as any)}>
+                  <option value="Herr">Herr</option>
+                  <option value="Frau">Frau</option>
+                  <option value="Firma">Firma</option>
+                </select>
+              </Field>
               <Field label="Name*" required>
                 <input className="input" value={name} onChange={(e) => setName(e.target.value)} required />
               </Field>

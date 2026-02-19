@@ -7,7 +7,7 @@ const service = createClient(
 );
 
 const SELECT =
-  'id, student_id, name, street, zip, city, country, state, company, vat_number, birthdate, phone, email, bank_name, iban, bic, status, is_problem, problem_note, created_at';
+  'id, student_id, salutation, name, street, zip, city, country, state, company, vat_number, birthdate, phone, email, bank_name, iban, bic, status, is_problem, problem_note, created_at';
 
 export async function GET() {
   const { data, error } = await service.from('students').select(SELECT).order('created_at', { ascending: false });
@@ -18,10 +18,11 @@ export async function GET() {
 export async function POST(req: Request) {
   const body = await req.json();
   if (!body.name) return NextResponse.json({ error: 'Name erforderlich' }, { status: 400 });
-  const studentId = body.student_id || `STU-${Date.now()}-${Math.floor(Math.random() * 1e5)}`;
-  const payload = {
-    student_id: studentId,
-    name: body.name,
+    const studentId = body.student_id || `STU-${Date.now()}-${Math.floor(Math.random() * 1e5)}`;
+    const payload = {
+      student_id: studentId,
+      salutation: body.salutation,
+      name: body.name,
     street: body.street,
     zip: body.zip,
     city: body.city,
@@ -50,6 +51,7 @@ export async function PATCH(req: Request) {
   if (!id) return NextResponse.json({ error: 'id fehlt' }, { status: 400 });
   const updates = {
     student_id: body.student_id,
+    salutation: body.salutation,
     name: body.name,
     street: body.street,
     zip: body.zip,

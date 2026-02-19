@@ -6,6 +6,7 @@ type Props = {
   onClose: () => void;
   profile: {
     id: string;
+    salutation?: 'Herr' | 'Frau' | 'Firma' | null;
     name: string | null;
     street?: string | null;
     city?: string | null;
@@ -21,6 +22,7 @@ type Props = {
 export default function ProfileModal({ open, onClose, profile }: Props) {
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({
+    salutation: (profile?.salutation as any) ?? 'Herr',
     name: profile?.name ?? "",
     street: profile?.street ?? "",
     zip: profile?.zip ?? "",
@@ -42,6 +44,7 @@ export default function ProfileModal({ open, onClose, profile }: Props) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         id: profile.id,
+        salutation: form.salutation,
         name: form.name,
         street: form.street,
         zip: form.zip,
@@ -70,6 +73,7 @@ export default function ProfileModal({ open, onClose, profile }: Props) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
           {(
             [
+              ["Anrede", "salutation"],
               ["Name", "name"],
               ["Straße", "street"],
               ["PLZ", "zip"],

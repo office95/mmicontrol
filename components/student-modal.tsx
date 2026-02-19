@@ -10,6 +10,7 @@ const STATES_DE = ['Baden-Württemberg','Bayern','Berlin','Brandenburg','Bremen'
 export type StudentRow = {
   id: string;
   student_id: string | null;
+  salutation?: 'Herr' | 'Frau' | 'Firma' | null;
   name: string;
   street: string | null;
   zip: string | null;
@@ -42,6 +43,7 @@ export default function StudentModal({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const [salutation, setSalutation] = useState<'Herr' | 'Frau' | 'Firma'>('Herr');
   const [name, setName] = useState('');
   const [studentId, setStudentId] = useState<string | null>(null);
   const [street, setStreet] = useState('');
@@ -66,6 +68,7 @@ export default function StudentModal({
   useEffect(() => {
     if (!initial) return;
     setName(initial.name ?? '');
+    setSalutation((initial.salutation as any) || 'Herr');
     setStudentId(initial.student_id ?? null);
     setStreet(initial.street ?? '');
     setZip(initial.zip ?? '');
@@ -95,6 +98,7 @@ export default function StudentModal({
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         id: initial?.id,
+        salutation,
         name,
         student_id: studentId,
         street: street || null,
@@ -179,6 +183,13 @@ export default function StudentModal({
           <section className="rounded-xl border border-slate-200 bg-slate-50/70 p-4 shadow-sm space-y-4">
             <p className="text-sm font-semibold text-ink">Person</p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Field label="Anrede">
+                <select className="input" value={salutation} onChange={(e) => setSalutation(e.target.value as any)}>
+                  <option value="Herr">Herr</option>
+                  <option value="Frau">Frau</option>
+                  <option value="Firma">Firma</option>
+                </select>
+              </Field>
               <Field label="Name*" required>
                 <input className="input" value={name} onChange={(e) => setName(e.target.value)} required />
               </Field>

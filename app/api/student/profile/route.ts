@@ -8,13 +8,12 @@ const service = createClient(
 
 export async function POST(req: Request) {
   const body = await req.json();
-  const { id, name, street, zip, city, state, country, phone, birthdate } = body;
+  const { id, salutation, name, street, zip, city, state, country, phone, birthdate } = body;
   if (!id) return NextResponse.json({ error: 'id fehlt' }, { status: 400 });
   const { error } = await service
     .from('students')
-    .update({ name, street, zip, city, state, country, phone, birthdate })
+    .update({ salutation, name, street, zip, city, state, country, phone, birthdate })
     .eq('id', id);
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
   return NextResponse.json({ ok: true });
 }
-
