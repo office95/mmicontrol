@@ -237,11 +237,19 @@ export default async function TeacherPage() {
   const cDate = (d: string | null) => (d ? new Date(d) : null);
 
   // Nächster Kurs für Countdown
-  const nextCourse = (courses || [])
-    .filter((c) => c.start_date)
-    .sort((a, b) => new Date(a.start_date as string | number).getTime() - new Date(b.start_date as string | number).getTime())[0];
+  const nowTs = Date.now();
+  const datedCourses = (courses || []).filter((c) => c.start_date);
+  const upcoming = datedCourses
+    .filter((c) => new Date(c.start_date as string).getTime() >= nowTs)
+    .sort((a, b) => new Date(a.start_date as string).getTime() - new Date(b.start_date as string).getTime());
+  const past = datedCourses
+    .filter((c) => new Date(c.start_date as string).getTime() < nowTs)
+    .sort((a, b) => new Date(b.start_date as string).getTime() - new Date(a.start_date as string).getTime());
+  const nextCourse = upcoming[0] || past[0] || null;
   const nextStart = nextCourse?.start_date ? new Date(nextCourse.start_date) : null;
-  const daysRemaining = nextStart ? Math.ceil((nextStart.getTime() - Date.now()) / (1000 * 60 * 60 * 24)) : null;
+  const daysRemaining = nextStart && nextStart.getTime() >= nowTs
+    ? Math.ceil((nextStart.getTime() - nowTs) / (1000 * 60 * 60 * 24))
+    : null;
 
   // Buchungen und Students für KPIs
   let monthBookings = 0;
