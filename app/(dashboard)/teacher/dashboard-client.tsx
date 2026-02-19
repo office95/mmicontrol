@@ -43,7 +43,10 @@ export default function DashboardClient({
 
   return (
     <div className="space-y-4">
-      <div className="flex gap-2 text-sm font-semibold text-white/80 mb-4">
+      <div
+        className="flex gap-2 text-sm font-semibold text-white/80"
+        style={{ marginBottom: '2vh' }}
+      >
         <button
           className={`px-3 py-2 rounded-lg border ${tab === 'perf' ? 'border-pink-400 bg-pink-500/15 text-white' : 'border-white/20 bg-white/10'}`}
           onClick={() => setTab('perf')}
