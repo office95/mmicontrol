@@ -5,6 +5,7 @@ export async function GET(req: Request) {
   const supabase = createSupabaseServerClient();
   const { searchParams } = new URL(req.url);
   const id = searchParams.get('id');
+  const kind = searchParams.get('kind') === 'cover' ? 'cover' : 'storage';
 
   if (!id) {
     return NextResponse.json({ error: 'id required' }, { status: 400 });
@@ -13,7 +14,7 @@ export async function GET(req: Request) {
   // RLS entscheidet: Select liefert nur, wenn der User berechtigt ist
   const { data: material, error } = await supabase
     .from('materials')
-    .select('storage_path')
+    .select('storage_path, cover_path')
     .eq('id', id)
     .single();
 
@@ -21,9 +22,15 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: 'Not found or forbidden' }, { status: 404 });
   }
 
+  const targetPath = kind === 'cover' ? material.cover_path : material.storage_path;
+
+  if (!targetPath) {
+    return NextResponse.json({ error: 'No file for requested kind' }, { status: 404 });
+  }
+
   const { data: signed, error: signError } = await supabase.storage
     .from('materials')
-    .createSignedUrl(material.storage_path, 60 * 60); // 1h
+    .createSignedUrl(targetPath, 60 * 60); // 1h
 
   if (signError || !signed?.signedUrl) {
     return NextResponse.json({ error: 'Could not sign url' }, { status: 500 });

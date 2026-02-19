@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { useEffect } from 'react';
 
 type Course = { id: string; title: string };
 type Material = {
@@ -18,22 +19,50 @@ type Material = {
 };
 
 const formatDate = (d: string | null) => (d ? new Date(d).toLocaleDateString() : '—');
-const publicBase = (process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || '').replace('https://', '').replace(/\/$/, '');
-
-const ensureBucket = (path: string | null) => {
-  if (!path) return null;
-  return path.startsWith('materials/') ? path : `materials/${path}`;
-};
-
-const buildPublicUrl = (path: string | null) => {
-  const p = ensureBucket(path);
-  if (!p || !publicBase) return null;
-  return `https://${publicBase}/storage/v1/object/public/${p}`;
-};
 
 export default function TeacherMaterialsClient({ courses, materials }: { courses: Course[]; materials: Material[] }) {
   const [search, setSearch] = useState('');
   const [courseFilter, setCourseFilter] = useState<string>('');
+  const [fileUrls, setFileUrls] = useState<Record<string, { file?: string | null; cover?: string | null }>>({});
+
+  // Signierte URLs laden
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      const promises = materials.map(async (m) => {
+        const existing = fileUrls[m.id];
+        if (existing?.file && (m.cover_path ? existing.cover : true)) return;
+
+        const getUrl = async (kind: 'storage' | 'cover') => {
+          const res = await fetch(`/api/materials/signed-url?id=${m.id}${kind === 'cover' ? '&kind=cover' : ''}`);
+          if (!res.ok) return null;
+          const data = await res.json();
+          return data?.url ?? null;
+        };
+
+        const [file, cover] = await Promise.all([
+          existing?.file ? Promise.resolve(existing.file) : getUrl('storage'),
+          m.cover_path ? getUrl('cover') : Promise.resolve(null),
+        ]);
+
+        return { id: m.id, file, cover };
+      });
+
+      const results = await Promise.all(promises);
+      if (cancelled) return;
+      const next = { ...fileUrls };
+      results.forEach((r) => {
+        if (!r) return;
+        next[r.id] = { file: r.file, cover: r.cover };
+      });
+      setFileUrls(next);
+    };
+
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [materials]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -81,10 +110,10 @@ export default function TeacherMaterialsClient({ courses, materials }: { courses
         {filtered.map((m) => (
           <div key={m.id} className="rounded-2xl border border-white/15 bg-white/5 backdrop-blur shadow-xl overflow-hidden relative">
             <div className="absolute -right-6 -top-8 h-16 w-16 rounded-full bg-pink-500/25 blur-2xl" />
-            {buildPublicUrl(m.cover_path) ? (
+            {fileUrls[m.id]?.cover ? (
               <div className="w-full aspect-[16/9] bg-white/10 overflow-hidden">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={buildPublicUrl(m.cover_path)!} alt={m.title} className="h-full w-full object-cover" />
+                <img src={fileUrls[m.id]?.cover!} alt={m.title} className="h-full w-full object-cover" />
               </div>
             ) : (
               <div className="w-full aspect-[16/9] bg-gradient-to-r from-pink-500/20 via-purple-500/10 to-blue-500/20" />
@@ -98,9 +127,9 @@ export default function TeacherMaterialsClient({ courses, materials }: { courses
               </div>
               <h3 className="text-lg font-semibold text-white drop-shadow-sm">{m.title}</h3>
               <div className="flex gap-2 mt-2">
-                {buildPublicUrl(m.storage_path) && (
+                {fileUrls[m.id]?.file && (
                   <a
-                    href={buildPublicUrl(m.storage_path)!}
+                    href={fileUrls[m.id]?.file || '#'}
                     className="rounded-lg bg-white text-ink px-3 py-2 text-sm font-semibold shadow hover:-translate-y-[1px] transition"
                     target="_blank"
                     rel="noreferrer"
@@ -108,9 +137,9 @@ export default function TeacherMaterialsClient({ courses, materials }: { courses
                     Öffnen
                   </a>
                 )}
-                {buildPublicUrl(m.cover_path) && (
+                {fileUrls[m.id]?.cover && (
                   <a
-                    href={buildPublicUrl(m.cover_path)!}
+                    href={fileUrls[m.id]?.cover || '#'}
                     className="rounded-lg border border-white/40 px-3 py-2 text-sm text-white hover:bg-white/10 transition"
                     target="_blank"
                     rel="noreferrer"
