@@ -206,21 +206,6 @@ export default async function TeacherPage() {
         ).data || []
       : [];
 
-    // Debug-Log (kein PII): zeigt nur Counts und Beispiel-IDs
-    try {
-      console.log('[teacher-dashboard]', {
-        userId: user?.id,
-        partner: teacherPartner,
-        bookingsCount: scopedBookings.length,
-        leadsCount: leads.length,
-        studentsCount: studentsAll.length,
-        sampleBooking: scopedBookings[0]?.id ?? null,
-        sampleLead: leads[0]?.id ?? null,
-        sampleStudent: studentsAll[0]?.id ?? null,
-      });
-    } catch (_) {
-      /* ignore */
-    }
 
     const isSameMonthYear = (d: Date, year: number, month: number) => d.getFullYear() === year && d.getMonth() === month;
 
