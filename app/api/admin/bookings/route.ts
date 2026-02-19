@@ -98,6 +98,7 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const id = searchParams.get('id');
   const wantMetrics = searchParams.get('metrics');
+  const studentId = searchParams.get('student_id');
 
   // KPI / Metrics View
   if (wantMetrics) {
@@ -154,7 +155,10 @@ export async function GET(req: Request) {
 
   const q = service.from('bookings').select(SELECT);
   if (id) q.eq('id', id).single();
-  else q.order('booking_date', { ascending: false });
+  else {
+    if (studentId) q.eq('student_id', studentId);
+    q.order('booking_date', { ascending: false });
+  }
   const { data, error } = await q;
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
   const enriched = await fillAmounts(data);

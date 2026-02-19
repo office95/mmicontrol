@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import ButtonLink from '@/components/button-link';
 import StudentModal, { StudentRow } from '@/components/student-modal';
 import BookingModal from '@/components/booking-modal';
@@ -41,6 +42,7 @@ type StudentListRow = {
 const statusLabel: Record<string, string> = { active: 'Aktiv', inactive: 'Inaktiv' };
 
 export default function StudentsPage() {
+  const router = useRouter();
   const [items, setItems] = useState<StudentListRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -170,7 +172,7 @@ export default function StudentsPage() {
               </div>
               <div className="w-full grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-3 items-start">
                 <BookingRow booking={s.latest_booking} />
-                <div className="flex items-center gap-2 text-xs justify-start lg:justify-end">
+                <div className="flex items-center gap-2 text-xs justify-start lg:justify-end flex-wrap">
                   <button
                     className="px-3 py-1 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100"
                     onClick={() => openFor(s)}
@@ -182,6 +184,25 @@ export default function StudentsPage() {
                     onClick={() => setBookingFor(s)}
                   >
                     Buchung erfassen
+                  </button>
+                  <button
+                    className="px-3 py-1 rounded-lg border border-emerald-300 text-emerald-700 hover:bg-emerald-50"
+                    onClick={async () => {
+                      const res = await fetch(`/api/admin/bookings?student_id=${s.id}`);
+                      if (!res.ok) return alert('Buchungen konnten nicht geladen werden.');
+                      const data = await res.json();
+                      if (!Array.isArray(data) || data.length === 0) return alert('Keine Buchungen für diesen Teilnehmer.');
+                      const byOpen = data.sort((a: any, b: any) => {
+                        const openA = a.open_amount ?? a.amount ?? 0;
+                        const openB = b.open_amount ?? b.amount ?? 0;
+                        if (openB !== openA) return openB - openA; // offene zuerst
+                        return new Date(b.booking_date || 0).getTime() - new Date(a.booking_date || 0).getTime();
+                      });
+                      const target = byOpen[0];
+                      router.push(`/admin/bookings/${target.id}`);
+                    }}
+                  >
+                    Buchung ansehen
                   </button>
                   <button
                     className="px-3 py-1 rounded-lg border border-red-300 text-red-600 hover:bg-red-50"
