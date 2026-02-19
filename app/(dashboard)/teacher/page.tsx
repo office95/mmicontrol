@@ -184,12 +184,22 @@ export default async function TeacherPage() {
 
     const studentIds = Array.from(new Set(scopedBookings.map((b) => b.student_id).filter(Boolean)));
 
-    const { data: students } = studentIds.length
+    const { data: studentsBookings } = studentIds.length
       ? await service
           .from('students')
           .select('id, interest_courses, source, note')
           .in('id', studentIds)
       : { data: [] as any[] };
+
+    // Zusätzlich: alle Students, die direkt dem Partner zugeordnet sind (falls Feld existiert), damit Quellen/Interessen nicht leer bleiben
+    const { data: studentsPartner } = teacherPartner
+      ? await service
+          .from('students')
+          .select('id, interest_courses, source, note, partner_id')
+          .eq('partner_id', teacherPartner)
+      : { data: [] as any[] };
+
+    const students = [...(studentsBookings || []), ...(studentsPartner || [])];
 
     // Leads mit Partner für Quellen/Noten
     const { data: leads } = teacherPartner
