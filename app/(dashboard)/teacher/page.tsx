@@ -165,7 +165,7 @@ export default async function TeacherPage() {
 
   try {
     const courseIds = courses?.map((c) => c.id) ?? [];
-    // Buchungen: ausschließlich nach Partner filtern (keine Kurs-Schnittmenge mehr)
+    // Buchungen: Partner-filter, aber fallback auf Kurs-Zuordnung falls partner_id fehlt
     const { data: bookings, error: bookingsErr } = await service
       .from('bookings')
       .select('id, course_id, course_date_id, student_id, booking_date, created_at, partner_id, amount, course_dates(course_id)');
@@ -173,13 +173,13 @@ export default async function TeacherPage() {
     const bookingsData = bookingsErr ? [] : bookings || [];
     const scopedBookingsRaw = bookingsData.filter((b: any) => {
       const partnerMatch = teacherPartner ? (b.partner_id ?? null) === teacherPartner : true;
-      return partnerMatch;
+      if (partnerMatch) return true;
+      // fallback: Kurs-Zuordnung (hilft, wenn partner_id in booking leer ist)
+      const cid = b.course_id as string | null;
+      const cdCid = (b as any).course_dates?.course_id as string | null;
+      return (cid && courseIds.includes(cid)) || (cdCid && courseIds.includes(cdCid));
     });
 
-    // Buchungen gehören, wenn:
-    // - course_id in Kursen des Dozenten/Partners, oder
-    // - course_date.course_id in Kursen des Dozenten/Partners, oder
-    // - partner_id passt zum Dozenten-Partner (falls gesetzt)
     const scopedBookings = scopedBookingsRaw;
 
     const studentIds = Array.from(new Set(scopedBookings.map((b) => b.student_id).filter(Boolean)));
