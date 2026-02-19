@@ -259,7 +259,7 @@ export default async function TeacherPage() {
       const key = (val || 'Keine Angabe').toString().trim() || 'Keine Angabe';
       noteFreq[key] = (noteFreq[key] || 0) + 1;
     };
-    (leads || []).forEach((l: any) => addNote(l.skills ?? l.note));
+    (leads || []).forEach((l: any) => addNote(l.skills ?? l.notes ?? l.note));
     if (!Object.keys(noteFreq).length) {
       (studentsAll || []).forEach((s: any) => addNote(s.note));
     }
