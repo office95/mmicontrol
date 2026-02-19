@@ -152,7 +152,7 @@ export default function AttendanceModal({
             </div>
           </div>
           <button
-            className="rounded-full bg-white/10 hover:bg-white/20 text-white px-3 py-1 text-sm"
+            className="rounded-full bg-white/50 hover:bg-white/70 text-black px-3 py-1 text-sm"
             onClick={onClose}
           >
             ×
