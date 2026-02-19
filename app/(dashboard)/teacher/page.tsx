@@ -56,23 +56,26 @@ export default async function TeacherPage() {
     const ids = memberships?.map((m) => m.course_id).filter(Boolean) || [];
 
     if (ids.length) {
-      const { data: courseRows, error: courseErr } = await service
+      const { data: courseRows } = await service
         .from('courses')
         .select('id, title, description, duration_hours, partner_id')
         .in('id', ids);
-      if (!courseErr) {
-        const filteredCourses = teacherPartner
-          ? (courseRows || []).filter((c: any) => c.partner_id === teacherPartner)
-          : (courseRows || []);
-        courses = filteredCourses.map((c) => ({
-          id: c.id as string,
-          title: c.title as string,
-          description: (c as any).description ?? null,
-          duration_hours: (c as any).duration_hours ?? null,
-          start_date: null,
-          participants: [],
-        }));
-      }
+
+      const filteredCourses = teacherPartner
+        ? (courseRows || []).filter((c: any) => c.partner_id === teacherPartner)
+        : (courseRows || []);
+
+      // Fallback: wenn Filter alles rausnimmt, nimm lieber alle Kurse des Dozenten
+      const effectiveCourses = filteredCourses.length ? filteredCourses : courseRows || [];
+
+      courses = effectiveCourses.map((c) => ({
+        id: c.id as string,
+        title: c.title as string,
+        description: (c as any).description ?? null,
+        duration_hours: (c as any).duration_hours ?? null,
+        start_date: null,
+        participants: [],
+      }));
 
       // Nächstes Kursdatum je Kurs
       const { data: dates } = await service
@@ -161,8 +164,13 @@ export default async function TeacherPage() {
       .from('bookings')
       .select('id, course_id, student_id, booking_date, partner_id, amount');
     const scopedBookingsRaw = bookingsErr ? [] : bookings || [];
-    // Nur Buchungen der gefilterten Kurse (die bereits auf Partner eingeschränkt sind)
-    const scopedBookings = scopedBookingsRaw.filter((b: any) => courseIds.includes(b.course_id as string));
+    // Buchungen der Kurse, zusätzlich auf Partner, falls gesetzt
+    const scopedBookings = scopedBookingsRaw.filter((b: any) => {
+      const inCourse = courseIds.includes(b.course_id as string);
+      if (!inCourse) return false;
+      if (teacherPartner) return (b.partner_id ?? null) === teacherPartner || b.partner_id == null;
+      return true;
+    });
 
     const studentIds = Array.from(new Set(scopedBookings.map((b) => b.student_id).filter(Boolean)));
 
@@ -171,6 +179,14 @@ export default async function TeacherPage() {
           .from('students')
           .select('id, interest_courses, source, note')
           .in('id', studentIds)
+      : { data: [] as any[] };
+
+    // Leads mit Partner für Quellen/Noten
+    const { data: leads } = teacherPartner
+      ? await service
+          .from('leads')
+          .select('id, source, note')
+          .eq('partner_id', teacherPartner)
       : { data: [] as any[] };
 
     const isSameMonthYear = (d: Date, year: number, month: number) => d.getFullYear() === year && d.getMonth() === month;
@@ -201,21 +217,25 @@ export default async function TeacherPage() {
       .slice(0, 8)
       .map(([label, count]) => ({ label, count }));
 
-    // Source pie
+    // Source pie (Students + Leads)
     const sourceFreq: Record<string, number> = {};
-    (students || []).forEach((s: any) => {
-      const key = (s.source || 'Unbekannt').trim() || 'Unbekannt';
+    const addSource = (val: string | null | undefined) => {
+      const key = (val || 'Unbekannt').trim() || 'Unbekannt';
       sourceFreq[key] = (sourceFreq[key] || 0) + 1;
-    });
+    };
+    (students || []).forEach((s: any) => addSource(s.source));
+    (leads || []).forEach((l: any) => addSource(l.source));
     const totalSources = Object.values(sourceFreq).reduce((a, b) => a + b, 0) || 1;
     sources = Object.entries(sourceFreq).map(([label, value]) => ({ label, value: (value / totalSources) * 100 }));
 
-    // Notes distribution
+    // Notes distribution (Students + Leads)
     const noteFreq: Record<string, number> = {};
-    (students || []).forEach((s: any) => {
-      const key = (s.note || 'Keine Angabe').trim() || 'Keine Angabe';
+    const addNote = (val: string | null | undefined) => {
+      const key = (val || 'Keine Angabe').trim() || 'Keine Angabe';
       noteFreq[key] = (noteFreq[key] || 0) + 1;
-    });
+    };
+    (students || []).forEach((s: any) => addNote(s.note));
+    (leads || []).forEach((l: any) => addNote(l.note));
     const totalNotes = Object.values(noteFreq).reduce((a, b) => a + b, 0) || 1;
     notes = Object.entries(noteFreq).map(([label, value]) => ({ label, value: (value / totalNotes) * 100 }));
   }
