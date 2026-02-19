@@ -162,7 +162,9 @@ export default async function TeacherPage() {
       .map((c) => ({
         ...c,
         start_date: dateMap.get(c.id) ?? null,
-        participants: participantMap.get(c.id) || [],
+        participants: [
+          ...(participantMap.get(c.id) || []),
+        ],
       }))
       .sort((a, b) => {
         const da = cDate(a.start_date);
@@ -173,6 +175,9 @@ export default async function TeacherPage() {
         return a.title.localeCompare(b.title);
       });
   }
+
+  // Map für Teilnehmer aus Buchungen (wird im try gefüllt)
+  let bookingParticipants = new Map<string, { name: string; email: string; phone?: string | null; booking_date?: string | null }[]>();
 
   // Fallback: Wenn noch keine Kurse vorhanden, aber Partner gesetzt, nimm course_dates direkt
   if ((!courses || !courses.length) && teacherPartner) {
@@ -230,7 +235,10 @@ export default async function TeacherPage() {
     courses = fallbackCourseIds.map((id) => ({
       ...courseMap.get(id),
       start_date: dateMap.get(id) ?? null,
-      participants: participantMap.get(id) || [],
+      participants: [
+        ...(participantMap.get(id) || []),
+        ...(bookingParticipants.get(id) || []),
+      ],
     }));
   }
 
@@ -292,6 +300,26 @@ export default async function TeacherPage() {
 
     // Students nur aus relevanten Buchungen (Partner-Scope erfolgt über scopedBookings)
     const studentsAll = studentsBookings || [];
+
+    // Teilnehmer aus Buchungen pro Kurs
+    const bookingParticipants = new Map<string, { name: string; email: string; phone?: string | null; booking_date?: string | null }[]>();
+    const studentById = new Map<string, any>();
+    studentsAll.forEach((s: any) => studentById.set(s.id, s));
+
+    scopedBookings.forEach((b: any) => {
+      const cid = (b.course_id as string) || (b as any).course_dates?.course_id as string | undefined;
+      if (!cid) return;
+      const stu = b.student_id ? studentById.get(b.student_id) : null;
+      const participant = {
+        name: stu?.name ?? stu?.email ?? b.student_email ?? 'Teilnehmer',
+        email: stu?.email ?? b.student_email ?? '',
+        phone: stu?.phone ?? null,
+        booking_date: b.booking_date || b.created_at || null,
+      };
+      const list = bookingParticipants.get(cid) || [];
+      list.push(participant);
+      bookingParticipants.set(cid, list);
+    });
 
     // Alle Leads (service role, daher keine RLS-Beschränkung)
     const leadsAll = (
