@@ -60,16 +60,30 @@ export default function AttendanceModal({
 
   const selectedSession = sessions.find((s) => s.id === selectedSessionId) || null;
 
+  const entryKey = (student_id: string | null | undefined, id?: string) => student_id ?? id ?? '';
+
   const entryMap = useMemo(() => {
     const map = new Map<string, Entry>();
     if (selectedSession) {
       selectedSession.entries.forEach((e) => {
-        const key = e.student_id || e.student_id === null ? e.student_id ?? '' : '';
+        const key = entryKey(e.student_id, (e as any).id);
         map.set(key, e);
       });
     }
     return map;
   }, [selectedSession]);
+
+  const displayParticipants: Participant[] =
+    participants.length
+      ? participants
+      : selectedSession
+        ? selectedSession.entries.map((e: any) => ({
+            student_id: entryKey(e.student_id, e.id),
+            name: e.student?.name ?? 'Teilnehmer',
+            email: e.student?.email ?? '',
+            phone: e.student?.phone ?? null,
+          }))
+        : [];
 
   const updateEntry = async (student_id: string | null, status: 'present' | 'absent', note?: string | null) => {
     if (readOnly || !selectedSession) return;
@@ -199,10 +213,11 @@ export default function AttendanceModal({
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-200">
-                    {participants.map((p) => {
-                      const entry = entryMap.get(p.student_id ?? '') || null;
+                    {displayParticipants.map((p) => {
+                      const key = entryKey(p.student_id, undefined);
+                      const entry = entryMap.get(key) || null;
                       return (
-                        <tr key={p.student_id ?? p.email}>
+                        <tr key={p.student_id ?? p.email ?? key}>
                           <td className="py-2 pr-3">
                             <div className="font-semibold text-ink">{p.name}</div>
                             <div className="text-xs text-slate-500">{p.student_id ? 'Student' : 'Gast'}</div>
