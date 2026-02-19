@@ -30,7 +30,7 @@ export default function TeacherStatsClient({ kpis, interests, sources, notes }: 
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <Card title="Conversion-Quelle" className="lg:col-span-1">
-          {sourceDonut ? <DonutChart {...sourceDonut} /> : <Empty>Keine Daten</Empty>}
+          {sourceDonut ? <DonutChart {...sourceDonut} hideTotal /> : <Empty>Keine Daten</Empty>}
         </Card>
         <Card title="Erfahrungen (note)" className="lg:col-span-2">
           {notesBars ? <BarChart {...notesBars} /> : <Empty>Keine Daten</Empty>}
@@ -109,7 +109,7 @@ function buildDonut(data: { label: string; value: number }[]): DonutData | null 
   return { total, segments };
 }
 
-function DonutChart({ total, segments }: DonutData) {
+function DonutChart({ total, segments, hideTotal }: DonutData & { hideTotal?: boolean }) {
   const gradient = segments
     .map((s) => `${s.color} ${s.from.toFixed(2)}deg ${s.to.toFixed(2)}deg`)
     .join(', ');
@@ -122,9 +122,11 @@ function DonutChart({ total, segments }: DonutData) {
             background: `conic-gradient(${gradient})`,
           }}
         />
-        <div className="absolute inset-6 rounded-full bg-slate-900/70 backdrop-blur flex items-center justify-center text-white text-lg font-semibold">
-          100%
-        </div>
+        {!hideTotal && (
+          <div className="absolute inset-6 rounded-full bg-slate-900/70 backdrop-blur flex items-center justify-center text-white text-lg font-semibold">
+            100%
+          </div>
+        )}
       </div>
       <div className="flex flex-wrap justify-center gap-2 text-xs text-white/80">
         {segments.map((s, idx) => (
