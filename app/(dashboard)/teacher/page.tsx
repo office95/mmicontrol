@@ -196,12 +196,17 @@ export default async function TeacherPage() {
     // Students nur aus relevanten Buchungen (Partner-Scope erfolgt über scopedBookings)
     const studentsAll = studentsBookings || [];
 
-    // Alle Leads (service role, daher keine RLS-Beschränkung) für Interessen / Quellen
-    const leads = (
+    // Alle Leads (service role, daher keine RLS-Beschränkung)
+    const leadsAll = (
       await service
         .from('leads')
         .select('*')
     ).data || [];
+
+    // Partner-spezifische Leads für Quellen/Notizen
+    const leadsScoped = teacherPartner
+      ? leadsAll.filter((l: any) => (l as any).partner_id === teacherPartner)
+      : [];
 
 
     const isSameMonthYear = (d: Date, year: number, month: number) => d.getFullYear() === year && d.getMonth() === month;
@@ -222,7 +227,7 @@ export default async function TeacherPage() {
 
     // Zusätzliche Kurs-Titel aus Leads (interest_courses enthalten IDs)
     const leadCourseIds = new Set<string>();
-    (leads || []).forEach((l: any) => {
+    (leadsAll || []).forEach((l: any) => {
       const valCourses = l?.interest_courses;
       const addId = (v: any) => {
         const id = v?.toString().trim();
@@ -292,7 +297,7 @@ export default async function TeacherPage() {
       }
     };
 
-    (leads || []).forEach((l: any) => extractLabels(l));
+    (leadsAll || []).forEach((l: any) => extractLabels(l));
 
     // Ranking mit Ties: bis zu Platz 3; Platz wechselt nur bei niedrigerem Count
     const sorted = Object.entries(freq)
@@ -325,7 +330,7 @@ export default async function TeacherPage() {
       const key = (typeof val === 'string' ? val : String(val ?? 'Unbekannt')).trim() || 'Unbekannt';
       sourceFreq[key] = (sourceFreq[key] || 0) + 1;
     };
-    (leads || []).forEach((l: any) => addSource(l.source));
+    (leadsScoped || []).forEach((l: any) => addSource(l.source));
     // Fallback: wenn keine Leads, nimm Student-Quellen
     if (!Object.keys(sourceFreq).length) {
       (studentsAll || []).forEach((s: any) => addSource(s.source));
@@ -343,7 +348,7 @@ export default async function TeacherPage() {
       const key = (val || 'Keine Angabe').toString().trim() || 'Keine Angabe';
       noteFreq[key] = (noteFreq[key] || 0) + 1;
     };
-    (leads || []).forEach((l: any) => addNote(l.skills ?? l.notes ?? l.note));
+    (leadsScoped || []).forEach((l: any) => addNote(l.skills ?? l.notes ?? l.note));
     if (!Object.keys(noteFreq).length) {
       (studentsAll || []).forEach((s: any) => addNote((s as any).notes ?? (s as any).note));
     }
