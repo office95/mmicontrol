@@ -7,6 +7,8 @@ type KPIs = {
   monthBookingsPrev: number;
   yearBookings: number;
   yearBookingsPrev: number;
+  yearParticipants: number;
+  yearParticipantsPrev: number;
 };
 
 export default function TeacherStatsClient({ kpis, interests, sources, notes }: {
@@ -23,7 +25,12 @@ export default function TeacherStatsClient({ kpis, interests, sources, notes }: 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <Kpi title="Buchungen Monat" value={kpis.monthBookings} compare={kpis.monthBookingsPrev} />
         <Kpi title="Buchungen Jahr" value={kpis.yearBookings} compare={kpis.yearBookingsPrev} />
-        <Kpi title="Top Interesse" value={interests[0]?.labels?.join(', ') ?? '—'} compareLabel="" />
+        <Kpi
+          title="Teilnehmer (Jahr)"
+          value={kpis.yearParticipants}
+          compare={kpis.yearParticipantsPrev}
+          showPercent
+        />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -60,15 +67,35 @@ export default function TeacherStatsClient({ kpis, interests, sources, notes }: 
   );
 }
 
-function Kpi({ title, value, compare, compareLabel }: { title: string; value: number | string; compare?: number; compareLabel?: string }) {
+function Kpi({
+  title,
+  value,
+  compare,
+  compareLabel,
+  showPercent = false,
+}: {
+  title: string;
+  value: number | string;
+  compare?: number;
+  compareLabel?: string;
+  showPercent?: boolean;
+}) {
   const diff = compare !== undefined ? Number(value) - Number(compare) : null;
   const sign = diff === null ? '' : diff > 0 ? '▲' : diff < 0 ? '▼' : '▬';
   const color = diff === null ? 'text-white/70' : diff > 0 ? 'text-emerald-300' : diff < 0 ? 'text-amber-300' : 'text-slate-300';
+  const pct = diff !== null && compare && compare !== 0 ? (diff / compare) * 100 : diff !== null && compare === 0 ? 100 : null;
+  const label =
+    compareLabel ??
+    (diff !== null
+      ? showPercent
+        ? `${sign} Δ ${Math.abs(diff)} (${pct !== null ? `${pct.toFixed(1)}%` : 'n/a'}) vs. VJ`
+        : `${sign} vs. VJ: ${compare}`
+      : '—');
   return (
     <div className="rounded-2xl border border-white/15 bg-white/8 backdrop-blur-xl p-4 text-white shadow-lg">
       <p className="text-[11px] uppercase tracking-[0.2em] text-white/60 mb-2">{title}</p>
       <p className="text-3xl font-semibold drop-shadow-sm">{value}</p>
-      <p className={`text-sm ${color} mt-1`}>{compareLabel ?? (diff !== null ? `${sign} vs. VJ: ${compare}` : '—')}</p>
+      <p className={`text-sm ${color} mt-1`}>{label}</p>
     </div>
   );
 }

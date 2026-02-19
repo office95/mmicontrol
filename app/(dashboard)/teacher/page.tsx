@@ -267,6 +267,8 @@ export default async function TeacherPage() {
   let monthBookingsPrev = 0;
   let yearBookings = 0;
   let yearBookingsPrev = 0;
+  let yearParticipants = 0;
+  let yearParticipantsPrev = 0;
   let topInterests: { place: number; labels: string[] }[] = [];
   let sources: { label: string; value: number }[] = [];
   let notes: { label: string; value: number }[] = [];
@@ -347,6 +349,8 @@ export default async function TeacherPage() {
       if (isSameMonthYear(d, prevYear, currentMonth)) monthBookingsPrev++;
       if (d.getFullYear() === currentYear) yearBookings++;
       if (d.getFullYear() === prevYear) yearBookingsPrev++;
+      if (d.getFullYear() === currentYear) yearParticipants++;
+      if (d.getFullYear() === prevYear) yearParticipantsPrev++;
     });
 
     // Interests: nur Leads -> interest_name (primär), Fallback interest_courses via Kurs-Map
@@ -488,6 +492,8 @@ export default async function TeacherPage() {
     monthBookingsPrev = 0;
     yearBookings = 0;
     yearBookingsPrev = 0;
+    yearParticipants = 0;
+    yearParticipantsPrev = 0;
     topInterests = [];
     sources = [];
     notes = [];
@@ -606,7 +612,7 @@ export default async function TeacherPage() {
       </div>
 
       <DashboardClient
-        kpis={{ monthBookings, monthBookingsPrev, yearBookings, yearBookingsPrev }}
+        kpis={{ monthBookings, monthBookingsPrev, yearBookings, yearBookingsPrev, yearParticipants, yearParticipantsPrev }}
         interests={topInterests}
         sources={sources}
         notes={notes}

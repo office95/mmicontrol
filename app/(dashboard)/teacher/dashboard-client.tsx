@@ -10,6 +10,8 @@ type KPIs = {
   monthBookingsPrev: number;
   yearBookings: number;
   yearBookingsPrev: number;
+  yearParticipants: number;
+  yearParticipantsPrev: number;
 };
 
 type InterestRank = { place: number; labels: string[] };
