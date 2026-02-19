@@ -226,7 +226,9 @@ export default function BookingsPage() {
                 setSelected(null);
                 const params = new URLSearchParams(searchParams.toString());
                 params.delete('id');
-                router.replace(`/admin/bookings${params.toString() ? `?${params.toString()}` : ''}`);
+                const query = params.toString();
+                const href = (`/admin/bookings${query ? `?${query}` : ''}`) as `/admin/bookings${string}`;
+                router.replace(href);
               }}
             >
               ×
