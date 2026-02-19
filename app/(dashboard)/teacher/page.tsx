@@ -219,7 +219,9 @@ export default async function TeacherPage() {
       if (d.getFullYear() === prevYear) yearBookingsPrev++;
     });
 
-    // Interests: Leads -> interest_name (nur Namen), Bookings -> course_title
+    // Interests: Leads -> interest_name (primär), Leads->interest_courses (Fallback via Kurs-Map), Bookings -> course_title
+    const courseTitleMap = new Map<string, string>();
+    (courses || []).forEach((c) => courseTitleMap.set(c.id, c.title));
     const freq: Record<string, number> = {};
     const inc = (key: string) => {
       const k = key?.toString().trim();
@@ -228,16 +230,26 @@ export default async function TeacherPage() {
     };
     (leads || []).forEach((l: any) => {
       const valName = (l as any).interest_name;
-      const handle = (x: any) => {
+      const handleName = (x: any) => {
         const raw = x?.toString().trim();
         if (!raw) return;
         inc(raw);
       };
+      const handleCourse = (x: any) => {
+        const raw = x?.toString().trim();
+        if (!raw) return;
+        const mapped = courseTitleMap.get(raw) || raw;
+        inc(mapped);
+      };
 
       if (valName) {
-        if (Array.isArray(valName)) valName.forEach(handle);
-        else if (typeof valName === 'string') valName.split(/[,;\n]+/).forEach(handle);
-        else handle(valName);
+        if (Array.isArray(valName)) valName.forEach(handleName);
+        else if (typeof valName === 'string') valName.split(/[,;\n]+/).forEach(handleName);
+        else handleName(valName);
+      } else if (valCourses) {
+        if (Array.isArray(valCourses)) valCourses.forEach(handleCourse);
+        else if (typeof valCourses === 'string') valCourses.split(/[,;\n]+/).forEach(handleCourse);
+        else handleCourse(valCourses);
       }
     });
     (scopedBookings || []).forEach((b: any) => inc(b.course_title));
