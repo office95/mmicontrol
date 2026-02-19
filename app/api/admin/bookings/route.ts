@@ -97,6 +97,61 @@ export async function POST(req: Request) {
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const id = searchParams.get('id');
+  const wantMetrics = searchParams.get('metrics');
+
+  // KPI / Metrics View
+  if (wantMetrics) {
+    const { data: bookings, error } = await service.from('bookings').select(SELECT);
+    if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+    const list = await fillAmounts(bookings || []);
+    const ids = Array.from(new Set((list as any[]).map((r) => r.id).filter(Boolean)));
+
+    const { data: payAgg } = await service
+      .from('payments')
+      .select('booking_id, amount, payment_date')
+      .in('booking_id', ids.length ? ids : ['00000000-0000-0000-0000-000000000000']);
+
+    const sumByBooking = (payAgg ?? []).reduce<Record<string, number>>((acc, row: any) => {
+      acc[row.booking_id] = (acc[row.booking_id] || 0) + Number(row.amount || 0);
+      return acc;
+    }, {});
+
+    const today = new Date();
+    const todayStr = today.toISOString().slice(0, 10);
+    const last7 = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+
+    const paymentsLast7 = (payAgg ?? []).filter((p) => p.payment_date && p.payment_date >= last7);
+    const payments_last7_sum = paymentsLast7.reduce((s, p) => s + Number(p.amount || 0), 0);
+    const payments_last7_count = Array.from(new Set(paymentsLast7.map((p) => p.booking_id))).length;
+
+    const open_sum = (list as any[]).reduce((sum, r: any) => {
+      const paid = sumByBooking[r.id] || 0;
+      const open = Math.max(0, Number((r.amount ?? 0) - paid));
+      return sum + open;
+    }, 0);
+
+    const dunningStatuses = ['Zahlungserinnerung', '1. Mahnung', '2. Mahnung', 'Inkasso'];
+    const dunning_due = (list as any[]).filter(
+      (r: any) =>
+        dunningStatuses.includes(r.status) &&
+        r.next_dunning_at &&
+        r.next_dunning_at <= todayStr
+    ).length;
+
+    const by_status = (list as any[]).reduce<Record<string, number>>((acc, r: any) => {
+      acc[r.status] = (acc[r.status] || 0) + 1;
+      return acc;
+    }, {});
+
+    return NextResponse.json({
+      open_sum,
+      dunning_due,
+      payments_last7_sum,
+      payments_last7_count,
+      by_status,
+    });
+  }
+
   const q = service.from('bookings').select(SELECT);
   if (id) q.eq('id', id).single();
   else q.order('booking_date', { ascending: false });
