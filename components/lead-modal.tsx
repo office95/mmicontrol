@@ -177,39 +177,47 @@ export default function LeadModal({
     const mergedOther = [interestOther || '', extrasSelected.join(', ')].filter(Boolean).join(' | ');
 
     const method = initial?.id ? 'PATCH' : 'POST';
-    const res = await fetch('/api/admin/leads', {
-      method,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        id: initial?.id,
-        salutation,
-        skills,
-        name,
-        email,
-        phone,
-        country,
-        state,
-        interest_courses: uuids,
-        interest_other: mergedOther || null,
-        partner_id: partnerId || null,
-        source,
-        source_note: sourceNote || null,
-        lead_quality: leadQuality,
-        newsletter,
-        requested_at: requestedAt || new Date().toISOString().slice(0, 10),
-        status,
-        birthdate: birthdate || null,
-        notes,
-      }),
-    });
-    const data = await res.json();
-    if (!res.ok) {
-      setError(data.error || 'Speichern fehlgeschlagen');
-    } else {
-      onSaved();
-      onClose();
+    const payload = {
+      id: initial?.id,
+      salutation,
+      skills,
+      name,
+      email,
+      phone,
+      country,
+      state,
+      interest_courses: uuids,
+      interest_other: mergedOther || null,
+      partner_id: partnerId || null,
+      source,
+      source_note: sourceNote || null,
+      lead_quality: leadQuality,
+      newsletter,
+      requested_at: requestedAt || new Date().toISOString().slice(0, 10),
+      status,
+      birthdate: birthdate || null,
+      notes,
+    };
+
+    try {
+      const res = await fetch('/api/admin/leads', {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(data.error || `Speichern fehlgeschlagen (Status ${res.status})`);
+      } else {
+        onSaved();
+        onClose();
+      }
+    } catch (err: any) {
+      console.error('Lead save failed', err, payload);
+      setError(err?.message || 'Netzwerk-Fehler beim Speichern');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }
 
   return (
