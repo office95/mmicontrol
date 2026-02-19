@@ -34,117 +34,118 @@ export default async function TeacherPage() {
   const currentYear = now.getFullYear();
   const prevYear = currentYear - 1;
 
-  // Kurse über course_members (role = teacher)
+  // Kurse & Partner-Filter
   let courses:
     | {
         id: string;
         title: string;
         description: string | null;
         start_date: string | null;
-        duration_hours?: number | null;
-        participants: { name: string; email: string; phone?: string | null }[];
-      }[]
-    | null = [];
+      duration_hours?: number | null;
+      participants: { name: string; email: string; phone?: string | null }[];
+    }[]
+  | null = [];
 
+  // 1) Kurs-IDs ermitteln: zuerst Zuordnung über course_members, dann Partner-Fallback
+  let courseIds: string[] = [];
   if (user?.id) {
     const { data: memberships } = await service
       .from('course_members')
       .select('course_id')
       .eq('user_id', user.id)
       .eq('role', 'teacher');
+    courseIds = memberships?.map((m) => m.course_id).filter(Boolean) || [];
+  }
+  if (courseIds.length === 0 && teacherPartner) {
+    const { data: partnerCourses } = await service
+      .from('courses')
+      .select('id')
+      .eq('partner_id', teacherPartner);
+    courseIds = partnerCourses?.map((c) => c.id as string).filter(Boolean) || [];
+  }
 
-    let ids = memberships?.map((m) => m.course_id).filter(Boolean) || [];
+  // 2) Kurse laden (nach Partner gefiltert, falls gesetzt)
+  if (courseIds.length) {
+    const { data: courseRows } = await service
+      .from('courses')
+      .select('id, title, description, duration_hours, partner_id')
+      .in('id', courseIds);
 
-    // Fallback: wenn keine Kurs-Memberships, Kurse nach Partner laden
-    if (ids.length === 0 && teacherPartner) {
-      const { data: partnerCourses } = await service
-        .from('courses')
-        .select('id')
-        .eq('partner_id', teacherPartner);
-      ids = partnerCourses?.map((c) => c.id as string).filter(Boolean) || [];
-    }
+    const filteredCourses = teacherPartner
+      ? (courseRows || []).filter((c: any) => (c.partner_id ?? null) === teacherPartner)
+      : (courseRows || []);
 
-    if (ids.length) {
-      const { data: courseRows } = await service
-        .from('courses')
-        .select('id, title, description, duration_hours, partner_id')
-        .in('id', ids);
+    const effectiveCourses = filteredCourses.length ? filteredCourses : courseRows || [];
 
-      const filteredCourses = teacherPartner
-        ? (courseRows || []).filter((c: any) => (c.partner_id ?? null) === teacherPartner)
-        : (courseRows || []);
+    courses = effectiveCourses.map((c) => ({
+      id: c.id as string,
+      title: c.title as string,
+      description: (c as any).description ?? null,
+      duration_hours: (c as any).duration_hours ?? null,
+      start_date: null,
+      participants: [],
+    }));
 
-      const effectiveCourses = filteredCourses.length ? filteredCourses : courseRows || [];
+    // Termine holen
+    const { data: dates } = await service
+      .from('course_dates')
+      .select('course_id, start_date')
+      .in('course_id', courseIds);
 
-      courses = effectiveCourses.map((c) => ({
-        id: c.id as string,
-        title: c.title as string,
-        description: (c as any).description ?? null,
-        duration_hours: (c as any).duration_hours ?? null,
-        start_date: null,
-        participants: [],
-      }));
-
-      const { data: dates } = await service
-        .from('course_dates')
-        .select('course_id, start_date')
-        .in('course_id', ids);
-
-      const dateMap = new Map<string, string | null>();
-      const today = new Date();
-      dates?.forEach((d) => {
-        if (!d.start_date) return;
-        const existing = dateMap.get(d.course_id);
-        const currentDate = new Date(d.start_date);
-        const existingDate = existing ? new Date(existing) : null;
-        const isFuture = currentDate >= today;
-        const isExistingFuture = existingDate ? existingDate >= today : false;
-        if (!existing) {
-          dateMap.set(d.course_id, d.start_date);
-        } else if (isFuture && (!isExistingFuture || currentDate < existingDate!)) {
-          dateMap.set(d.course_id, d.start_date);
-        } else if (!isFuture && !isExistingFuture && currentDate < existingDate!) {
-          dateMap.set(d.course_id, d.start_date);
-        }
-      });
-
-      // Teilnehmer je Kurs laden (students auf Grund der Buchungen/Zuordnung)
-      let participantMap = new Map<string, { name: string; email: string; phone?: string | null }[]>();
-      const { data: enrollments } = await service
-        .from('course_members')
-        .select('course_id, profiles(full_name, id), created_at')
-        .eq('role', 'student')
-        .in('course_id', ids);
-
-      if (enrollments?.length) {
-        const studentIds = Array.from(new Set(enrollments.map((e: any) => e.profiles?.id).filter(Boolean)));
-        let studentMap = new Map<string, { name: string; email: string; phone?: string | null }>();
-        if (studentIds.length) {
-          const { data: studentRows } = await service
-            .from('students')
-            .select('id, name, email, phone')
-            .in('id', studentIds);
-          studentRows?.forEach((s) => studentMap.set(s.id, { name: s.name ?? s.email ?? 'Teilnehmer', email: s.email ?? '', phone: s.phone }));
-        }
-        enrollments.forEach((e: any) => {
-          const cid = e.course_id as string;
-          const stu = studentMap.get(e.profiles?.id) || { name: e.profiles?.full_name ?? 'Teilnehmer', email: '' };
-          (stu as any).booking_date = e.created_at || null;
-          const list = participantMap.get(cid) || [];
-          list.push(stu);
-          participantMap.set(cid, list);
-        });
+    const dateMap = new Map<string, string | null>();
+    const today = new Date();
+    dates?.forEach((d) => {
+      if (!d.start_date) return;
+      const existing = dateMap.get(d.course_id);
+      const currentDate = new Date(d.start_date);
+      const existingDate = existing ? new Date(existing) : null;
+      const isFuture = currentDate >= today;
+      const isExistingFuture = existingDate ? existingDate >= today : false;
+      if (!existing) {
+        dateMap.set(d.course_id, d.start_date);
+      } else if (isFuture && (!isExistingFuture || currentDate < existingDate!)) {
+        dateMap.set(d.course_id, d.start_date);
+      } else if (!isFuture && !isExistingFuture && currentDate < existingDate!) {
+        dateMap.set(d.course_id, d.start_date);
       }
+    });
 
-      courses = courses
-        .map((c) => ({
-          ...c,
-          start_date: dateMap.get(c.id) ?? null,
-          participants: participantMap.get(c.id) || [],
-        }))
-        .filter((c) => c.start_date)
-        .sort((a, b) => new Date(a.start_date as string).getTime() - new Date(b.start_date as string).getTime());
+    // Teilnehmer via enrollments (optional)
+    let participantMap = new Map<string, { name: string; email: string; phone?: string | null }[]>();
+    const { data: enrollments } = await service
+      .from('course_members')
+      .select('course_id, profiles(full_name, id), created_at')
+      .eq('role', 'student')
+      .in('course_id', courseIds);
+
+    if (enrollments?.length) {
+      const studentIds = Array.from(new Set(enrollments.map((e: any) => e.profiles?.id).filter(Boolean)));
+      let studentMap = new Map<string, { name: string; email: string; phone?: string | null }>();
+      if (studentIds.length) {
+        const { data: studentRows } = await service
+          .from('students')
+          .select('id, name, email, phone')
+          .in('id', studentIds);
+        studentRows?.forEach((s) => studentMap.set(s.id, { name: s.name ?? s.email ?? 'Teilnehmer', email: s.email ?? '', phone: s.phone }));
+      }
+      enrollments.forEach((e: any) => {
+        const cid = e.course_id as string;
+        const stu = studentMap.get(e.profiles?.id) || { name: e.profiles?.full_name ?? 'Teilnehmer', email: '' };
+        (stu as any).booking_date = e.created_at || null;
+        const list = participantMap.get(cid) || [];
+        list.push(stu);
+        participantMap.set(cid, list);
+      });
     }
+
+    courses = courses
+      .map((c) => ({
+        ...c,
+        start_date: dateMap.get(c.id) ?? null,
+        participants: participantMap.get(c.id) || [],
+      }))
+      .filter((c) => c.start_date)
+      .sort((a, b) => new Date(a.start_date as string).getTime() - new Date(b.start_date as string).getTime());
   }
 
   // Nächster Kurs für Countdown
@@ -163,8 +164,8 @@ export default async function TeacherPage() {
   let sources: { label: string; value: number }[] = [];
   let notes: { label: string; value: number }[] = [];
 
-  if (user?.id && courses && courses.length) {
-    const courseIds = courses.map((c) => c.id);
+  if (user?.id) {
+    const courseIds = courses?.map((c) => c.id) ?? [];
     const { data: bookings, error: bookingsErr } = await service
       .from('bookings')
       .select('id, course_id, course_date_id, student_id, booking_date, partner_id, amount, course_dates(course_id)');
