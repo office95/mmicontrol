@@ -11,7 +11,9 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const id = searchParams.get('id');
   const minimal = searchParams.get('minimal') === '1';
-  const select = minimal ? 'id, title, price_gross' : 'id, title, description, status, created_at, duration_hours, price_gross, vat_rate, price_net, deposit, saldo, category, vat_amount';
+  const select = minimal
+    ? 'id, title, price_gross, category'
+    : 'id, title, description, status, created_at, duration_hours, price_gross, vat_rate, price_net, deposit, saldo, category, vat_amount';
   if (id) {
     const { data, error } = await supabase
       .from('courses')

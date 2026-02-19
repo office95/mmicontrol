@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 
 type Course = { id: string; title: string };
+type CourseCat = { id: string; title: string; category?: string | null };
 type Partner = { id: string; name: string };
 
 const STATES_AT = [
@@ -134,10 +135,13 @@ export default function LeadModal({
     setNotes(initial.notes || []);
   }, [initial]);
 
-  const courseOptions = useMemo(
-    () => [...courses, ...EXTRA_COURSES].sort((a, b) => a.title.localeCompare(b.title)),
-    [courses]
-  );
+  const courseOptions: CourseCat[] = useMemo(() => {
+    // merge real + extra, sort, remove duplicates by id
+    const map = new Map<string, CourseCat>();
+    courses.forEach((c: any) => map.set(c.id, { id: c.id, title: c.title, category: c.category }));
+    EXTRA_COURSES.forEach((c) => map.set(c.id, c));
+    return Array.from(map.values()).sort((a, b) => a.title.localeCompare(b.title));
+  }, [courses]);
   const partnerOptions = useMemo(
     () => partners.sort((a, b) => (a.name || '').localeCompare(b.name || '')),
     [partners]
@@ -316,14 +320,19 @@ export default function LeadModal({
             <p className="text-xs font-semibold text-ink uppercase tracking-[0.15em]">Interesse an</p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
               {courseOptions.map((c) => (
-                <label key={c.id} className="flex items-center gap-2 text-sm text-slate-700">
+                <label key={c.id} className="flex items-start gap-2 text-sm text-slate-700">
                   <input
                     type="checkbox"
-                    className="h-4 w-4"
+                    className="mt-0.5 h-4 w-4"
                     checked={interestCourses.includes(c.id)}
                     onChange={() => toggleInterest(c.id)}
                   />
-                  {c.title}
+                  <div className="flex flex-col leading-tight">
+                    <span className="font-semibold">{c.title}</span>
+                    {c.category && (
+                      <span className="text-[11px] text-slate-500">{c.category}</span>
+                    )}
+                  </div>
                 </label>
               ))}
             </div>
