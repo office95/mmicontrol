@@ -187,25 +187,12 @@ export default async function TeacherPage() {
     const { data: studentsBookings } = studentIds.length
       ? await service
           .from('students')
-          .select('id, interest_courses, source, note, partner_id')
+          .select('id, interest_courses, source, note')
           .in('id', studentIds)
       : { data: [] as any[] };
 
-    // zusätzliche Students reinholen, die direkt dem Partner zugeordnet sind
-    const { data: partnerStudents } = teacherPartner
-      ? await service
-          .from('students')
-          .select('id, interest_courses, source, note, partner_id')
-          .eq('partner_id', teacherPartner)
-      : { data: [] as any[] };
-
-    // Students vereinigen (ID-basiert unique)
-    const studentMap = new Map<string, any>();
-    (studentsBookings || []).forEach((s: any) => studentMap.set(s.id, s));
-    (partnerStudents || []).forEach((s: any) => {
-      if (!studentMap.has(s.id)) studentMap.set(s.id, s);
-    });
-    const studentsAll = Array.from(studentMap.values());
+    // Students nur aus relevanten Buchungen (Partner-Scope erfolgt über scopedBookings)
+    const studentsAll = studentsBookings || [];
 
     // Leads mit Partner für Quellen / Skills (statt note)
     const { data: leads } = teacherPartner
