@@ -165,10 +165,13 @@ export default async function TeacherPage() {
 
   try {
     const courseIds = courses?.map((c) => c.id) ?? [];
+    // Buchungen: wenn Partner gesetzt -> direkt nach partner_id filtern (robuster als Kurs-Schnittmenge)
     const { data: bookings, error: bookingsErr } = await service
       .from('bookings')
       .select('id, course_id, course_date_id, student_id, booking_date, partner_id, amount, course_dates(course_id)');
-    const scopedBookingsRaw = bookingsErr ? [] : bookings || [];
+
+    const bookingsData = bookingsErr ? [] : bookings || [];
+    const scopedBookingsRaw = bookingsData;
 
     // Buchungen gehören, wenn:
     // - course_id in Kursen des Dozenten/Partners, oder
