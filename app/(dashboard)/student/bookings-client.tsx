@@ -53,23 +53,32 @@ export default function BookingsClient({ bookings }: { bookings: Booking[] }) {
       <div className="card p-5 space-y-3">
         {!bookings.length && <p className="text-slate-600 text-sm">Keine Buchungen vorhanden.</p>}
         {bookings.map((b) => (
-          <div key={b.id} className="rounded-lg border border-slate-200 p-3 bg-white/60">
-            <div className="flex flex-wrap items-center gap-2 text-sm">
-              <span className="font-semibold text-ink">{b.course_title ?? 'Kurs unbekannt'}</span>
-              <span className="text-slate-500">· Start: {b.course_start ? new Date(b.course_start).toLocaleDateString() : '—'}</span>
-              <span className="text-slate-500">· Status: {b.status}</span>
-              {b.amount != null && <span className="text-slate-500">· Betrag: {b.amount} €</span>}
-              {b.partner_name && <span className="text-slate-500">· Anbieter: {b.partner_name}</span>}
-            </div>
-            <div className="text-xs text-slate-500 mt-1 flex items-center gap-3 flex-wrap">
-              <span>Buchungsdatum: {b.booking_date ? new Date(b.booking_date).toLocaleDateString() : '—'}</span>
-              <button
-                type="button"
-                onClick={() => { setSelected(b); setTab('overview'); }}
-                className="inline-flex items-center rounded-md bg-pink-600 text-white px-3 py-1 text-[12px] font-semibold shadow-sm hover:bg-pink-700 border border-pink-700"
-              >
-                Details
-              </button>
+          <div key={b.id} className="rounded-2xl border border-white/15 bg-white/5 backdrop-blur p-4 shadow-lg">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+              <div className="flex-1 space-y-1">
+                <div className="flex flex-wrap items-center gap-2 text-sm font-semibold text-white">
+                  <span>{b.course_title ?? 'Kurs unbekannt'}</span>
+                  {b.partner_name && <span className="text-xs text-white/60">· {b.partner_name}</span>}
+                </div>
+                <div className="flex flex-wrap gap-3 text-xs text-white/70">
+                  <span>Start: {b.course_start ? new Date(b.course_start).toLocaleDateString() : '—'}</span>
+                  <span>· Status: {b.status}</span>
+                  {b.amount != null && <span>· Betrag: {Number(b.amount).toFixed(2)} €</span>}
+                  <span>· Buchungsdatum: {b.booking_date ? new Date(b.booking_date).toLocaleDateString() : '—'}</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 md:justify-end">
+                <span className="rounded-full bg-white/10 text-xs text-white px-3 py-1 border border-white/20">
+                  {b.booking_code ?? '—'}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => { setSelected(b); setTab('overview'); }}
+                  className="inline-flex items-center rounded-full bg-pink-600 text-white px-4 py-2 text-sm font-semibold shadow hover:bg-pink-500 border border-pink-700"
+                >
+                  Details
+                </button>
+              </div>
             </div>
           </div>
         ))}
