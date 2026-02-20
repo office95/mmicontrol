@@ -232,18 +232,24 @@ export default function DashboardClient({
                       ) : (
                         <div className="h-full w-full grid place-items-center text-xs text-slate-400">Logo</div>
                       )}
-                      <div className="absolute top-2 left-2 inline-flex items-center px-2 py-1 rounded-full bg-pink-100 text-pink-700 text-[11px]">
-                        {b.discount_type === 'percent'
-                          ? `${b.discount_value ?? ''}%`
-                          : b.discount_type === 'fixed'
-                            ? `${b.discount_value ?? ''} €`
-                            : 'Vorteil'}
+                      <div className="absolute top-2 left-2 inline-flex items-center gap-1 px-3 py-1 rounded-full bg-gradient-to-r from-pink-500 to-rose-500 text-white text-[11px] font-semibold shadow">
+                        <span>Deal</span>
+                        <span className="rounded bg-white/20 px-1">
+                          {b.discount_type === 'percent'
+                            ? `${b.discount_value ?? ''}%`
+                            : b.discount_type === 'fixed'
+                              ? `${b.discount_value ?? ''} €`
+                              : 'Vorteil'}
+                        </span>
                       </div>
                     </div>
                     <div className="p-3 space-y-1 flex-1 flex flex-col">
                       <p className="text-sm font-semibold leading-tight">{b.name}</p>
-                      <p className="text-xs text-slate-600 line-clamp-3">
+                      <p className="text-sm text-pink-700 font-semibold">
                         {b.action_title || b.description || 'Vorteil mit Members Card.'}
+                      </p>
+                      <p className="text-xs text-slate-600 line-clamp-3">
+                        {b.description || 'Members Card vorzeigen und sparen.'}
                       </p>
                       <p className="text-[11px] text-slate-500">
                         Gültig: {b.valid_to ? new Date(b.valid_to).toLocaleDateString() : 'offen'}
