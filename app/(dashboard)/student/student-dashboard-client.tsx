@@ -195,7 +195,7 @@ export default function StudentDashboardClient({
                     <div className="relative h-24 bg-slate-100">
                       {b.logo_url ? (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img src={b.logo_url} alt={b.name} className="h-full w-full object-contain p-3" />
+                        <img src={b.logo_url} alt={b.name} className="h-full w-full object-cover" />
                       ) : (
                         <div className="h-full w-full grid place-items-center text-xs text-slate-400">Logo</div>
                       )}
