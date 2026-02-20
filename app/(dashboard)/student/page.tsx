@@ -194,6 +194,57 @@ export default async function StudentPage({ searchParams }: { searchParams: Reco
     recommended = (recRows || []).sort(() => Math.random() - 0.5); // zufällige Reihenfolge, alle anzeigen
   }
 
+  // Benefits (Rabatte) für Studierende: aktive, gültige, target passt
+  let benefits: {
+    id: string;
+    name: string;
+    action_title: string | null;
+    description: string | null;
+    logo_url: string | null;
+    discount_type: string | null;
+    discount_value: number | null;
+    code: string | null;
+    valid_from: string | null;
+    valid_to: string | null;
+    members_card_required: boolean;
+    how_to_redeem: string | null;
+    website: string | null;
+  }[] = [];
+  {
+    const { data: rows } = await service
+      .from('benefit_companies')
+      .select('id, name, action_title, description, logo_path, discount_type, discount_value, code, valid_from, valid_to, members_card_required, how_to_redeem, website, target, status')
+      .eq('status', 'active');
+
+    const today = new Date();
+    for (const b of rows || []) {
+      const fromOk = !b.valid_from || new Date(b.valid_from) <= today;
+      const toOk = !b.valid_to || new Date(b.valid_to) >= today;
+      const targetOk = !b.target || ['students', 'both'].includes(b.target);
+      if (!(fromOk && toOk && targetOk)) continue;
+
+      const logoUrl = b.logo_path
+        ? (await service.storage.from('benefit-logos').createSignedUrl(b.logo_path, 60 * 60)).data?.signedUrl ?? null
+        : null;
+
+      benefits.push({
+        id: b.id,
+        name: b.name,
+        action_title: b.action_title ?? null,
+        description: b.description ?? null,
+        logo_url: logoUrl,
+        discount_type: b.discount_type ?? null,
+        discount_value: b.discount_value ?? null,
+        code: b.code ?? null,
+        valid_from: b.valid_from ?? null,
+        valid_to: b.valid_to ?? null,
+        members_card_required: b.members_card_required ?? true,
+        how_to_redeem: b.how_to_redeem ?? 'Members Card vorzeigen',
+        website: b.website ?? null,
+      });
+    }
+  }
+
   // Nächster Kurs für Countdown (falls vorhanden)
   const nextCourse = (courses || [])
     .filter((c) => c.start_date)
@@ -246,11 +297,11 @@ export default async function StudentPage({ searchParams }: { searchParams: Reco
         courses={courses || []}
         materials={materials}
         recommended={recommended}
-        feedbacks={feedbacks}
-        profile={
-          student
-            ? {
-                id: student.id,
+      feedbacks={feedbacks}
+      profile={
+        student
+          ? {
+              id: student.id,
                 name: student.name,
                 street: (student as any).street || '',
                 city: student.city,
@@ -262,9 +313,10 @@ export default async function StudentPage({ searchParams }: { searchParams: Reco
                 birthdate: (student as any).birthdate || '',
               }
             : null
-        }
-        showProfileInitially={showProfile}
-      />
+      }
+      showProfileInitially={showProfile}
+      benefits={benefits}
+    />
 
       {selectedBooking && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">

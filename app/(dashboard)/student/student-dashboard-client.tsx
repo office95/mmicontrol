@@ -42,6 +42,21 @@ type RecommendedCourse = {
   course_link?: string | null;
   cover_url?: string | null;
 };
+type Benefit = {
+  id: string;
+  name: string;
+  action_title: string | null;
+  description: string | null;
+  logo_url: string | null;
+  discount_type: string | null;
+  discount_value: number | null;
+  code: string | null;
+  valid_from: string | null;
+  valid_to: string | null;
+  members_card_required: boolean;
+  how_to_redeem: string | null;
+  website: string | null;
+};
 type StudentProfile = {
   id: string;
   name: string | null;
@@ -62,6 +77,7 @@ export default function StudentDashboardClient({
   showProfileInitially,
   materials,
   recommended,
+  benefits,
   feedbackReminder,
   feedbacks,
 }: {
@@ -71,6 +87,7 @@ export default function StudentDashboardClient({
   showProfileInitially?: boolean;
   materials: Material[];
   recommended: RecommendedCourse[];
+  benefits: Benefit[];
   feedbackReminder?: boolean;
   feedbacks: Record<string, any>;
 }) {
@@ -165,6 +182,62 @@ export default function StudentDashboardClient({
               {!recommended.length && (
                 <p className="text-white/80">Keine Empfehlungen vorhanden.</p>
               )}
+            </div>
+          </div>
+
+          <div className="mt-4 space-y-2">
+            <h3 className="text-lg font-semibold text-white">Benefits für dich</h3>
+            <p className="text-sm text-white/70">Members Card vorzeigen und Vorteile nutzen.</p>
+            <div className="overflow-x-auto scrollbar-hide">
+              <div className="flex gap-4 py-2">
+                {benefits.map((b) => (
+                  <div key={b.id} className="min-w-[210px] max-w-[220px] rounded-2xl bg-white text-ink border border-slate-200 shadow-md overflow-hidden flex flex-col">
+                    <div className="relative h-24 bg-slate-100">
+                      {b.logo_url ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={b.logo_url} alt={b.name} className="h-full w-full object-contain p-3" />
+                      ) : (
+                        <div className="h-full w-full grid place-items-center text-xs text-slate-400">Logo</div>
+                      )}
+                      <div className="absolute top-2 left-2 inline-flex items-center px-2 py-1 rounded-full bg-pink-100 text-pink-700 text-[11px]">
+                        {b.discount_type === 'percent'
+                          ? `${b.discount_value ?? ''}%`
+                          : b.discount_type === 'fixed'
+                            ? `${b.discount_value ?? ''} €`
+                            : 'Vorteil'}
+                      </div>
+                    </div>
+                    <div className="p-3 space-y-1 flex-1 flex flex-col">
+                      <p className="text-sm font-semibold leading-tight">{b.name}</p>
+                      <p className="text-xs text-slate-600 line-clamp-3">
+                        {b.action_title || b.description || 'Mit Members Card erhältlich.'}
+                      </p>
+                      <p className="text-[11px] text-slate-500">
+                        Gültig: {b.valid_to ? new Date(b.valid_to).toLocaleDateString() : 'offen'}
+                      </p>
+                      <p className="text-[11px] text-emerald-600 font-semibold">
+                        {b.how_to_redeem || 'Members Card vorzeigen'}
+                      </p>
+                      <div className="mt-auto">
+                        {b.website ? (
+                          <a
+                            href={b.website}
+                            target="_blank"
+                            className="inline-flex items-center justify-center w-full rounded-lg px-3 py-2 text-xs font-semibold shadow bg-pink-600 text-white hover:bg-pink-500"
+                          >
+                            Mehr dazu
+                          </a>
+                        ) : (
+                          <span className="text-xs text-slate-500">Kein Link</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                {!benefits.length && (
+                  <p className="text-white/80">Aktuell keine Benefits hinterlegt.</p>
+                )}
+              </div>
             </div>
           </div>
         </div>
