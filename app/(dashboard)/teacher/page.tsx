@@ -589,7 +589,7 @@ export default async function TeacherPage() {
       })) || [];
   }
 
-  // Feedbacks zu Kursen des Dozenten laden
+  // Feedbacks laden (Partner-basiert): Wir filtern nach partner_id, die über booking->course_date->course ermittelt wird
   let feedbacks:
     | {
         course_id: string | null;
@@ -603,51 +603,101 @@ export default async function TeacherPage() {
         student_email?: string | null;
       }[]
     | null = [];
-  const courseIdsForFeedback = (courses || []).map((c) => c.id);
-  let feedbackCourseIds = courseIdsForFeedback;
-  const courseTitles = new Set((courses || []).map((c) => c.title).filter(Boolean) as string[]);
 
-  // Fallback: wenn Partner gesetzt, Kurs-IDs über course_dates sammeln
-  if (teacherPartner) {
-    const { data: partnerDates } = await service
-      .from('course_dates')
-      .select('course_id')
-      .eq('partner_id', teacherPartner);
-    const partnerCourseIds = (partnerDates || []).map((d) => d.course_id as string).filter(Boolean);
-    feedbackCourseIds = Array.from(new Set([...feedbackCourseIds, ...partnerCourseIds]));
-  }
-
-  if (feedbackCourseIds.length) {
+  try {
+    // Alle Feedbacks mit booking_id mitziehen, damit Partner-Auflösung möglich ist
     const { data: fbRows } = await service
       .from('course_feedback')
-      .select('course_id, course_title, ratings, recommend, improve, created_at, student_id')
-      .in('course_id', feedbackCourseIds);
-    feedbacks = fbRows || [];
+      .select('id, booking_id, course_id, course_title, ratings, recommend, improve, created_at, student_id');
 
-    // Feedbacks ohne course_id aber passendem Kurstitel ergänzen
-    const { data: fbNoCourse } = await service
-      .from('course_feedback')
-      .select('course_id, course_title, ratings, recommend, improve, created_at, student_id')
-      .is('course_id', null);
-    if (fbNoCourse?.length) {
-      const add = fbNoCourse.filter((f) => f.course_title && courseTitles.has(f.course_title));
-      feedbacks = [...feedbacks, ...add];
+    const rows = fbRows || [];
+    // Booking-Map (partner_id, course_id, course_date_id)
+    const bookingIds = Array.from(new Set(rows.map((r) => r.booking_id).filter(Boolean))) as string[];
+    const { data: bookingsMapRows } = bookingIds.length
+      ? await service
+          .from('bookings')
+          .select('id, partner_id, course_id, course_date_id, course_title, course_dates(course_id, partner_id)')
+          .in('id', bookingIds)
+      : { data: [] as any[] };
+    const bookingMap = new Map<string, any>();
+    (bookingsMapRows || []).forEach((b) => bookingMap.set(b.id, b));
+
+    // Course_dates Map
+    const courseDateIds = Array.from(new Set((bookingsMapRows || []).map((b) => b.course_date_id).filter(Boolean))) as string[];
+    const { data: dateRows } = courseDateIds.length
+      ? await service
+          .from('course_dates')
+          .select('id, course_id, partner_id')
+          .in('id', courseDateIds)
+      : { data: [] as any[] };
+    const dateMap = new Map<string, any>();
+    (dateRows || []).forEach((d) => dateMap.set(d.id, d));
+
+    // Course Partner map (fallback)
+    const allCourseIds = Array.from(
+      new Set([
+        ...rows.map((r) => r.course_id).filter(Boolean),
+        ...(bookingsMapRows || []).map((b) => b.course_id).filter(Boolean),
+        ...(dateRows || []).map((d) => d.course_id).filter(Boolean),
+      ])
+    ) as string[];
+    const { data: courseRowsForPartners } = allCourseIds.length
+      ? await service
+          .from('courses')
+          .select('id, partner_id, title')
+          .in('id', allCourseIds)
+      : { data: [] as any[] };
+    const coursePartnerMap = new Map<string, { partner_id: string | null; title?: string | null }>();
+    (courseRowsForPartners || []).forEach((c) => coursePartnerMap.set(c.id, { partner_id: (c as any).partner_id ?? null, title: (c as any).title ?? null }));
+
+    // Student Map für Namen/Emails
+    const studentIds = Array.from(new Set(rows.map((r) => r.student_id).filter(Boolean))) as string[];
+    const { data: studentRows } = studentIds.length
+      ? await service.from('students').select('id, name, email').in('id', studentIds)
+      : { data: [] as any[] };
+    const studentMap = new Map<string, { name: string | null; email: string | null }>();
+    (studentRows || []).forEach((s) => studentMap.set(s.id, { name: (s as any).name ?? null, email: (s as any).email ?? null }));
+
+    const courseTitles = new Map<string, string>();
+    (courseRowsForPartners || []).forEach((c) => {
+      if (c.id && (c as any).title) courseTitles.set(c.id, (c as any).title as string);
+    });
+
+    const resolved = rows.map((r) => {
+      const booking = r.booking_id ? bookingMap.get(r.booking_id) : null;
+      const date = booking?.course_date_id ? dateMap.get(booking.course_date_id) : null;
+      const courseId = (r.course_id as string | null) || (booking?.course_id as string | null) || (date?.course_id as string | null) || null;
+      const partnerId = (booking?.partner_id as string | null) || (date?.partner_id as string | null) || (courseId ? coursePartnerMap.get(courseId)?.partner_id ?? null : null);
+      const courseTitle = r.course_title ?? (courseId ? courseTitles.get(courseId) ?? null : null) ?? booking?.course_title ?? null;
+      return {
+        ...r,
+        course_id: courseId,
+        course_title: courseTitle,
+        partner_id: partnerId,
+        student_name: r.student_id ? studentMap.get(r.student_id)?.name ?? null : null,
+        student_email: r.student_id ? studentMap.get(r.student_id)?.email ?? null : null,
+      } as any;
+    });
+
+    // Filtern: bevorzugt Partner-Scope; wenn kein Partner beim Dozenten, nutze Kurs-Scope
+    let scoped = resolved;
+    if (teacherPartner) {
+      scoped = resolved.filter((r) => r.partner_id === teacherPartner);
+    } else if ((courses || []).length) {
+      const courseIdSet = new Set((courses || []).map((c) => c.id));
+      scoped = resolved.filter((r) => r.course_id && courseIdSet.has(r.course_id));
     }
-    // Studentennamen/E-Mails ergänzen
-    const studentIds = Array.from(new Set((feedbacks || []).map((f) => f.student_id).filter(Boolean))) as string[];
-    if (studentIds.length) {
-      const { data: students } = await service
-        .from('students')
-        .select('id, name, email')
-        .in('id', studentIds);
-      const sMap = new Map<string, { name?: string | null; email?: string | null }>();
-      students?.forEach((s) => sMap.set(s.id, { name: (s as any).name, email: (s as any).email }));
-      feedbacks = (feedbacks || []).map((f) => ({
-        ...f,
-        student_name: f.student_id ? sMap.get(f.student_id)?.name ?? null : null,
-        student_email: f.student_id ? sMap.get(f.student_id)?.email ?? null : null,
-      }));
+
+    feedbacks = scoped;
+
+    // Falls einige Feedbacks keinen course_id haben, aber Kurs-Titel übereinstimmt, behalten
+    if (teacherPartner && !feedbacks.length) {
+      const titles = new Set((courses || []).map((c) => c.title).filter(Boolean));
+      feedbacks = resolved.filter((r) => r.course_title && titles.has(r.course_title));
     }
+  } catch (err) {
+    console.error('teacher feedback load error', err);
+    feedbacks = [];
   }
 
   const feedbackOverallAvg =
