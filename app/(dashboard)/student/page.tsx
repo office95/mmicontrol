@@ -97,6 +97,7 @@ export default async function StudentPage({ searchParams }: { searchParams: Reco
     booking_date: string | null;
     status: string;
     amount: number | null;
+    course_id?: string | null;
     course_title: string | null;
     course_start: string | null;
     partner_name: string | null;
@@ -114,7 +115,7 @@ export default async function StudentPage({ searchParams }: { searchParams: Reco
 
     const { data: bookingRows } = await service
       .from('bookings')
-      .select('id, booking_code, booking_date, status, amount, course_title, course_start, partner_name, student_name, vat_rate, price_net, deposit, saldo, duration_hours')
+      .select('id, booking_code, booking_date, status, amount, course_id, course_title, course_start, partner_name, student_name, vat_rate, price_net, deposit, saldo, duration_hours')
       .or(orParts.join(','))
       .order('booking_date', { ascending: false });
     bookings = bookingRows || [];

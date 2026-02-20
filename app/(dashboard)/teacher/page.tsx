@@ -605,6 +605,7 @@ export default async function TeacherPage() {
     | null = [];
   const courseIdsForFeedback = (courses || []).map((c) => c.id);
   let feedbackCourseIds = courseIdsForFeedback;
+  const courseTitles = new Set((courses || []).map((c) => c.title).filter(Boolean) as string[]);
 
   // Fallback: wenn Partner gesetzt, Kurs-IDs über course_dates sammeln
   if (teacherPartner) {
@@ -622,6 +623,16 @@ export default async function TeacherPage() {
       .select('course_id, course_title, ratings, recommend, improve, created_at, student_id')
       .in('course_id', feedbackCourseIds);
     feedbacks = fbRows || [];
+
+    // Feedbacks ohne course_id aber passendem Kurstitel ergänzen
+    const { data: fbNoCourse } = await service
+      .from('course_feedback')
+      .select('course_id, course_title, ratings, recommend, improve, created_at, student_id')
+      .is('course_id', null);
+    if (fbNoCourse?.length) {
+      const add = fbNoCourse.filter((f) => f.course_title && courseTitles.has(f.course_title));
+      feedbacks = [...feedbacks, ...add];
+    }
     // Studentennamen/E-Mails ergänzen
     const studentIds = Array.from(new Set((feedbacks || []).map((f) => f.student_id).filter(Boolean))) as string[];
     if (studentIds.length) {

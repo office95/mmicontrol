@@ -4,7 +4,26 @@ import BookingsClient from './bookings-client';
 import ProfileWrapper from './profile-wrapper';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
-type Booking = any;
+type Booking = {
+  id: string;
+  booking_code: string | null;
+  booking_date: string | null;
+  status: string;
+  amount: number | null;
+  course_id?: string | null;
+  course_title: string | null;
+  course_start: string | null;
+  partner_name: string | null;
+  student_name?: string | null;
+  vat_rate?: number | null;
+  price_net?: number | null;
+  deposit?: number | null;
+  saldo?: number | null;
+  duration_hours?: number | null;
+  payments?: Payment[];
+  paid_total?: number;
+  open_amount?: number;
+};
 type Course = { id: string; title: string; description: string | null; start_date?: string | null };
 type Material = {
   id: string;
@@ -352,7 +371,7 @@ function FeedbackModal({ booking, existing, readOnly, onClose }: { booking: Book
       body: JSON.stringify({
         booking_id: booking.id,
         course_title: booking.course_title,
-        course_id: null,
+        course_id: booking.course_id ?? null,
         ratings: {
           overall: form.overall,
           teacher: form.teacher,
