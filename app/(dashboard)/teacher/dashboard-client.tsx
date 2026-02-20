@@ -110,7 +110,13 @@ export default function DashboardClient({
       </div>
 
       {tab === 'perf' && (
-        <TeacherStatsClient kpis={kpis} interests={interests} sources={sources} notes={notes} />
+        <TeacherStatsClient
+          kpis={kpis}
+          interests={interests}
+          sources={sources}
+          notes={notes}
+          feedbackOverallAvg={feedbackOverallAvg}
+        />
       )}
 
       {tab === 'courses' && (
