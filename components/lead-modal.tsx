@@ -61,6 +61,7 @@ export type LeadRow = {
   source_note?: string | null;
   lead_quality?: string | null;
   newsletter?: boolean;
+  is_customer?: boolean | null;
   status?: string | null;
   notes?: { created_at: string; text: string; todo?: string }[];
 };
@@ -94,6 +95,7 @@ export default function LeadModal({
   const [sourceNote, setSourceNote] = useState('');
   const [leadQuality, setLeadQuality] = useState('C');
   const [newsletter, setNewsletter] = useState(false);
+  const [isCustomer, setIsCustomer] = useState(false);
   const [requestedAt, setRequestedAt] = useState('');
   const [status, setStatus] = useState('offen');
   const [notes, setNotes] = useState<{ created_at: string; text: string; todo?: string }[]>([]);
@@ -130,6 +132,7 @@ export default function LeadModal({
     setSourceNote(initial.source_note || '');
     setLeadQuality(initial.lead_quality || 'C');
     setNewsletter(Boolean(initial.newsletter));
+    setIsCustomer(Boolean(initial.is_customer));
     setRequestedAt(initial.requested_at || new Date().toISOString().slice(0, 10));
     setStatus(initial.status || 'offen');
     setNotes(initial.notes || []);
@@ -193,6 +196,7 @@ export default function LeadModal({
       source_note: sourceNote || null,
       lead_quality: leadQuality,
       newsletter,
+      is_customer: isCustomer,
       requested_at: requestedAt || new Date().toISOString().slice(0, 10),
       status,
       birthdate: birthdate || null,
@@ -409,15 +413,26 @@ export default function LeadModal({
                 </select>
               </Field>
                 </div>
-                <label className="flex items-center gap-2 text-sm text-slate-700">
-                  <input
-                    type="checkbox"
-                    className="h-4 w-4"
-                    checked={newsletter}
-                    onChange={(e) => setNewsletter(e.target.checked)}
-                  />
-                  Werbung & Newsletter erwünscht
-                </label>
+                <div className="flex flex-wrap items-center gap-4 text-sm text-slate-700">
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4"
+                      checked={newsletter}
+                      onChange={(e) => setNewsletter(e.target.checked)}
+                    />
+                    Werbung & Newsletter erwünscht
+                  </label>
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4"
+                      checked={isCustomer}
+                      onChange={(e) => setIsCustomer(e.target.checked)}
+                    />
+                    Kunde
+                  </label>
+                </div>
               </section>
             </>
           )}

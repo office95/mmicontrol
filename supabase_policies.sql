@@ -176,6 +176,8 @@ create policy bookings_partner_teacher_view on bookings for select using (
 
 -- 12) leads (Partner-Leads für Teacher sichtbar)
 alter table if exists public.leads enable row level security;
+-- Zusatzfeld Kunde (bool) falls noch nicht vorhanden
+alter table if exists public.leads add column if not exists is_customer boolean default false;
 drop policy if exists leads_admin_all on leads;
 drop policy if exists leads_partner_teacher_view on leads;
 create policy leads_admin_all on leads

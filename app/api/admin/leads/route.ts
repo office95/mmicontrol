@@ -8,7 +8,7 @@ const service = createClient(
 );
 
 const baseSelect =
-  'id, lead_code, salutation, skills, requested_at, name, email, phone, country, state, interest_courses, interest_other, partner_id, source, source_note, lead_quality, newsletter, status, notes, created_at, partner:partners(id,name)';
+  'id, lead_code, salutation, skills, requested_at, name, email, phone, country, state, interest_courses, interest_other, partner_id, source, source_note, lead_quality, newsletter, is_customer, status, notes, created_at, partner:partners(id,name)';
 
 async function enrich(leads: any[]) {
   // Pseudo-Kurse, die nicht in der courses-Tabelle stehen
@@ -97,6 +97,7 @@ export async function POST(req: Request) {
     source_note,
     lead_quality = 'C',
     newsletter = false,
+    is_customer = false,
     requested_at,
     status = 'offen',
     notes = [],
@@ -124,6 +125,7 @@ export async function POST(req: Request) {
       source_note,
       lead_quality,
       newsletter,
+      is_customer,
       requested_at: requested_at || new Date().toISOString().slice(0, 10),
       status,
       notes,
@@ -158,6 +160,7 @@ export async function PATCH(req: Request) {
   if ('source_note' in body) update.source_note = body.source_note;
   if ('lead_quality' in body) update.lead_quality = body.lead_quality;
   if ('newsletter' in body) update.newsletter = body.newsletter;
+  if ('is_customer' in body) update.is_customer = body.is_customer;
   if ('requested_at' in body) update.requested_at = body.requested_at;
   if ('status' in body) update.status = body.status;
   if ('notes' in body) update.notes = body.notes;
