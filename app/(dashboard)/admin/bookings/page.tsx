@@ -115,6 +115,21 @@ export default function BookingsPage() {
     });
   }, [items, search, status]);
 
+  const derivedVat = selected?.vat_rate ?? (selected?.amount != null ? 0.2 : null);
+  const derivedNet =
+    selected?.price_net ??
+    (derivedVat != null && selected?.amount != null
+      ? Number(selected.amount) / (1 + Number(derivedVat))
+      : null);
+  const derivedSaldo =
+    selected?.saldo ??
+    selected?.open_amount ??
+    (selected?.amount != null && selected?.paid_total != null
+      ? Number(selected.amount) - Number(selected.paid_total)
+      : null);
+  const derivedDeposit = selected?.deposit ?? null;
+  const derivedDuration = selected?.duration_hours ?? null;
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -274,11 +289,11 @@ export default function BookingsPage() {
                       ['Kurs', selected.course_title ?? '—'],
                       ['Kursstart', selected.course_start ? new Date(selected.course_start).toLocaleDateString() : '—'],
                       ['Anbieter', selected.partner_name ?? '—'],
-                      ['USt-Satz', selected.vat_rate != null ? `${(Number(selected.vat_rate) * 100).toFixed(1)} %` : '—'],
-                      ['Netto', selected.price_net != null ? `${Number(selected.price_net).toFixed(2)} €` : '—'],
-                      ['Anzahlung', selected.deposit != null ? `${Number(selected.deposit).toFixed(2)} €` : '—'],
-                      ['Saldo', selected.saldo != null ? `${Number(selected.saldo).toFixed(2)} €` : '—'],
-                      ['Dauer (h)', selected.duration_hours != null ? `${selected.duration_hours} h` : '—'],
+                      ['USt-Satz', derivedVat != null ? `${(Number(derivedVat) * 100).toFixed(1)} %` : '—'],
+                      ['Netto', derivedNet != null ? `${Number(derivedNet).toFixed(2)} €` : '—'],
+                      ['Anzahlung', derivedDeposit != null ? `${Number(derivedDeposit).toFixed(2)} €` : '—'],
+                      ['Saldo', derivedSaldo != null ? `${Number(derivedSaldo).toFixed(2)} €` : '—'],
+                      ['Dauer (h)', derivedDuration != null ? `${derivedDuration} h` : '—'],
                     ].map(([label, value]) => (
                       <div key={label} className="rounded-lg border border-slate-200 bg-white px-3 py-2">
                         <p className="text-[11px] uppercase tracking-[0.12em] text-slate-500 mb-1">{label}</p>
