@@ -36,6 +36,14 @@ export default async function StudentPage({ searchParams }: { searchParams: Reco
       }[]
     | null = [];
   let courseIds: string[] = [];
+  let courseDates:
+    | {
+        course_id: string;
+        start_date: string | null;
+        end_date: string | null;
+      }[]
+    | null = [];
+
   if (user?.id) {
     const { data: memberships } = await service
       .from('course_members')
@@ -50,13 +58,14 @@ export default async function StudentPage({ searchParams }: { searchParams: Reco
       courses = courseRows || [];
 
       // Starttermine zu den Kursen laden
-      const { data: courseDates } = await service
+      const { data: courseDatesData } = await service
         .from('course_dates')
         .select('course_id, start_date, end_date')
         .in('course_id', courseIds);
+      courseDates = courseDatesData || [];
       const dateMap = new Map<string, string | null>();
       const today = new Date();
-      courseDates?.forEach((d) => {
+      courseDates.forEach((d) => {
         if (!d.start_date) return;
         const existing = dateMap.get(d.course_id);
         const currentDate = new Date(d.start_date);
@@ -180,7 +189,7 @@ export default async function StudentPage({ searchParams }: { searchParams: Reco
 
   // Feedback-Reminder (1 Woche vor Kursende, falls end_date vorhanden)
   let showFeedbackReminder = false;
-  if (courseDates?.length) {
+  if (courseDates && courseDates.length) {
     const todayMs = Date.now();
     courseDates.forEach((d) => {
       const end = d.end_date ? new Date(d.end_date).getTime() : null;
