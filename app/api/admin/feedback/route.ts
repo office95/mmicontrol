@@ -15,19 +15,17 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: 'course_id oder partner_id erforderlich' }, { status: 400 });
   }
 
-  // Wenn nach Partner gefiltert wird, erzwingen wir einen INNER JOIN auf courses
   const baseSelect =
-    'id, course_id, course_title, ratings, recommend, improve, created_at, student_id, students(name, email), courses:course_id(id, partner_id, title)';
+    'id, course_id, course_title, ratings, recommend, improve, created_at, student_id, students(name, email), courses(id, partner_id, title)';
+  const innerSelect =
+    'id, course_id, course_title, ratings, recommend, improve, created_at, student_id, students(name, email), courses!inner(id, partner_id, title)';
 
-  let query = service.from('course_feedback').select(baseSelect);
+  let query = service
+    .from('course_feedback')
+    .select(partnerId ? innerSelect : baseSelect);
 
   if (courseId) query = query.eq('course_id', courseId);
-  if (partnerId) {
-    query = service
-      .from('course_feedback')
-      .select(baseSelect)
-      .eq('courses.partner_id', partnerId);
-  }
+  if (partnerId) query = query.eq('courses.partner_id', partnerId);
 
   const { data, error } = await query;
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
