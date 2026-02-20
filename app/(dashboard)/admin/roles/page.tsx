@@ -30,7 +30,7 @@ const PAGES = [
   { slug: 'teacher-dashboard', label: 'Dashboard Dozent' },
   { slug: 'student-dashboard', label: 'Dashboard Teilnehmer' },
   { slug: 'teacher-materials', label: 'Kursunterlagen Dozent' },
-  { slug: 'courses', label: 'Kurse verwalten' },
+  { slug: 'courses', label: 'Kurse' },
   { slug: 'materials', label: 'Kursmaterial' },
   { slug: 'admin-bookings', label: 'Buchungsübersicht' },
   { slug: 'course-dates', label: 'Kurstermine' },

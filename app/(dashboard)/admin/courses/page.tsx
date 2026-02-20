@@ -15,7 +15,7 @@ export default function AdminCoursesPage() {
       <div className="flex items-center justify-between">
         <div>
           <p className="text-xs uppercase tracking-[0.2em] text-pink-200">Admin</p>
-          <h1 className="text-3xl font-semibold text-white">Kurse verwalten</h1>
+          <h1 className="text-3xl font-semibold text-white">Kurse</h1>
           <p className="text-sm text-slate-200">Kurse anlegen, bearbeiten und archivieren.</p>
         </div>
         <div className="flex items-center gap-3">
