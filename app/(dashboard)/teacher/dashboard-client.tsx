@@ -58,7 +58,7 @@ export default function DashboardClient({
   materials: any[];
   feedbacks: Feedback[];
 }) {
-  const [tab, setTab] = useState<'perf' | 'courses' | 'materials'>('perf');
+  const [tab, setTab] = useState<'perf' | 'courses' | 'materials' | 'feedback'>('perf');
   const feedbackByCourse = useMemo(() => {
     const map = new Map<string, Feedback[]>();
     feedbacks.forEach((f) => {
@@ -69,6 +69,9 @@ export default function DashboardClient({
     });
     return map;
   }, [feedbacks]);
+
+  const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
+  const selectedFeedbacks = selectedCourseId ? feedbackByCourse.get(selectedCourseId) || [] : [];
 
   return (
     <div className="space-y-4">
@@ -94,58 +97,16 @@ export default function DashboardClient({
         >
           Kursunterlagen
         </button>
+        <button
+          className={`px-3 py-2 rounded-lg border ${tab === 'feedback' ? 'border-pink-400 bg-pink-500/15 text-white' : 'border-white/20 bg-white/10'}`}
+          onClick={() => setTab('feedback')}
+        >
+          Kurs-Feedback
+        </button>
       </div>
 
       {tab === 'perf' && (
-        <div className="space-y-6">
-          <TeacherStatsClient kpis={kpis} interests={interests} sources={sources} notes={notes} />
-
-          <div className="rounded-2xl border border-white/15 bg-white/5 p-5">
-            <h3 className="text-lg font-semibold text-white mb-3">Kurs-Feedback</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-              {(courses || []).map((c) => {
-                const list = feedbackByCourse.get(c.id) || [];
-                const count = list.length;
-                const avg = (key: keyof NonNullable<Feedback['ratings']>) => {
-                  if (!count) return 0;
-                  const sum = list.reduce((acc, f) => acc + (Number(f.ratings?.[key] ?? 0)), 0);
-                  return Number((sum / count).toFixed(1));
-                };
-                const recYes = list.filter((f) => (f.recommend || '').toLowerCase() === 'ja').length;
-                const recPct = count ? Math.round((recYes / count) * 100) : 0;
-                const lastImprove = list[0]?.improve || list[list.length - 1]?.improve || '';
-                return (
-                  <div key={c.id} className="rounded-2xl bg-white/90 text-ink border border-slate-200 p-4 shadow-sm space-y-2">
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <p className="text-xs uppercase tracking-[0.14em] text-slate-500">Kurs</p>
-                        <h4 className="text-base font-semibold text-ink">{c.title}</h4>
-                      </div>
-                      <span className="text-sm text-slate-500">{count} Feedbacks</span>
-                    </div>
-                    <div className="flex flex-wrap gap-3 text-sm text-slate-700">
-                      <span>Gesamt: <strong className="text-pink-600">{avg('overall')}</strong></span>
-                      <span>Dozent: <strong className="text-pink-600">{avg('teacher')}</strong></span>
-                      <span>Praxis: <strong className="text-pink-600">{avg('practice')}</strong></span>
-                    </div>
-                    <p className="text-sm text-slate-600">Weiterempfehlung: <strong className="text-emerald-600">{recPct}%</strong></p>
-                    {lastImprove && (
-                      <div className="text-xs text-slate-500 bg-slate-100 border border-slate-200 rounded-lg p-2">
-                        „{lastImprove}“
-                      </div>
-                    )}
-                    {!count && (
-                      <p className="text-xs text-slate-500">Noch kein Feedback.</p>
-                    )}
-                  </div>
-                );
-              })}
-              {(!courses || courses.length === 0) && (
-                <p className="text-slate-200">Keine Kurse.</p>
-              )}
-            </div>
-          </div>
-        </div>
+        <TeacherStatsClient kpis={kpis} interests={interests} sources={sources} notes={notes} />
       )}
 
       {tab === 'courses' && (
@@ -157,6 +118,121 @@ export default function DashboardClient({
       {tab === 'materials' && (
         <TeacherMaterials courses={courses} materials={materials} />
       )}
+
+      {tab === 'feedback' && (
+        <div className="space-y-4">
+          <div className="rounded-2xl bg-white/10 border border-white/15 p-5 backdrop-blur-md shadow-xl">
+            <h3 className="text-lg font-semibold text-white mb-3">Kurs-Feedback</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+              {(courses || []).map((c) => {
+                const list = feedbackByCourse.get(c.id) || [];
+                const count = list.length;
+                const avgVal = (key: keyof NonNullable<Feedback['ratings']>) => {
+                  if (!count) return 0;
+                  const sum = list.reduce((acc, f) => acc + (Number(f.ratings?.[key] ?? 0)), 0);
+                  return Number((sum / count).toFixed(1));
+                };
+                const avgOverall = avgVal('overall');
+                const recYes = list.filter((f) => (f.recommend || '').toLowerCase() === 'ja').length;
+                const recPct = count ? Math.round((recYes / count) * 100) : 0;
+                const lastImprove = list[0]?.improve || list[list.length - 1]?.improve || '';
+                return (
+                  <button
+                    key={c.id}
+                    onClick={() => setSelectedCourseId(c.id)}
+                    className="text-left rounded-2xl bg-white/70 text-ink border border-white/40 shadow-lg overflow-hidden transition hover:-translate-y-1 hover:shadow-2xl backdrop-blur-sm"
+                  >
+                    <div className="p-4 space-y-2">
+                      <div className="flex items-center justify-between gap-2">
+                        <div>
+                          <p className="text-[11px] uppercase tracking-[0.16em] text-slate-500">Kurs</p>
+                          <h4 className="text-base font-semibold text-ink">{c.title}</h4>
+                        </div>
+                        <span className="text-xs px-3 py-1 rounded-full bg-pink-100 text-pink-700 border border-pink-200">
+                          {count} Feedbacks
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <StarDisplay value={avgOverall} />
+                        <span className="text-sm text-slate-600">{avgOverall.toFixed(1)} / 5</span>
+                      </div>
+                      <p className="text-sm text-slate-600">Weiterempfehlung: <strong className="text-emerald-600">{recPct}%</strong></p>
+                      {lastImprove && (
+                        <div className="text-xs text-slate-500 bg-slate-100/80 border border-slate-200 rounded-lg p-2 line-clamp-2">
+                          „{lastImprove}“
+                        </div>
+                      )}
+                      {!count && <p className="text-xs text-slate-500">Noch kein Feedback.</p>}
+                    </div>
+                  </button>
+                );
+              })}
+              {(!courses || courses.length === 0) && (
+                <p className="text-white/80">Keine Kurse.</p>
+              )}
+            </div>
+          </div>
+
+          {selectedCourseId && (
+            <FeedbackModal
+              course={courses.find((c) => c.id === selectedCourseId) || null}
+              feedbacks={selectedFeedbacks}
+              onClose={() => setSelectedCourseId(null)}
+            />
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function StarDisplay({ value }: { value: number }) {
+  const full = Math.round(value);
+  return (
+    <div className="flex gap-1 text-pink-500 text-lg">
+      {[1, 2, 3, 4, 5].map((i) => (
+        <span key={i} className={i <= full ? 'opacity-100' : 'opacity-30'}>★</span>
+      ))}
+    </div>
+  );
+}
+
+function FeedbackModal({ course, feedbacks, onClose }: { course: CourseCard | null; feedbacks: Feedback[]; onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
+      <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white text-ink shadow-2xl p-6 relative">
+        <button className="absolute top-3 right-3 text-slate-500 hover:text-ink" onClick={onClose}>×</button>
+        <h3 className="text-2xl font-semibold mb-2">Feedback · {course?.title ?? 'Kurs'}</h3>
+        {!feedbacks.length && <p className="text-slate-600">Noch kein Feedback.</p>}
+        <div className="space-y-3">
+          {feedbacks.map((f, idx) => (
+            <div key={idx} className="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-2">
+              <div className="flex flex-wrap gap-3 text-sm text-slate-700">
+                <span>Gesamt: <strong>{f.ratings?.overall ?? 0}/5</strong></span>
+                <span>Dozent: <strong>{f.ratings?.teacher ?? 0}/5</strong></span>
+                <span>Verständlich: <strong>{f.ratings?.clarity ?? 0}/5</strong></span>
+                <span>Praxis: <strong>{f.ratings?.practice ?? 0}/5</strong></span>
+                <span>Betreuung: <strong>{f.ratings?.support ?? 0}/5</strong></span>
+                <span>Technik: <strong>{f.ratings?.tech ?? 0}/5</strong></span>
+              </div>
+              <p className="text-sm text-slate-700">Weiterempfehlung: <strong>{f.recommend ?? '—'}</strong></p>
+              {f.improve && (
+                <div className="text-sm text-slate-600 bg-white border border-slate-200 rounded-lg p-3">
+                  {f.improve}
+                </div>
+              )}
+              <p className="text-xs text-slate-500">
+                Eingereicht am {f.created_at ? new Date(f.created_at).toLocaleDateString() : '—'}
+              </p>
+            </div>
+          ))}
+        </div>
+        <div className="mt-4 flex justify-end">
+          <button className="rounded-lg bg-slate-900 text-white px-4 py-2 hover:bg-slate-800" onClick={onClose}>
+            Schließen
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
