@@ -199,7 +199,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
                       <div className="block rounded-lg px-5 py-3.5 text-[16px] md:text-[17px] font-semibold text-white/90 bg-white/12 border border-white/20 transition">
                         {l.label}
                       </div>
-                      <div className="hidden group-hover:block absolute left-[calc(100%+6px)] top-0 z-40 min-w-[200px] rounded-xl border border-white/15 bg-white/10 backdrop-blur-xl shadow-2xl">
+                      <div className="hidden group-hover:block absolute left-[calc(100%+6px)] top-0 z-40 min-w-[200px] rounded-xl border border-white/15 bg-slate-900/90 backdrop-blur-xl shadow-2xl">
                         {l.children.map((c) => (
                           <Link
                             key={c.href}
