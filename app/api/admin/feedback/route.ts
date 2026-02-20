@@ -16,16 +16,23 @@ export async function GET(req: Request) {
   }
 
   const baseSelect =
-    'id, course_id, course_title, ratings, recommend, improve, created_at, student_id, students(name, email), courses(id, partner_id, title)';
-  const innerSelect =
-    'id, course_id, course_title, ratings, recommend, improve, created_at, student_id, students(name, email), courses!inner(id, partner_id, title)';
+    'id, course_id, course_title, ratings, recommend, improve, created_at, student_id, students(name, email)';
 
-  let query = service
-    .from('course_feedback')
-    .select(partnerId ? innerSelect : baseSelect);
+  let courseIdsForPartner: string[] = [];
+  if (partnerId) {
+    const { data: partnerCourses, error: partnerErr } = await service
+      .from('courses')
+      .select('id')
+      .eq('partner_id', partnerId);
+    if (partnerErr) return NextResponse.json({ error: partnerErr.message }, { status: 400 });
+    courseIdsForPartner = (partnerCourses || []).map((c: any) => c.id).filter(Boolean);
+    if (!courseIdsForPartner.length) return NextResponse.json([]);
+  }
+
+  let query = service.from('course_feedback').select(baseSelect);
 
   if (courseId) query = query.eq('course_id', courseId);
-  if (partnerId) query = query.eq('courses.partner_id', partnerId);
+  if (partnerId) query = query.in('course_id', courseIdsForPartner);
 
   const { data, error } = await query;
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
