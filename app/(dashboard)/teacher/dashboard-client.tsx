@@ -51,6 +51,7 @@ export default function DashboardClient({
   courses,
   materials,
   feedbacks,
+  feedbackOverallAvg,
 }: {
   kpis: KPIs;
   interests: InterestRank[];
@@ -59,6 +60,7 @@ export default function DashboardClient({
   courses: CourseCard[];
   materials: any[];
   feedbacks: Feedback[];
+  feedbackOverallAvg?: number | null;
 }) {
   const [tab, setTab] = useState<'perf' | 'courses' | 'materials' | 'feedback'>('perf');
   const feedbackByCourse = useMemo(() => {
