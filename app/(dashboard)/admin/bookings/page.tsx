@@ -138,11 +138,12 @@ export default function BookingsPage() {
     <div className="space-y-6">
       <style>{`
         @media print {
-          body { background: white !important; }
+          body { background: white !important; color: #111 !important; }
           .no-print { display: none !important; }
           .print-open-saldo { display: block !important; }
           table.print-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-          table.print-table th, table.print-table td { border: 1px solid #333; padding: 6px; text-align: left; }
+          table.print-table th, table.print-table td { padding: 6px 4px; text-align: left; border-bottom: 1px solid #ccc; }
+          h2.print-title { font-size: 16px; margin: 0 0 8px 0; }
         }
         @media screen {
           .print-open-saldo { display: none; }
@@ -228,7 +229,7 @@ export default function BookingsPage() {
 
             {/* Druckansicht ohne Boxen */}
             <div className="print-open-saldo mt-6">
-              <h2 style={{ fontSize: '16px', marginBottom: '8px' }}>Offene Saldenliste</h2>
+              <h2 className="print-title">Offene Saldenliste</h2>
               <table className="print-table">
                 <thead>
                   <tr>
