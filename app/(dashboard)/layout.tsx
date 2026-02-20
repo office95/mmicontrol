@@ -63,6 +63,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
   await ensureSlugs([
     'admin-partners',
     'admin-roles',
+    'admin-benefits',
     'course-dates',
     'admin-students',
     'admin-bookings',
@@ -103,6 +104,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
     { href: '/admin/course-dates', label: 'Kurstermine', roles: ['admin'], slug: 'course-dates' },
     { href: '/admin/courses', label: 'Kurse verwalten', roles: ['admin'], slug: 'courses' },
     { href: '/admin/materials', label: 'Kursmaterial', roles: ['admin'], slug: 'materials' },
+    { href: '/admin/benefits', label: 'Benefits', roles: ['admin'], slug: 'admin-benefits' },
     { href: '/admin/partners', label: 'Partner', roles: ['admin'], slug: 'admin-partners' },
     { href: '/admin/leads', label: 'Leads', roles: ['admin'], slug: 'admin-leads' },
     { href: '/admin/bookings', label: 'Buchungsübersicht', roles: ['admin'], slug: 'admin-bookings' },

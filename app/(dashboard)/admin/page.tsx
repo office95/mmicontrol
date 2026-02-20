@@ -123,12 +123,6 @@ export default async function AdminPage() {
     };
   }).sort((a, b) => b.avg - a.avg);
 
-  // Benefits (Verwaltung-Übersicht)
-  const { data: benefits } = await supabase
-    .from('benefit_companies')
-    .select('id, name, status, target, action_title, discount_type, discount_value, code, valid_from, valid_to, country')
-    .order('created_at', { ascending: false });
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -179,52 +173,6 @@ export default async function AdminPage() {
 
       {/* Kurs-Feedback gesamt entfernt laut Anforderung */}
 
-      <div className="card shadow-xl p-6 space-y-3">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-ink">Benefits (Firmen-Vorteile)</h2>
-          <Link
-            href="#"
-            className="inline-flex items-center gap-2 rounded-lg bg-pink-600 text-white px-3 py-2 text-sm font-semibold hover:bg-pink-500"
-          >
-            Neu anlegen (bald)
-          </Link>
-        </div>
-        <p className="text-sm text-slate-600">Aktive und geplante Vorteile für Dozenten/Studierende.</p>
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
-          {(benefits || []).map((b) => {
-            const statusColor =
-              b.status === 'active' ? 'bg-emerald-100 text-emerald-700 border-emerald-200' :
-              b.status === 'inactive' ? 'bg-amber-100 text-amber-700 border-amber-200' :
-              'bg-slate-100 text-slate-700 border-slate-200';
-            const targetLabel =
-              b.target === 'teachers' ? 'Dozenten' :
-              b.target === 'students' ? 'Studierende' : 'Beide';
-            const discountLabel =
-              b.discount_type === 'percent' ? `${b.discount_value ?? ''}%` :
-              b.discount_type === 'fixed' ? `${b.discount_value ?? ''} €` :
-              'Vorteil';
-            return (
-              <div key={b.id} className="rounded-2xl border border-slate-200 bg-white shadow-sm p-4 space-y-2">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-base font-semibold text-ink">{b.name}</h3>
-                  <span className={`text-[11px] px-2 py-1 rounded-full border ${statusColor}`}>{b.status}</span>
-                </div>
-                <p className="text-sm text-slate-600 line-clamp-2">{b.action_title ?? '—'}</p>
-                <p className="text-xs text-slate-500">Zielgruppe: {targetLabel}</p>
-                <p className="text-xs text-pink-700 font-semibold">Vorteil: {discountLabel}</p>
-                <p className="text-xs text-slate-500">Code: {b.code || '—'}</p>
-                <p className="text-xs text-slate-500">
-                  Gültig: {b.valid_from ? new Date(b.valid_from).toLocaleDateString() : 'sofort'} – {b.valid_to ? new Date(b.valid_to).toLocaleDateString() : 'offen'}
-                </p>
-                <p className="text-[11px] text-slate-500">Land: {b.country || '—'}</p>
-              </div>
-            );
-          })}
-          {(!benefits || !benefits.length) && (
-            <p className="text-slate-600">Noch keine Benefits angelegt.</p>
-          )}
-        </div>
-      </div>
     </div>
   );
 }
