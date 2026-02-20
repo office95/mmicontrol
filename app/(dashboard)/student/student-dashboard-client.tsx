@@ -4,6 +4,8 @@ import BookingsClient from './bookings-client';
 import ProfileWrapper from './profile-wrapper';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
+type Payment = { id: string; payment_date: string | null; amount: number | null; method: string | null; note: string | null };
+
 type Booking = {
   id: string;
   booking_code: string | null;
