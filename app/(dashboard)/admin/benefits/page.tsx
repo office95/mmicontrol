@@ -328,23 +328,6 @@ export default function BenefitsPage() {
                       <input className="input" type="date" value={current.valid_to ?? ''} onChange={(e) => setCurrent({ ...current, valid_to: e.target.value || null })} />
                     </label>
                     <label className="space-y-1">
-                      <span className="text-slate-600">Land</span>
-                      <select
-                        className="input"
-                        value={current.country ?? ''}
-                        onChange={(e) => {
-                          const country = e.target.value || null;
-                          const states = stateOptions(country);
-                          const nextState = states.includes(current.state || '') ? current.state : null;
-                          setCurrent({ ...current, country, state: nextState });
-                        }}
-                      >
-                        <option value="">Bitte wählen</option>
-                        <option value="Österreich">Österreich</option>
-                        <option value="Deutschland">Deutschland</option>
-                      </select>
-                    </label>
-                    <label className="space-y-1">
                       <span className="text-slate-600">How to redeem</span>
                       <input className="input" value={current.how_to_redeem ?? ''} onChange={(e) => setCurrent({ ...current, how_to_redeem: e.target.value })} />
                     </label>
@@ -385,27 +368,48 @@ export default function BenefitsPage() {
                       <span className="text-slate-600">Straße</span>
                       <input className="input" value={current.street ?? ''} onChange={(e) => setCurrent({ ...current, street: e.target.value })} />
                     </label>
-                    <label className="space-y-1">
-                      <span className="text-slate-600">PLZ</span>
-                      <input className="input" value={current.postal_code ?? ''} onChange={(e) => setCurrent({ ...current, postal_code: e.target.value })} />
-                    </label>
-                    <label className="space-y-1">
-                      <span className="text-slate-600">Ort</span>
-                      <input className="input" value={current.city ?? ''} onChange={(e) => setCurrent({ ...current, city: e.target.value })} />
-                    </label>
-                    <label className="space-y-1">
-                      <span className="text-slate-600">Bundesland</span>
-                      <select
-                        className="input"
-                        value={current.state ?? ''}
-                        onChange={(e) => setCurrent({ ...current, state: e.target.value || null })}
-                      >
-                        <option value="">Bitte wählen</option>
-                        {stateOptions(current.country).map((s) => (
-                          <option key={s} value={s}>{s}</option>
-                        ))}
-                      </select>
-                    </label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:col-span-2">
+                      <label className="space-y-1">
+                        <span className="text-slate-600">PLZ</span>
+                        <input className="input" value={current.postal_code ?? ''} onChange={(e) => setCurrent({ ...current, postal_code: e.target.value })} />
+                      </label>
+                      <label className="space-y-1">
+                        <span className="text-slate-600">Ort</span>
+                        <input className="input" value={current.city ?? ''} onChange={(e) => setCurrent({ ...current, city: e.target.value })} />
+                      </label>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:col-span-2">
+                      <label className="space-y-1">
+                        <span className="text-slate-600">Land</span>
+                        <select
+                          className="input"
+                          value={current.country ?? ''}
+                          onChange={(e) => {
+                            const country = e.target.value || null;
+                            const states = stateOptions(country);
+                            const nextState = states.includes(current.state || '') ? current.state : null;
+                            setCurrent({ ...current, country, state: nextState });
+                          }}
+                        >
+                          <option value="">Bitte wählen</option>
+                          <option value="Österreich">Österreich</option>
+                          <option value="Deutschland">Deutschland</option>
+                        </select>
+                      </label>
+                      <label className="space-y-1">
+                        <span className="text-slate-600">Bundesland</span>
+                        <select
+                          className="input"
+                          value={current.state ?? ''}
+                          onChange={(e) => setCurrent({ ...current, state: e.target.value || null })}
+                        >
+                          <option value="">Bitte wählen</option>
+                          {stateOptions(current.country).map((s) => (
+                            <option key={s} value={s}>{s}</option>
+                          ))}
+                        </select>
+                      </label>
+                    </div>
                   </div>
                 </section>
               </div>
