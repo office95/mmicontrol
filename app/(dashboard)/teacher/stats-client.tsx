@@ -11,7 +11,13 @@ type KPIs = {
   yearParticipantsPrev: number;
 };
 
-export default function TeacherStatsClient({ kpis, interests, sources, notes }: {
+export default function TeacherStatsClient({
+  kpis,
+  interests,
+  sources,
+  notes,
+  feedbackOverallAvg,
+}: {
   kpis: KPIs;
   interests: { place: number; labels: string[] }[];
   sources: { label: string; value: number }[];
