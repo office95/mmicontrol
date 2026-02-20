@@ -589,59 +589,6 @@ export default async function TeacherPage() {
       })) || [];
   }
 
-  // Benefits (Rabatte) für Dozenten: aktive, gültige, target passt
-  let benefits:
-    | {
-        id: string;
-        name: string;
-        action_title: string | null;
-        description: string | null;
-        logo_url: string | null;
-        discount_type: string | null;
-        discount_value: number | null;
-        code: string | null;
-        valid_from: string | null;
-        valid_to: string | null;
-        members_card_required: boolean;
-        how_to_redeem: string | null;
-        website: string | null;
-      }[]
-    | null = [];
-  {
-    const { data: rows } = await service
-      .from('benefit_companies')
-      .select('id, name, action_title, description, logo_path, discount_type, discount_value, code, valid_from, valid_to, members_card_required, how_to_redeem, website, target, status')
-      .eq('status', 'active');
-
-    const today = new Date();
-    for (const b of rows || []) {
-      const fromOk = !b.valid_from || new Date(b.valid_from) <= today;
-      const toOk = !b.valid_to || new Date(b.valid_to) >= today;
-      const targetOk = !b.target || ['teachers', 'both'].includes(b.target);
-      if (!(fromOk && toOk && targetOk)) continue;
-
-      const logoUrl = b.logo_path
-        ? (await service.storage.from('benefit-logos').createSignedUrl(b.logo_path, 60 * 60)).data?.signedUrl ?? null
-        : null;
-
-      (benefits as any).push({
-        id: b.id,
-        name: b.name,
-        action_title: (b as any).action_title ?? null,
-        description: (b as any).description ?? null,
-        logo_url: logoUrl,
-        discount_type: (b as any).discount_type ?? null,
-        discount_value: (b as any).discount_value ?? null,
-        code: (b as any).code ?? null,
-        valid_from: (b as any).valid_from ?? null,
-        valid_to: (b as any).valid_to ?? null,
-        members_card_required: (b as any).members_card_required ?? true,
-        how_to_redeem: (b as any).how_to_redeem ?? 'Members Card vorzeigen',
-        website: (b as any).website ?? null,
-      });
-    }
-  }
-
   // Feedbacks laden (Partner-basiert): Wir filtern nach partner_id, die über booking->course_date->course ermittelt wird
   let feedbacks:
     | {
@@ -793,7 +740,6 @@ export default async function TeacherPage() {
         materials={materials || []}
         feedbacks={feedbacks || []}
         feedbackOverallAvg={feedbackOverallAvg}
-        benefits={benefits || []}
       />
     </div>
   );
