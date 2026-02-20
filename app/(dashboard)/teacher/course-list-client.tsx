@@ -34,32 +34,32 @@ export default function CourseListClient({ courses }: { courses: CourseCard[] })
       {courses.map((c) => (
         <div
           key={c.id}
-          className={`relative rounded-2xl border border-white/15 backdrop-blur bg-transparent p-5 shadow-lg transition hover:shadow-2xl hover:-translate-y-[2px]`}
+          className="relative rounded-2xl border border-slate-200 bg-white/95 p-5 shadow-lg transition hover:shadow-2xl hover:-translate-y-[2px]"
         >
-          <div className="absolute -right-6 -top-6 h-16 w-16 rounded-full bg-white/20 blur-2xl" />
+          <div className="absolute -right-6 -top-6 h-16 w-16 rounded-full bg-pink-100/70 blur-2xl" />
           <div className="flex flex-col gap-3">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
               <div className="space-y-1 md:space-y-0">
-                <p className="text-[11px] uppercase tracking-[0.18em] text-white/70">Kurs</p>
+                <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500">Kurs</p>
                 <div className="flex flex-wrap items-center gap-3">
-                  <h3 className="text-xl font-semibold text-white drop-shadow-sm">{c.title}</h3>
-                  <div className="flex flex-wrap gap-3 text-[13px] font-medium text-white/90">
-                    <span>Start: <strong>{formatDate(c.start_date)}</strong></span>
-                    <span>· Dauer: <strong>{c.duration_hours != null ? `${c.duration_hours} h` : '—'}</strong></span>
-                    <span>· TN: <strong>{c.participants.length}</strong></span>
+                  <h3 className="text-xl font-semibold text-ink drop-shadow-sm">{c.title}</h3>
+                  <div className="flex flex-wrap gap-3 text-[13px] font-medium text-slate-800">
+                    <span>Start: <strong className="text-ink">{formatDate(c.start_date)}</strong></span>
+                    <span>· Dauer: <strong className="text-ink">{c.duration_hours != null ? `${c.duration_hours} h` : '—'}</strong></span>
+                    <span>· TN: <strong className="text-ink">{c.participants.length}</strong></span>
                   </div>
                 </div>
-                <p className="text-sm text-white/80">{c.description}</p>
+                <p className="text-sm text-slate-700">{c.description}</p>
               </div>
               <div className="flex flex-wrap gap-2 md:justify-end">
                 <button
-                  className="rounded-full border border-white/60 bg-white/10 px-4 py-2 text-sm text-white hover:bg-white/20 transition"
+                  className="rounded-full border border-slate-300 bg-white px-4 py-2 text-sm text-ink hover:bg-slate-100 transition"
                   onClick={() => setOpenId(c.id)}
                 >
                   Teilnehmer
                 </button>
                 <button
-                  className="rounded-full border border-pink-200 bg-pink-500/20 px-4 py-2 text-sm text-white hover:bg-pink-500/30 transition"
+                  className="rounded-full border border-pink-200 bg-pink-50 px-4 py-2 text-sm text-pink-700 hover:bg-pink-100 transition"
                   onClick={() => setAttendanceCourse(c)}
                 >
                   Anwesenheitsliste

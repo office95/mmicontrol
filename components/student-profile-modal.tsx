@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 type Props = {
   open: boolean;
@@ -34,6 +34,16 @@ export default function ProfileModal({ open, onClose, profile }: Props) {
   });
   const [saving, setSaving] = useState(false);
 
+  // ESC zum Schließen zulassen
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [open, onClose]);
+
   if (!open) return null;
 
   async function save() {
@@ -60,8 +70,14 @@ export default function ProfileModal({ open, onClose, profile }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
-      <div className="relative w-full max-w-2xl rounded-2xl bg-white text-ink shadow-2xl p-6">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4"
+      onClick={onClose}
+    >
+      <div
+        className="relative w-full max-w-2xl rounded-2xl bg-white text-ink shadow-2xl p-6"
+        onClick={(e) => e.stopPropagation()}
+      >
         <button
           className="absolute top-3 right-3 text-slate-500 hover:text-ink"
           onClick={onClose}

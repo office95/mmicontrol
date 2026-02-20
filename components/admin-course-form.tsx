@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { useSupabase } from '@/providers/supabase-provider';
 
 type CourseInitial = {
   id?: string;
@@ -11,6 +12,8 @@ type CourseInitial = {
   deposit?: number | null;
   category?: string | null;
   status?: 'active' | 'inactive';
+  course_link?: string | null;
+  cover_url?: string | null;
 };
 
 export default function AdminCourseForm({
@@ -20,6 +23,7 @@ export default function AdminCourseForm({
   initial?: CourseInitial;
   onSaved?: () => void;
 }) {
+  const { supabase } = useSupabase();
   const [title, setTitle] = useState(initial?.title ?? '');
   const [description, setDescription] = useState(initial?.description ?? '');
   const [duration, setDuration] = useState<string>(initial?.duration_hours?.toString() ?? '');
@@ -37,6 +41,10 @@ export default function AdminCourseForm({
   const [deposit, setDeposit] = useState<string>(initial?.deposit?.toString() ?? '');
   const [status, setStatus] = useState<'active' | 'inactive'>(initial?.status ?? 'active');
   const [category, setCategory] = useState<string>(initial?.category ?? 'Extrem');
+  const [courseLink, setCourseLink] = useState<string>(initial?.course_link ?? '');
+  const [coverUrl, setCoverUrl] = useState<string>(initial?.cover_url ?? '');
+  const [coverFile, setCoverFile] = useState<File | null>(null);
+  const [coverPreview, setCoverPreview] = useState<string>(initial?.cover_url ?? '');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -54,6 +62,10 @@ export default function AdminCourseForm({
     setDeposit(initial?.deposit?.toString() ?? '');
     setStatus(initial?.status ?? 'active');
     setCategory(initial?.category ?? 'Extrem');
+    setCourseLink(initial?.course_link ?? '');
+    setCoverUrl(initial?.cover_url ?? '');
+    setCoverFile(null);
+    setCoverPreview(initial?.cover_url ?? '');
     setSuccess(null);
     setError(null);
   }, [initial]);
@@ -92,6 +104,24 @@ export default function AdminCourseForm({
     e.preventDefault();
     setLoading(true);
     setError(null);
+    let finalCoverUrl = coverUrl;
+
+    // optional cover upload
+    if (coverFile) {
+      const ext = coverFile.name.split('.').pop() || 'jpg';
+      const path = `course/${initial?.id ?? 'new'}/${Date.now()}.${ext}`;
+      const { error: uploadErr } = await supabase.storage
+        .from('course-covers')
+        .upload(path, coverFile, { upsert: true });
+      if (uploadErr) {
+        setError(uploadErr.message);
+        setLoading(false);
+        return;
+      }
+      const { data: pub } = supabase.storage.from('course-covers').getPublicUrl(path);
+      finalCoverUrl = pub.publicUrl;
+    }
+
     const isEdit = Boolean(initial?.id);
     const res = await fetch('/api/admin/courses', {
       method: isEdit ? 'PATCH' : 'POST',
@@ -106,6 +136,8 @@ export default function AdminCourseForm({
         deposit: deposit ? Number(deposit) : null,
         category,
         status,
+        course_link: courseLink || null,
+        cover_url: finalCoverUrl || null,
       }),
     });
     const data = await res.json();
@@ -121,6 +153,10 @@ export default function AdminCourseForm({
         setDuration('');
         setPriceGross('');
         setDeposit('');
+        setCourseLink('');
+        setCoverUrl('');
+        setCoverFile(null);
+        setCoverPreview('');
         setSuccess('Kurs angelegt');
       }
       onSaved?.();
@@ -159,6 +195,47 @@ export default function AdminCourseForm({
               <option value="active">Aktiv</option>
               <option value="inactive">Inaktiv</option>
             </select>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-slate-700">Kurslink (URL)</label>
+            <input
+              type="url"
+              className="input"
+              placeholder="https://…"
+              value={courseLink}
+              onChange={(e) => setCourseLink(e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-slate-700">Cover (JPG oder PNG)</label>
+            <div className="flex items-center gap-3">
+              <div className="h-16 w-16 rounded-lg border border-slate-200 overflow-hidden bg-slate-100 flex items-center justify-center">
+                {coverPreview ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={coverPreview} alt="Cover" className="h-full w-full object-cover" />
+                ) : (
+                  <span className="text-xs text-slate-400">kein<br />Cover</span>
+                )}
+              </div>
+              <input
+                type="file"
+                accept="image/png,image/jpeg"
+                className="input"
+                onChange={(e) => {
+                  const file = e.target.files?.[0] || null;
+                  setCoverFile(file);
+                  if (file) {
+                    const reader = new FileReader();
+                    reader.onload = () => setCoverPreview(reader.result as string);
+                    reader.readAsDataURL(file);
+                  } else {
+                    setCoverPreview(coverUrl);
+                  }
+                }}
+              />
+            </div>
           </div>
         </div>
       </div>

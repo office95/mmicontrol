@@ -12,8 +12,8 @@ export async function GET(req: Request) {
   const id = searchParams.get('id');
   const minimal = searchParams.get('minimal') === '1';
   const select = minimal
-    ? 'id, title, price_gross, category'
-    : 'id, title, description, status, created_at, duration_hours, price_gross, vat_rate, price_net, deposit, saldo, category, vat_amount';
+    ? 'id, title, price_gross, category, cover_url, course_link'
+    : 'id, title, description, status, created_at, duration_hours, price_gross, vat_rate, price_net, deposit, saldo, category, vat_amount, course_link, cover_url';
   if (id) {
     const { data, error } = await supabase
       .from('courses')
@@ -44,6 +44,8 @@ export async function POST(req: Request) {
     deposit,
     category,
     status = 'active',
+    course_link,
+    cover_url,
   } = body;
 
   if (!title) return NextResponse.json({ error: 'title required' }, { status: 400 });
@@ -69,6 +71,8 @@ export async function POST(req: Request) {
       vat_amount: isNaN(vatAmount) ? null : vatAmount,
       category: category || null,
       status: status === 'inactive' ? 'inactive' : 'active',
+      course_link: course_link || null,
+      cover_url: cover_url || null,
     })
     .select()
     .single();
@@ -91,6 +95,8 @@ export async function PATCH(req: Request) {
     deposit,
     category,
     status,
+    course_link,
+    cover_url,
   } = body;
 
   const payload: Record<string, unknown> = {};
@@ -103,6 +109,8 @@ export async function PATCH(req: Request) {
   if (deposit !== undefined) payload.deposit = Number(deposit);
   if (category !== undefined) payload.category = category;
   if (status !== undefined) payload.status = status === 'inactive' ? 'inactive' : 'active';
+  if (course_link !== undefined) payload.course_link = course_link;
+  if (cover_url !== undefined) payload.cover_url = cover_url;
 
   // recompute net, saldo, vat_amount if gross/vat/deposit provided
   const grossNum = price_gross !== undefined ? Number(price_gross) : undefined;

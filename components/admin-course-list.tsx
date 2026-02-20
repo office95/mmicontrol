@@ -16,6 +16,8 @@ interface Course {
   saldo?: number | null;
   category?: string | null;
   vat_amount?: number | null;
+  course_link?: string | null;
+  cover_url?: string | null;
 }
 
 export default function AdminCourseList({
@@ -121,6 +123,23 @@ export default function AdminCourseList({
               </p>
               <p className="text-xs text-slate-500">Anzahlung: {c.deposit ?? '-'} · Saldo: {c.saldo ?? '-'}</p>
               <p className="text-xs text-slate-500">Kategorie: {c.category ?? '-'}</p>
+              {(c.course_link || c.cover_url) && (
+                <p className="text-xs text-slate-500 flex gap-3 items-center">
+                  {c.course_link && (
+                    <a href={c.course_link} target="_blank" rel="noreferrer" className="text-pink-600 underline">
+                      Kurslink öffnen
+                    </a>
+                  )}
+                  {c.cover_url && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={c.cover_url}
+                      alt="Cover"
+                      className="h-10 w-10 rounded-md border border-slate-200 object-cover bg-slate-50"
+                    />
+                  )}
+                </p>
+              )}
             </div>
             <div className="flex items-center gap-2">
               <button

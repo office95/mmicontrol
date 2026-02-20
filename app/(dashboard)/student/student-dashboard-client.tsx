@@ -76,7 +76,7 @@ export default function StudentDashboardClient({
       )}
 
       {tab === 'profile' && (
-        <ProfileWrapper open profile={profile} />
+        <ProfileWrapper open profile={profile} onClose={() => setTab('bookings')} />
       )}
     </div>
   );

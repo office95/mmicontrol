@@ -1,13 +1,19 @@
 "use client";
-import { useRouter } from "next/navigation";
 import ProfileModal from "@/components/student-profile-modal";
 
-export default function ProfileWrapper({ open, profile }: { open: boolean; profile: any }) {
-  const router = useRouter();
+export default function ProfileWrapper({
+  open,
+  profile,
+  onClose,
+}: {
+  open: boolean;
+  profile: any;
+  onClose: () => void;
+}) {
   return (
     <ProfileModal
       open={open}
-      onClose={() => router.push('/student')}
+      onClose={onClose}
       profile={profile}
     />
   );
