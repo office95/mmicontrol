@@ -589,6 +589,18 @@ export default async function TeacherPage() {
       })) || [];
   }
 
+  // Kurs-Empfehlungen: zufällige aktive Kurse (max 5)
+  let recommended: { id: string; title: string; price_gross?: number | null; course_link?: string | null; cover_url?: string | null }[] = [];
+  {
+    const { data: recRows } = await service
+      .from('courses')
+      .select('id, title, price_gross, course_link, cover_url')
+      .eq('status', 'active')
+      .limit(30);
+    const shuffled = (recRows || []).sort(() => Math.random() - 0.5);
+    recommended = shuffled.slice(0, 5);
+  }
+
   return (
     <div className="space-y-8">
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 bg-white/10 border border-white/15 rounded-xl p-6 shadow-lg relative overflow-hidden">
@@ -617,6 +629,7 @@ export default async function TeacherPage() {
         notes={notes}
         courses={courses || []}
         materials={materials || []}
+        recommended={recommended}
       />
     </div>
   );
