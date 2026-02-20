@@ -149,12 +149,6 @@ export default function AdminCourseList({
                 Bearbeiten
               </button>
               <button
-                className="text-xs px-3 py-1 rounded-lg border border-emerald-300 text-emerald-700 hover:bg-emerald-50"
-                onClick={() => setAttendanceCourse(c)}
-              >
-                Anwesenheitsliste
-              </button>
-              <button
                 className={`text-xs px-3 py-1 rounded-lg border ${
                   c.status === 'inactive'
                     ? 'border-emerald-300 text-emerald-700 hover:bg-emerald-50'
