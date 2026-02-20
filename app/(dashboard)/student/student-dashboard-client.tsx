@@ -60,10 +60,11 @@ export default function StudentDashboardClient({
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [reminderVisible, setReminderVisible] = useState<boolean>(!!feedbackReminder);
 
-  // sanftes Auto-Scroll der Empfehlungen
+  // sanftes Auto-Scroll der Empfehlungen (nur wenn Tab aktiv)
   useEffect(() => {
     const el = scrollRef.current;
-    if (!el || !recommended.length) return;
+    if (!el || !recommended.length || tab !== 'bookings') return;
+    el.scrollLeft = 0;
     const id = window.setInterval(() => {
       if (!el) return;
       el.scrollLeft += 1;
@@ -72,7 +73,7 @@ export default function StudentDashboardClient({
       }
     }, 20);
     return () => window.clearInterval(id);
-  }, [recommended]);
+  }, [recommended, tab]);
 
   return (
     <div className="space-y-6">
