@@ -286,11 +286,14 @@ function FeedbackModal({
         {!loading && !error && !items.length && <p className="text-slate-600">Keine Feedbacks vorhanden.</p>}
         <div className="space-y-3">
           {items.map((f, idx) => (
-            <div key={idx} className="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-2">
-              <div className="flex flex-wrap gap-3 text-sm text-slate-700">
-                <span>Gesamt: <strong>{f.ratings?.overall ?? 0}/5</strong></span>
-                <span>Dozent: <strong>{f.ratings?.teacher ?? 0}/5</strong></span>
-                <span>Praxis: <strong>{f.ratings?.practice ?? 0}/5</strong></span>
+            <div key={idx} className="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-slate-700">
+                <FeedbackRow label="Gesamt" value={Number(f.ratings?.overall ?? 0)} />
+                <FeedbackRow label="Dozent" value={Number(f.ratings?.teacher ?? 0)} />
+                <FeedbackRow label="Verständlich" value={Number(f.ratings?.clarity ?? 0)} />
+                <FeedbackRow label="Praxis" value={Number(f.ratings?.practice ?? 0)} />
+                <FeedbackRow label="Betreuung" value={Number(f.ratings?.support ?? 0)} />
+                <FeedbackRow label="Technik" value={Number(f.ratings?.tech ?? 0)} />
               </div>
               <p className="text-sm text-slate-700">Weiterempfehlung: <strong>{f.recommend ?? '—'}</strong></p>
               {f.improve && (
@@ -310,6 +313,27 @@ function FeedbackModal({
           ))}
         </div>
       </div>
+    </div>
+  );
+}
+
+function FeedbackRow({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="flex items-center gap-2">
+      <span className="text-xs text-slate-500 w-24">{label}</span>
+      <StarInputReadOnly value={value} />
+      <span className="text-xs text-slate-500">{value.toFixed(1)}/5</span>
+    </div>
+  );
+}
+
+function StarInputReadOnly({ value }: { value: number }) {
+  const full = Math.round(value);
+  return (
+    <div className="flex gap-1 text-pink-500 text-lg">
+      {[1, 2, 3, 4, 5].map((i) => (
+        <span key={i} className={i <= full ? 'opacity-100' : 'opacity-30'}>★</span>
+      ))}
     </div>
   );
 }
