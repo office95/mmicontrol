@@ -36,6 +36,11 @@ export default function CourseDatesPage() {
   const [editItem, setEditItem] = useState<CourseDateRow | null>(null);
   const [activeTab, setActiveTab] = useState<'list' | 'timeline'>('list');
   const [attendanceCourse, setAttendanceCourse] = useState<{ id: string; title: string } | null>(null);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [feedbackLoading, setFeedbackLoading] = useState(false);
+  const [feedbackError, setFeedbackError] = useState<string | null>(null);
+  const [feedbackItems, setFeedbackItems] = useState<any[]>([]);
+  const [feedbackTitle, setFeedbackTitle] = useState<string>('Kurs-Feedback');
 
   const load = async () => {
     setLoading(true);
@@ -150,6 +155,28 @@ export default function CourseDatesPage() {
                     onClick={() => t.course_id && setAttendanceCourse({ id: t.course_id, title: t.course?.title ?? 'Kurs' })}
                   >
                     Anwesenheitsliste
+                  </button>
+                  <button
+                    className="px-3 py-1 rounded-lg border border-pink-300 text-pink-700 hover:bg-pink-50 disabled:opacity-50"
+                    disabled={!t.course_id}
+                    onClick={async () => {
+                      if (!t.course_id) return;
+                      setFeedbackTitle(`Kurs-Feedback · ${t.course?.title ?? 'Kurs'}`);
+                      setFeedbackOpen(true);
+                      setFeedbackLoading(true);
+                      setFeedbackError(null);
+                      const res = await fetch(`/api/admin/feedback?course_id=${t.course_id}`);
+                      const data = await res.json();
+                      if (!res.ok) {
+                        setFeedbackError(data.error || 'Fehler beim Laden');
+                        setFeedbackItems([]);
+                      } else {
+                        setFeedbackItems(data);
+                      }
+                      setFeedbackLoading(false);
+                    }}
+                  >
+                    Kurs-Feedback
                   </button>
                   <button
                     className="px-3 py-1 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100"
@@ -341,6 +368,69 @@ export default function CourseDatesPage() {
           onClose={() => setAttendanceCourse(null)}
         />
       )}
+
+      {feedbackOpen && (
+        <FeedbackModal
+          title={feedbackTitle}
+          loading={feedbackLoading}
+          error={feedbackError}
+          items={feedbackItems}
+          onClose={() => setFeedbackOpen(false)}
+        />
+      )}
+    </div>
+  );
+}
+
+function FeedbackModal({
+  title,
+  loading,
+  error,
+  items,
+  onClose,
+}: {
+  title: string;
+  loading: boolean;
+  error: string | null;
+  items: any[];
+  onClose: () => void;
+}) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
+      <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white text-ink shadow-2xl p-6 relative">
+        <button className="absolute top-3 right-3 text-slate-500 hover:text-ink" onClick={onClose}>×</button>
+        <h3 className="text-2xl font-semibold mb-3">{title}</h3>
+        {loading && (
+          <p className="text-slate-600 flex items-center gap-2">Lade Feedback...</p>
+        )}
+        {error && <p className="text-sm text-red-600">{error}</p>}
+        {!loading && !error && !items.length && <p className="text-slate-600">Keine Feedbacks vorhanden.</p>}
+        <div className="space-y-3">
+          {items.map((f, idx) => (
+            <div key={idx} className="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-2">
+              <div className="flex flex-wrap gap-3 text-sm text-slate-700">
+                <span>Gesamt: <strong>{f.ratings?.overall ?? 0}/5</strong></span>
+                <span>Dozent: <strong>{f.ratings?.teacher ?? 0}/5</strong></span>
+                <span>Praxis: <strong>{f.ratings?.practice ?? 0}/5</strong></span>
+              </div>
+              <p className="text-sm text-slate-700">Weiterempfehlung: <strong>{f.recommend ?? '—'}</strong></p>
+              {f.improve && (
+                <div className="text-sm text-slate-600 bg-white border border-slate-200 rounded-lg p-3">
+                  {f.improve}
+                </div>
+              )}
+              {(f.student_name || f.student_email) && (
+                <p className="text-xs text-slate-500">
+                  Teilnehmer: {f.student_name ?? '—'} · {f.student_email ?? '—'}
+                </p>
+              )}
+              <p className="text-xs text-slate-500">
+                Eingereicht am {f.created_at ? new Date(f.created_at).toLocaleDateString() : '—'}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

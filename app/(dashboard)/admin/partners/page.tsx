@@ -6,6 +6,7 @@ import PartnerModal from '@/components/partner-modal';
 import ButtonLink from '@/components/button-link';
 import { renderStars } from '@/components/star-utils';
 import StatusBadge from '@/components/status-badge';
+import Spinner from '@/components/spinner';
 
 type Partner = {
   id: string;
@@ -60,6 +61,11 @@ export default function PartnersPage() {
   const [editPartner, setEditPartner] = useState<Partner | null>(null);
   const [filterStatus, setFilterStatus] = useState('all');
   const [search, setSearch] = useState('');
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [feedbackLoading, setFeedbackLoading] = useState(false);
+  const [feedbackError, setFeedbackError] = useState<string | null>(null);
+  const [feedbackItems, setFeedbackItems] = useState<any[]>([]);
+  const [feedbackTitle, setFeedbackTitle] = useState<string>('Kurs-Feedback');
 
   const load = async () => {
     setLoading(true);
@@ -175,21 +181,41 @@ export default function PartnersPage() {
                   )}
                   <p className="text-xs text-slate-500">Angelegt am {new Date(p.created_at).toLocaleDateString()}</p>
                 </div>
-                <div className="flex items-center gap-2 text-xs">
-                  <button
-                    className="px-3 py-2 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100"
-                    onClick={() => {
-                      setEditPartner(p);
-                      setOpenModal(true);
-                    }}
-                  >
-                    Bearbeiten
-                  </button>
-                  <button
-                    className="px-3 py-2 rounded-lg border border-red-300 text-red-600 hover:bg-red-50"
-                    onClick={async () => {
-                      if (!confirm('Diesen Partner wirklich löschen?')) return;
-                      const res = await fetch(`/api/admin/partners?id=${p.id}`, { method: 'DELETE' });
+              <div className="flex items-center gap-2 text-xs">
+                <button
+                  className="px-3 py-2 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100"
+                  onClick={() => {
+                    setEditPartner(p);
+                    setOpenModal(true);
+                  }}
+                >
+                  Bearbeiten
+                </button>
+                <button
+                  className="px-3 py-2 rounded-lg border border-pink-300 text-pink-700 hover:bg-pink-50"
+                  onClick={async () => {
+                    setFeedbackTitle(`Kurs-Feedback · ${p.name}`);
+                    setFeedbackOpen(true);
+                    setFeedbackLoading(true);
+                    setFeedbackError(null);
+                    const res = await fetch(`/api/admin/feedback?partner_id=${p.id}`);
+                    const data = await res.json();
+                    if (!res.ok) {
+                      setFeedbackError(data.error || 'Fehler beim Laden');
+                      setFeedbackItems([]);
+                    } else {
+                      setFeedbackItems(data);
+                    }
+                    setFeedbackLoading(false);
+                  }}
+                >
+                  Kurs-Feedback
+                </button>
+                <button
+                  className="px-3 py-2 rounded-lg border border-red-300 text-red-600 hover:bg-red-50"
+                  onClick={async () => {
+                    if (!confirm('Diesen Partner wirklich löschen?')) return;
+                    const res = await fetch(`/api/admin/partners?id=${p.id}`, { method: 'DELETE' });
                       if (res.ok) {
                         load();
                       } else {
@@ -218,6 +244,69 @@ export default function PartnersPage() {
           }}
         />
       )}
+
+      {feedbackOpen && (
+        <FeedbackModal
+          title={feedbackTitle}
+          loading={feedbackLoading}
+          error={feedbackError}
+          items={feedbackItems}
+          onClose={() => setFeedbackOpen(false)}
+        />
+      )}
+    </div>
+  );
+}
+
+function FeedbackModal({
+  title,
+  loading,
+  error,
+  items,
+  onClose,
+}: {
+  title: string;
+  loading: boolean;
+  error: string | null;
+  items: any[];
+  onClose: () => void;
+}) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
+      <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white text-ink shadow-2xl p-6 relative">
+        <button className="absolute top-3 right-3 text-slate-500 hover:text-ink" onClick={onClose}>×</button>
+        <h3 className="text-2xl font-semibold mb-3">{title}</h3>
+        {loading && (
+          <p className="text-slate-600 flex items-center gap-2"><Spinner size="sm" /> Lade Feedback...</p>
+        )}
+        {error && <p className="text-sm text-red-600">{error}</p>}
+        {!loading && !error && !items.length && <p className="text-slate-600">Keine Feedbacks vorhanden.</p>}
+        <div className="space-y-3">
+          {items.map((f, idx) => (
+            <div key={idx} className="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-2">
+              <div className="flex flex-wrap gap-3 text-sm text-slate-700">
+                <span>Gesamt: <strong>{f.ratings?.overall ?? 0}/5</strong></span>
+                <span>Dozent: <strong>{f.ratings?.teacher ?? 0}/5</strong></span>
+                <span>Praxis: <strong>{f.ratings?.practice ?? 0}/5</strong></span>
+              </div>
+              <p className="text-sm text-slate-700">Weiterempfehlung: <strong>{f.recommend ?? '—'}</strong></p>
+              {f.improve && (
+                <div className="text-sm text-slate-600 bg-white border border-slate-200 rounded-lg p-3">
+                  {f.improve}
+                </div>
+              )}
+              {(f.student_name || f.student_email) && (
+                <p className="text-xs text-slate-500">
+                  Teilnehmer: {f.student_name ?? '—'} · {f.student_email ?? '—'}
+                </p>
+              )}
+              <p className="text-xs text-slate-500">
+                Eingereicht am {f.created_at ? new Date(f.created_at).toLocaleDateString() : '—'}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
