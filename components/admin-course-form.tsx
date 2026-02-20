@@ -109,16 +109,16 @@ export default function AdminCourseForm({
     // optional cover upload
     if (coverFile) {
       const ext = coverFile.name.split('.').pop() || 'jpg';
-      const path = `course/${initial?.id ?? 'new'}/${Date.now()}.${ext}`;
+      const path = `course-covers/${initial?.id ?? 'new'}/${Date.now()}.${ext}`;
       const { error: uploadErr } = await supabase.storage
-        .from('course-covers')
+        .from('materials')
         .upload(path, coverFile, { upsert: true });
       if (uploadErr) {
         setError(uploadErr.message);
         setLoading(false);
         return;
       }
-      const { data: pub } = supabase.storage.from('course-covers').getPublicUrl(path);
+      const { data: pub } = supabase.storage.from('materials').getPublicUrl(path);
       finalCoverUrl = pub.publicUrl;
     }
 
