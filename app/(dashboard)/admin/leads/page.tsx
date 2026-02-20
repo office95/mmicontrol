@@ -247,9 +247,15 @@ export default function LeadsPage() {
                       setEditLead(l);
                       setOpenModal(true);
                     }}
-                    className="text-left text-lg font-extrabold text-ink hover:underline"
+                    className="text-left text-lg font-extrabold text-ink hover:underline flex items-center gap-1"
                   >
-                    {l.name} <span className="text-xs text-slate-500 ml-1">{l.lead_code ?? ''}</span>
+                    {l.name}
+                    {l.is_customer && (
+                      <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 border border-emerald-200 text-[10px] font-bold">
+                        ✓
+                      </span>
+                    )}
+                    <span className="text-xs text-slate-500 ml-1">{l.lead_code ?? ''}</span>
                   </button>
                   <p className="text-sm text-slate-500">
                     Anfragedatum: {l.requested_at ? new Date(l.requested_at).toLocaleDateString() : '—'}
