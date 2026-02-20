@@ -44,6 +44,9 @@ const targetLabel: Record<string, string> = {
   both: 'Beide',
 };
 
+const STATES_AT = ['Burgenland', 'Kärnten', 'Niederösterreich', 'Oberösterreich', 'Salzburg', 'Steiermark', 'Tirol', 'Vorarlberg', 'Wien'];
+const STATES_DE = ['Baden-Württemberg', 'Bayern', 'Berlin', 'Brandenburg', 'Bremen', 'Hamburg', 'Hessen', 'Mecklenburg-Vorpommern', 'Niedersachsen', 'Nordrhein-Westfalen', 'Rheinland-Pfalz', 'Saarland', 'Sachsen', 'Sachsen-Anhalt', 'Schleswig-Holstein', 'Thüringen'];
+
 export default function BenefitsPage() {
   const { supabase } = useSupabase();
   const [items, setItems] = useState<Benefit[]>([]);
@@ -80,6 +83,11 @@ export default function BenefitsPage() {
     if (b.discount_type === 'perk') return 'Vorteil';
     return '—';
   };
+
+  const stateOptions = (country?: string | null) =>
+    country === 'Deutschland' || country === 'DE' ? STATES_DE
+    : country === 'Österreich' || country === 'AT' ? STATES_AT
+    : [];
 
   const resetForm = () => {
     setCurrent(null);
@@ -321,7 +329,20 @@ export default function BenefitsPage() {
                     </label>
                     <label className="space-y-1">
                       <span className="text-slate-600">Land</span>
-                      <input className="input" value={current.country ?? ''} onChange={(e) => setCurrent({ ...current, country: e.target.value })} />
+                      <select
+                        className="input"
+                        value={current.country ?? ''}
+                        onChange={(e) => {
+                          const country = e.target.value || null;
+                          const states = stateOptions(country);
+                          const nextState = states.includes(current.state || '') ? current.state : null;
+                          setCurrent({ ...current, country, state: nextState });
+                        }}
+                      >
+                        <option value="">Bitte wählen</option>
+                        <option value="Österreich">Österreich</option>
+                        <option value="Deutschland">Deutschland</option>
+                      </select>
                     </label>
                     <label className="space-y-1">
                       <span className="text-slate-600">How to redeem</span>
@@ -374,7 +395,16 @@ export default function BenefitsPage() {
                     </label>
                     <label className="space-y-1">
                       <span className="text-slate-600">Bundesland</span>
-                      <input className="input" value={current.state ?? ''} onChange={(e) => setCurrent({ ...current, state: e.target.value })} />
+                      <select
+                        className="input"
+                        value={current.state ?? ''}
+                        onChange={(e) => setCurrent({ ...current, state: e.target.value || null })}
+                      >
+                        <option value="">Bitte wählen</option>
+                        {stateOptions(current.country).map((s) => (
+                          <option key={s} value={s}>{s}</option>
+                        ))}
+                      </select>
                     </label>
                   </div>
                 </section>
