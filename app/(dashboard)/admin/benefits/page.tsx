@@ -22,6 +22,14 @@ export type Benefit = {
   logo_url?: string | null;
   how_to_redeem?: string | null;
   members_card_required?: boolean | null;
+  contact_name?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  website?: string | null;
+  street?: string | null;
+  postal_code?: string | null;
+  city?: string | null;
+  state?: string | null;
 };
 
 const statusLabel: Record<string, string> = {
@@ -50,7 +58,7 @@ export default function BenefitsPage() {
     setLoading(true);
     const { data, error } = await supabase
       .from('benefit_companies')
-      .select('id, name, status, target, action_title, description, discount_type, discount_value, code, valid_from, valid_to, country, logo_path, how_to_redeem, members_card_required')
+      .select('id, name, status, target, action_title, description, discount_type, discount_value, code, valid_from, valid_to, country, logo_path, how_to_redeem, members_card_required, contact_name, phone, email, website, street, postal_code, city, state')
       .order('created_at', { ascending: false });
     if (error) {
       setError(error.message);
@@ -117,6 +125,14 @@ export default function BenefitsPage() {
     let payload: any = { ...current };
     // Leere Strings auf null setzen, um CHECK-Verletzungen zu vermeiden
     payload.country = (payload.country || '').trim() || null;
+    payload.street = (payload.street || '').trim() || null;
+    payload.postal_code = (payload.postal_code || '').trim() || null;
+    payload.city = (payload.city || '').trim() || null;
+    payload.state = (payload.state || '').trim() || null;
+    payload.contact_name = (payload.contact_name || '').trim() || null;
+    payload.phone = (payload.phone || '').trim() || null;
+    payload.email = (payload.email || '').trim() || null;
+    payload.website = (payload.website || '').trim() || null;
     payload.code = (payload.code || '').trim() || null;
     payload.action_title = (payload.action_title || '').trim() || null;
     payload.description = (payload.description || '').trim() || null;
@@ -237,6 +253,9 @@ export default function BenefitsPage() {
             <button className="absolute top-3 right-3 text-slate-500 hover:text-ink" onClick={() => { setModalOpen(false); resetForm(); }}>×</button>
             <h3 className="text-xl font-semibold mb-2">{current.id ? 'Benefit bearbeiten' : 'Neuen Benefit anlegen'}</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+              <div className="md:col-span-2">
+                <p className="text-xs uppercase tracking-[0.14em] text-slate-500 mb-1">Benefit</p>
+              </div>
               <label className="space-y-1">
                 <span className="text-slate-600">Name*</span>
                 <input className="input" value={current.name} onChange={(e) => setCurrent({ ...current, name: e.target.value })} />
@@ -307,6 +326,42 @@ export default function BenefitsPage() {
               <label className="space-y-1">
                 <span className="text-slate-600">Logo (optional)</span>
                 <input type="file" accept="image/*" onChange={(e) => setLogoFile(e.target.files?.[0] || null)} />
+              </label>
+
+              <div className="md:col-span-2 mt-2">
+                <p className="text-xs uppercase tracking-[0.14em] text-slate-500 mb-1">Firmendaten</p>
+              </div>
+              <label className="space-y-1">
+                <span className="text-slate-600">Ansprechpartner</span>
+                <input className="input" value={current.contact_name ?? ''} onChange={(e) => setCurrent({ ...current, contact_name: e.target.value })} />
+              </label>
+              <label className="space-y-1">
+                <span className="text-slate-600">Telefon</span>
+                <input className="input" value={current.phone ?? ''} onChange={(e) => setCurrent({ ...current, phone: e.target.value })} />
+              </label>
+              <label className="space-y-1">
+                <span className="text-slate-600">E-Mail</span>
+                <input className="input" type="email" value={current.email ?? ''} onChange={(e) => setCurrent({ ...current, email: e.target.value })} />
+              </label>
+              <label className="space-y-1">
+                <span className="text-slate-600">Website</span>
+                <input className="input" type="url" value={current.website ?? ''} onChange={(e) => setCurrent({ ...current, website: e.target.value })} />
+              </label>
+              <label className="space-y-1 md:col-span-2">
+                <span className="text-slate-600">Straße</span>
+                <input className="input" value={current.street ?? ''} onChange={(e) => setCurrent({ ...current, street: e.target.value })} />
+              </label>
+              <label className="space-y-1">
+                <span className="text-slate-600">PLZ</span>
+                <input className="input" value={current.postal_code ?? ''} onChange={(e) => setCurrent({ ...current, postal_code: e.target.value })} />
+              </label>
+              <label className="space-y-1">
+                <span className="text-slate-600">Ort</span>
+                <input className="input" value={current.city ?? ''} onChange={(e) => setCurrent({ ...current, city: e.target.value })} />
+              </label>
+              <label className="space-y-1">
+                <span className="text-slate-600">Bundesland</span>
+                <input className="input" value={current.state ?? ''} onChange={(e) => setCurrent({ ...current, state: e.target.value })} />
               </label>
             </div>
             <div className="mt-4 flex justify-end gap-2">
