@@ -62,7 +62,8 @@ export default function BookingsPage() {
   const [payNote, setPayNote] = useState('');
   const [savingPayment, setSavingPayment] = useState(false);
   const [statusSaving, setStatusSaving] = useState(false);
-  const [tab, setTab] = useState<'overview' | 'payments' | 'dunning' | 'open'>('overview');
+  const [viewTab, setViewTab] = useState<'overview' | 'open'>('overview');
+  const [modalTab, setModalTab] = useState<'overview' | 'payments' | 'dunning'>('overview');
   const [metrics, setMetrics] = useState<Metrics | null>(null);
 
   const load = async () => {
@@ -102,6 +103,7 @@ export default function BookingsPage() {
       const fallback = items.find((b) => b.id === id) || {};
       setSelected({ ...fallback, ...data });
       setPayments(data.payments || []);
+      setModalTab('overview');
     }
   };
 
@@ -186,22 +188,22 @@ export default function BookingsPage() {
 
       <div className="card p-6 shadow-xl text-slate-900 overflow-x-auto">
         <div className="flex gap-3 mb-4 text-sm font-semibold text-slate-600">
-          {(['overview', 'open', 'payments', 'dunning'] as const).map((t) => (
+          {(['overview', 'open'] as const).map((t) => (
             <button
               key={t}
-              className={`pb-2 border-b-2 ${tab === t ? 'border-pink-500 text-ink' : 'border-transparent text-slate-400'}`}
-              onClick={() => setTab(t)}
+              className={`pb-2 border-b-2 ${viewTab === t ? 'border-pink-500 text-ink' : 'border-transparent text-slate-400'}`}
+              onClick={() => setViewTab(t)}
             >
-              {t === 'overview' ? 'Übersicht' : t === 'open' ? 'Offene Saldenliste' : t === 'payments' ? 'Zahlungen' : 'Mahnwesen'}
+              {t === 'overview' ? 'Übersicht' : 'Offene Saldenliste'}
             </button>
           ))}
         </div>
 
-        {tab === 'open' && !loading && (
+        {viewTab === 'open' && !loading && (
           <OpenSaldoTable items={filtered.filter((b) => (b.open_amount ?? b.saldo ?? 0) > 0.001)} />
         )}
 
-        {tab !== 'open' && (
+        {viewTab !== 'open' && (
           <>
             {loading && <p className="text-sm text-slate-500">Lade Buchungen...</p>}
             {error && <p className="text-sm text-red-600">{error}</p>}
@@ -282,8 +284,8 @@ export default function BookingsPage() {
               ].map(([key, label]) => (
                 <button
                   key={key}
-                  className={`rounded-full border px-4 py-1 text-sm font-semibold transition ${tab === key ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300'}`}
-                  onClick={() => setTab(key as any)}
+                  className={`rounded-full border px-4 py-1 text-sm font-semibold transition ${modalTab === key ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300'}`}
+                  onClick={() => setModalTab(key as any)}
                 >
                   {label}
                 </button>
@@ -298,7 +300,7 @@ export default function BookingsPage() {
             </div>
 
             <div className="space-y-6">
-              {tab === 'overview' && (
+              {modalTab === 'overview' && (
                 <section className="rounded-xl border border-slate-200 bg-slate-50/70 p-4 shadow-sm">
                   <p className="text-xs font-semibold text-ink uppercase tracking-[0.15em] mb-3">Basis</p>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
@@ -324,7 +326,7 @@ export default function BookingsPage() {
                 </section>
               )}
 
-              {tab === 'payments' && (
+              {modalTab === 'payments' && (
                 <section className="rounded-xl border border-slate-200 bg-slate-50/70 p-4 shadow-sm space-y-3">
                   <div className="flex items-center justify-between">
                     <p className="text-xs font-semibold text-ink uppercase tracking-[0.15em]">Zahlungen</p>
@@ -411,7 +413,7 @@ export default function BookingsPage() {
                 </section>
               )}
 
-              {tab === 'dunning' && (
+              {modalTab === 'dunning' && (
                 <section className="rounded-xl border border-slate-200 bg-slate-50/70 p-4 shadow-sm space-y-3">
                   <p className="text-xs font-semibold text-ink uppercase tracking-[0.15em]">Status & Mahnwesen</p>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm items-end">
