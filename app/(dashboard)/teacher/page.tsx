@@ -589,6 +589,26 @@ export default async function TeacherPage() {
       })) || [];
   }
 
+  // Feedbacks zu Kursen des Dozenten laden
+  let feedbacks:
+    | {
+        course_id: string | null;
+        course_title: string | null;
+        ratings: any;
+        recommend: string | null;
+        improve: string | null;
+        created_at: string | null;
+      }[]
+    | null = [];
+  const courseIdsForFeedback = (courses || []).map((c) => c.id);
+  if (courseIdsForFeedback.length) {
+    const { data: fbRows } = await service
+      .from('course_feedback')
+      .select('course_id, course_title, ratings, recommend, improve, created_at')
+      .in('course_id', courseIdsForFeedback);
+    feedbacks = fbRows || [];
+  }
+
   return (
     <div className="space-y-8">
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 bg-white/10 border border-white/15 rounded-xl p-6 shadow-lg relative overflow-hidden">
@@ -617,6 +637,7 @@ export default async function TeacherPage() {
         notes={notes}
         courses={courses || []}
         materials={materials || []}
+        feedbacks={feedbacks || []}
       />
     </div>
   );
