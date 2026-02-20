@@ -132,8 +132,22 @@ export default function BookingsPage() {
   const derivedDeposit = selected?.deposit ?? 0;
   const derivedDuration = selected?.duration_hours ?? 0;
 
+  const openItems = filtered.filter((b) => (b.open_amount ?? b.saldo ?? 0) > 0.001);
+
   return (
     <div className="space-y-6">
+      <style>{`
+        @media print {
+          body { background: white !important; }
+          .no-print { display: none !important; }
+          .print-open-saldo { display: block !important; }
+          table.print-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+          table.print-table th, table.print-table td { border: 1px solid #333; padding: 6px; text-align: left; }
+        }
+        @media screen {
+          .print-open-saldo { display: none; }
+        }
+      `}</style>
       <div className="flex items-center justify-between">
         <div>
           <p className="text-xs uppercase tracking-[0.2em] text-pink-200">Admin</p>
@@ -200,7 +214,48 @@ export default function BookingsPage() {
         </div>
 
         {viewTab === 'open' && !loading && (
-          <OpenSaldoTable items={filtered.filter((b) => (b.open_amount ?? b.saldo ?? 0) > 0.001)} />
+          <>
+            <div className="flex items-center justify-between mb-3 text-sm text-slate-700">
+              <div>Offene Salden: {openItems.length} Buchungen · Gesamt: {openItems.reduce((s, b) => s + (Number(b.open_amount ?? b.saldo ?? 0) || 0), 0).toFixed(2)} €</div>
+              <button
+                className="no-print inline-flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-semibold text-slate-700 hover:bg-slate-100"
+                onClick={() => window.print()}
+              >
+                Drucken (A4)
+              </button>
+            </div>
+            <OpenSaldoTable items={openItems} />
+
+            {/* Druckansicht ohne Boxen */}
+            <div className="print-open-saldo mt-6">
+              <h2 style={{ fontSize: '16px', marginBottom: '8px' }}>Offene Saldenliste</h2>
+              <table className="print-table">
+                <thead>
+                  <tr>
+                    <th>Buchungsdatum</th>
+                    <th>Teilnehmer</th>
+                    <th>Kurs</th>
+                    <th>Status</th>
+                    <th>Offener Betrag</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {openItems.map((b) => {
+                    const open = Number(b.open_amount ?? b.saldo ?? 0) || 0;
+                    return (
+                      <tr key={b.id}>
+                        <td>{b.booking_date ? new Date(b.booking_date).toLocaleDateString() : '—'}</td>
+                        <td>{b.student_name ?? '—'}</td>
+                        <td>{b.course_title ?? '—'}</td>
+                        <td>{b.status}</td>
+                        <td>{open.toFixed(2)} €</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
 
         {viewTab !== 'open' && (
