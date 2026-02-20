@@ -38,14 +38,14 @@ export async function GET(req: Request) {
       student_email: f.students?.email ?? null,
     })) ?? [];
 
-  // Bei partner_id: Kurs-IDs des Partners holen und clientseitig filtern (kein SQL-Join nötig)
+  // Bei partner_id: Kurs-IDs des Partners über course_dates holen und filtern
   if (partnerId) {
-    const { data: partnerCourses, error: partnerErr } = await service
-      .from('courses')
-      .select('id')
+    const { data: partnerDates, error: partnerErr } = await service
+      .from('course_dates')
+      .select('course_id')
       .eq('partner_id', partnerId);
     if (partnerErr) return NextResponse.json({ error: partnerErr.message }, { status: 400 });
-    const allowed = new Set((partnerCourses || []).map((c: any) => c.id).filter(Boolean));
+    const allowed = new Set((partnerDates || []).map((c: any) => c.course_id).filter(Boolean));
     rows = rows.filter((r) => allowed.has(r.course_id));
   }
 
