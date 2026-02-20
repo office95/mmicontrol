@@ -101,9 +101,6 @@ export default async function DashboardLayout({ children }: { children: ReactNod
 
   const links = [
     { href: '/admin', label: 'Dashboard', roles: ['admin'], slug: 'admin-dashboard', pin: 'top' },
-    { href: '/admin/course-dates', label: 'Kurstermine', roles: ['admin'], slug: 'course-dates' },
-    { href: '/admin/courses', label: 'Kurse', roles: ['admin'], slug: 'courses' },
-    { href: '/admin/materials', label: 'Kursmaterial', roles: ['admin'], slug: 'materials' },
     { href: '/admin/benefits', label: 'Benefits', roles: ['admin'], slug: 'admin-benefits' },
     { href: '/admin/partners', label: 'Partner', roles: ['admin'], slug: 'admin-partners' },
     { href: '/admin/leads', label: 'Leads', roles: ['admin'], slug: 'admin-leads' },
@@ -168,20 +165,55 @@ export default async function DashboardLayout({ children }: { children: ReactNod
                       );
                       const top = allowed.filter((l) => l.pin === 'top');
                       const bottom = allowed.filter((l) => l.pin === 'bottom');
-                      const middle = allowed
-                        .filter((l) => !l.pin)
+                      const middleRaw = allowed.filter((l) => !l.pin);
+
+                      // Kurs-Verwaltungsgruppe (nur Admin) und aus der flachen Liste entfernen
+                      const courseGroupHrefs = ['/admin/courses', '/admin/materials', '/admin/course-dates'];
+                      const courseLinks = middleRaw.filter((l) => courseGroupHrefs.includes(l.href));
+                      const middle = middleRaw
+                        .filter((l) => !courseGroupHrefs.includes(l.href))
                         .sort((a, b) => a.label.localeCompare(b.label, 'de'));
-                      return [...top, ...middle, ...bottom];
+                      const grouped =
+                        roleLabel === 'admin' && courseLinks.length
+                          ? [
+                              {
+                                href: '#',
+                                label: 'Kursverwaltung',
+                                children: courseLinks.sort((a, b) => a.label.localeCompare(b.label, 'de')),
+                              },
+                            ]
+                          : [];
+
+                      return [...top, ...grouped, ...middle, ...bottom];
                     })()
                   : links
                 ).map((l) => (
-                  <Link
-                    key={l.href}
-                    href={l.href as any}
-                    className="block rounded-lg px-5 py-3.5 text-[16px] md:text-[17px] font-semibold text-white/90 bg-white/12 border border-white/20 hover:bg-white/20 transition"
-                  >
-                    {l.label}
-                  </Link>
+                  'children' in l && l.children ? (
+                    <div key={l.label} className="group relative">
+                      <div className="block rounded-lg px-5 py-3.5 text-[16px] md:text-[17px] font-semibold text-white/90 bg-white/12 border border-white/20 transition">
+                        {l.label}
+                      </div>
+                      <div className="hidden group-hover:block absolute left-[calc(100%+6px)] top-0 z-40 min-w-[200px] rounded-xl border border-white/15 bg-white/10 backdrop-blur-xl shadow-2xl">
+                        {l.children.map((c) => (
+                          <Link
+                            key={c.href}
+                            href={c.href as any}
+                            className="block px-4 py-2.5 text-[15px] font-semibold text-white/90 hover:bg-white/15 transition border-b border-white/10 last:border-b-0"
+                          >
+                            {c.label}
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <Link
+                      key={l.href}
+                      href={l.href as any}
+                      className="block rounded-lg px-5 py-3.5 text-[16px] md:text-[17px] font-semibold text-white/90 bg-white/12 border border-white/20 hover:bg-white/20 transition"
+                    >
+                      {l.label}
+                    </Link>
+                  )
                 ))}
               </nav>
             </aside>
