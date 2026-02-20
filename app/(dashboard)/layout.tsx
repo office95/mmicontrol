@@ -61,12 +61,15 @@ export default async function DashboardLayout({ children }: { children: ReactNod
 
   // Neue Seiten-Slugs automatisch für RBAC registrieren
   await ensureSlugs([
-    'admin-partners',
-    'admin-roles',
-    'admin-benefits',
-    'course-dates',
-    'admin-students',
-    'admin-bookings',
+  'admin-dashboard',
+  'admin-partners',
+  'admin-roles',
+  'admin-benefits',
+  'courses',
+  'materials',
+  'course-dates',
+  'admin-students',
+  'admin-bookings',
     'admin-leads',
     'student-materials',
     'student-profile',
@@ -101,6 +104,9 @@ export default async function DashboardLayout({ children }: { children: ReactNod
 
   const links = [
     { href: '/admin', label: 'Dashboard', roles: ['admin'], slug: 'admin-dashboard', pin: 'top' },
+    { href: '/admin/courses', label: 'Kurse', roles: ['admin'], slug: 'courses' },
+    { href: '/admin/materials', label: 'Kursmaterial', roles: ['admin'], slug: 'materials' },
+    { href: '/admin/course-dates', label: 'Kurstermine', roles: ['admin'], slug: 'course-dates' },
     { href: '/admin/benefits', label: 'Benefits', roles: ['admin'], slug: 'admin-benefits' },
     { href: '/admin/partners', label: 'Partner', roles: ['admin'], slug: 'admin-partners' },
     { href: '/admin/leads', label: 'Leads', roles: ['admin'], slug: 'admin-leads' },
