@@ -277,7 +277,10 @@ function FeedbackModal({
         <button className="absolute top-3 right-3 text-slate-500 hover:text-ink" onClick={onClose}>×</button>
         <h3 className="text-2xl font-semibold mb-3">{title}</h3>
         {loading && (
-          <p className="text-slate-600 flex items-center gap-2"><Spinner size="sm" /> Lade Feedback...</p>
+          <p className="text-slate-600 flex items-center gap-2">
+            <Spinner />
+            Lade Feedback...
+          </p>
         )}
         {error && <p className="text-sm text-red-600">{error}</p>}
         {!loading && !error && !items.length && <p className="text-slate-600">Keine Feedbacks vorhanden.</p>}
