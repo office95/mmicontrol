@@ -50,10 +50,10 @@ export default async function StudentPage({ searchParams }: { searchParams: Reco
       courses = courseRows || [];
 
       // Starttermine zu den Kursen laden
-      const { data: dates } = await service
-        .from('course_dates')
-        .select('course_id, start_date')
-        .in('course_id', courseIds);
+  const { data: dates } = await service
+    .from('course_dates')
+    .select('course_id, start_date, end_date')
+    .in('course_id', courseIds);
       const dateMap = new Map<string, string | null>();
       const today = new Date();
       dates?.forEach((d) => {
@@ -177,6 +177,18 @@ export default async function StudentPage({ searchParams }: { searchParams: Reco
   const start = nextCourse?.start_date ? new Date(nextCourse.start_date) : null;
   const today = new Date();
   const days = start ? Math.ceil((start.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)) : null;
+
+  // Feedback-Reminder (1 Woche vor Kursende, falls end_date vorhanden)
+  let showFeedbackReminder = false;
+  if (dates?.length) {
+    const todayMs = Date.now();
+    dates.forEach((d) => {
+      const end = d.end_date ? new Date(d.end_date).getTime() : null;
+      if (end && end - todayMs <= 7 * 24 * 60 * 60 * 1000 && end >= todayMs) {
+        showFeedbackReminder = true;
+      }
+    });
+  }
 
   return (
     <div className="space-y-8">
