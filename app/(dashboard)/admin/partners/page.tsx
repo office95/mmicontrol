@@ -85,13 +85,15 @@ export default function PartnersPage() {
     load();
   }, []);
 
-  const filtered = partners.filter((p) => {
-    const statusOk = filterStatus === 'all' ? true : p.status === filterStatus;
-    const term = search.trim().toLowerCase();
-    const text = `${p.name ?? ''} ${p.city ?? ''} ${p.state ?? ''} ${p.country ?? ''}`.toLowerCase();
-    const searchOk = term === '' ? true : text.includes(term);
-    return statusOk && searchOk;
-  });
+  const filtered = partners
+    .filter((p) => {
+      const statusOk = filterStatus === 'all' ? true : p.status === filterStatus;
+      const term = search.trim().toLowerCase();
+      const text = `${p.name ?? ''} ${p.city ?? ''} ${p.state ?? ''} ${p.country ?? ''}`.toLowerCase();
+      const searchOk = term === '' ? true : text.includes(term);
+      return statusOk && searchOk;
+    })
+    .sort((a, b) => (a.name || '').localeCompare(b.name || '', 'de', { sensitivity: 'base' }));
 
   const toPartnerRow = (p: Partner): PartnerRow => ({
     ...p,
