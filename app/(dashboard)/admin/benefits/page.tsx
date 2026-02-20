@@ -249,132 +249,149 @@ export default function BenefitsPage() {
 
       {modalOpen && current && (
         <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center px-4">
-          <div className="w-full max-w-3xl rounded-2xl bg-white text-ink shadow-2xl p-6 relative">
+          <div className="w-full max-w-4xl rounded-2xl bg-white text-ink shadow-2xl p-6 relative overflow-hidden">
+            <div className="absolute -left-10 -top-16 h-48 w-48 bg-pink-100/60 rounded-full blur-3xl" />
+            <div className="absolute -right-12 -bottom-20 h-56 w-56 bg-purple-100/60 rounded-full blur-3xl" />
             <button className="absolute top-3 right-3 text-slate-500 hover:text-ink" onClick={() => { setModalOpen(false); resetForm(); }}>×</button>
-            <h3 className="text-xl font-semibold mb-2">{current.id ? 'Benefit bearbeiten' : 'Neuen Benefit anlegen'}</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-              <div className="md:col-span-2">
-                <p className="text-xs uppercase tracking-[0.14em] text-slate-500 mb-1">Benefit</p>
-              </div>
-              <label className="space-y-1">
-                <span className="text-slate-600">Name*</span>
-                <input className="input" value={current.name} onChange={(e) => setCurrent({ ...current, name: e.target.value })} />
-              </label>
-              <label className="space-y-1">
-                <span className="text-slate-600">Vorteil / Titel</span>
-                <input className="input" value={current.action_title ?? ''} onChange={(e) => setCurrent({ ...current, action_title: e.target.value })} />
-              </label>
-              <label className="space-y-1 md:col-span-2">
-                <span className="text-slate-600">Beschreibung</span>
-                <textarea className="input h-24" value={current.description ?? ''} onChange={(e) => setCurrent({ ...current, description: e.target.value })} />
-              </label>
-              <label className="space-y-1">
-                <span className="text-slate-600">Rabattart</span>
-                <select className="input" value={current.discount_type ?? ''} onChange={(e) => setCurrent({ ...current, discount_type: e.target.value as any })}>
-                  <option value="percent">Prozent</option>
-                  <option value="fixed">Fixbetrag</option>
-                  <option value="perk">Vorteil</option>
-                </select>
-              </label>
-              <label className="space-y-1">
-                <span className="text-slate-600">Wert</span>
-                <input className="input" type="number" value={current.discount_value ?? ''} onChange={(e) => setCurrent({ ...current, discount_value: e.target.value ? Number(e.target.value) : null })} />
-              </label>
-              <label className="space-y-1">
-                <span className="text-slate-600">Code (optional)</span>
-                <input className="input" value={current.code ?? ''} onChange={(e) => setCurrent({ ...current, code: e.target.value })} />
-              </label>
-              <label className="space-y-1">
-                <span className="text-slate-600">Zielgruppe</span>
-                <select className="input" value={current.target ?? 'both'} onChange={(e) => setCurrent({ ...current, target: e.target.value as any })}>
-                  <option value="both">Beide</option>
-                  <option value="teachers">Dozenten</option>
-                  <option value="students">Studierende</option>
-                </select>
-              </label>
-              <label className="space-y-1">
-                <span className="text-slate-600">Status</span>
-                <select className="input" value={current.status} onChange={(e) => setCurrent({ ...current, status: e.target.value as any })}>
-                  <option value="active">Aktiv</option>
-                  <option value="inactive">Inaktiv</option>
-                  <option value="archived">Archiv</option>
-                </select>
-              </label>
-              <label className="space-y-1">
-                <span className="text-slate-600">Gültig von</span>
-                <input className="input" type="date" value={current.valid_from ?? ''} onChange={(e) => setCurrent({ ...current, valid_from: e.target.value || null })} />
-              </label>
-              <label className="space-y-1">
-                <span className="text-slate-600">Gültig bis</span>
-                <input className="input" type="date" value={current.valid_to ?? ''} onChange={(e) => setCurrent({ ...current, valid_to: e.target.value || null })} />
-              </label>
-              <label className="space-y-1">
-                <span className="text-slate-600">Land</span>
-                <input className="input" value={current.country ?? ''} onChange={(e) => setCurrent({ ...current, country: e.target.value })} />
-              </label>
-              <label className="space-y-1">
-                <span className="text-slate-600">How to redeem</span>
-                <input className="input" value={current.how_to_redeem ?? ''} onChange={(e) => setCurrent({ ...current, how_to_redeem: e.target.value })} />
-              </label>
-              <label className="space-y-1">
-                <span className="text-slate-600">Members Card Pflicht</span>
-                <div className="flex items-center gap-2">
-                  <input type="checkbox" checked={!!current.members_card_required} onChange={(e) => setCurrent({ ...current, members_card_required: e.target.checked })} />
-                  <span className="text-slate-600 text-sm">Ja</span>
+            <div className="relative z-10 space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.18em] text-pink-500 font-semibold">
+                    {current.id ? 'Benefit bearbeiten' : 'Neuen Benefit anlegen'}
+                  </p>
+                  <h3 className="text-2xl font-semibold text-ink">Firmen-Vorteil</h3>
                 </div>
-              </label>
-              <label className="space-y-1">
-                <span className="text-slate-600">Logo (optional)</span>
-                <input type="file" accept="image/*" onChange={(e) => setLogoFile(e.target.files?.[0] || null)} />
-              </label>
-
-              <div className="md:col-span-2 mt-2">
-                <p className="text-xs uppercase tracking-[0.14em] text-slate-500 mb-1">Firmendaten</p>
               </div>
-              <label className="space-y-1">
-                <span className="text-slate-600">Ansprechpartner</span>
-                <input className="input" value={current.contact_name ?? ''} onChange={(e) => setCurrent({ ...current, contact_name: e.target.value })} />
-              </label>
-              <label className="space-y-1">
-                <span className="text-slate-600">Telefon</span>
-                <input className="input" value={current.phone ?? ''} onChange={(e) => setCurrent({ ...current, phone: e.target.value })} />
-              </label>
-              <label className="space-y-1">
-                <span className="text-slate-600">E-Mail</span>
-                <input className="input" type="email" value={current.email ?? ''} onChange={(e) => setCurrent({ ...current, email: e.target.value })} />
-              </label>
-              <label className="space-y-1">
-                <span className="text-slate-600">Website</span>
-                <input className="input" type="url" value={current.website ?? ''} onChange={(e) => setCurrent({ ...current, website: e.target.value })} />
-              </label>
-              <label className="space-y-1 md:col-span-2">
-                <span className="text-slate-600">Straße</span>
-                <input className="input" value={current.street ?? ''} onChange={(e) => setCurrent({ ...current, street: e.target.value })} />
-              </label>
-              <label className="space-y-1">
-                <span className="text-slate-600">PLZ</span>
-                <input className="input" value={current.postal_code ?? ''} onChange={(e) => setCurrent({ ...current, postal_code: e.target.value })} />
-              </label>
-              <label className="space-y-1">
-                <span className="text-slate-600">Ort</span>
-                <input className="input" value={current.city ?? ''} onChange={(e) => setCurrent({ ...current, city: e.target.value })} />
-              </label>
-              <label className="space-y-1">
-                <span className="text-slate-600">Bundesland</span>
-                <input className="input" value={current.state ?? ''} onChange={(e) => setCurrent({ ...current, state: e.target.value })} />
-              </label>
-            </div>
-            <div className="mt-4 flex justify-end gap-2">
-              <button className="rounded-lg border border-slate-300 px-4 py-2 text-slate-700 hover:bg-slate-100" onClick={() => { setModalOpen(false); resetForm(); }}>
-                Abbrechen
-              </button>
-              <button
-                className="rounded-lg bg-pink-600 text-white px-4 py-2 font-semibold hover:bg-pink-500 disabled:opacity-60"
-                onClick={handleSave}
-                disabled={saving}
-              >
-                {saving ? 'Speichert...' : 'Speichern'}
-              </button>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <section className="rounded-xl border border-slate-200 bg-white/70 p-4 shadow-sm space-y-3">
+                  <p className="text-xs uppercase tracking-[0.14em] text-slate-500">Benefit</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                    <label className="space-y-1">
+                      <span className="text-slate-600">Name*</span>
+                      <input className="input" value={current.name} onChange={(e) => setCurrent({ ...current, name: e.target.value })} />
+                    </label>
+                    <label className="space-y-1">
+                      <span className="text-slate-600">Vorteil / Titel</span>
+                      <input className="input" value={current.action_title ?? ''} onChange={(e) => setCurrent({ ...current, action_title: e.target.value })} />
+                    </label>
+                    <label className="space-y-1 sm:col-span-2">
+                      <span className="text-slate-600">Beschreibung</span>
+                      <textarea className="input h-24" value={current.description ?? ''} onChange={(e) => setCurrent({ ...current, description: e.target.value })} />
+                    </label>
+                    <label className="space-y-1">
+                      <span className="text-slate-600">Rabattart</span>
+                      <select className="input" value={current.discount_type ?? ''} onChange={(e) => setCurrent({ ...current, discount_type: e.target.value as any })}>
+                        <option value="percent">Prozent</option>
+                        <option value="fixed">Fixbetrag</option>
+                        <option value="perk">Vorteil</option>
+                      </select>
+                    </label>
+                    <label className="space-y-1">
+                      <span className="text-slate-600">Wert</span>
+                      <input className="input" type="number" value={current.discount_value ?? ''} onChange={(e) => setCurrent({ ...current, discount_value: e.target.value ? Number(e.target.value) : null })} />
+                    </label>
+                    <label className="space-y-1">
+                      <span className="text-slate-600">Code (optional)</span>
+                      <input className="input" value={current.code ?? ''} onChange={(e) => setCurrent({ ...current, code: e.target.value })} />
+                    </label>
+                    <label className="space-y-1">
+                      <span className="text-slate-600">Zielgruppe</span>
+                      <select className="input" value={current.target ?? 'both'} onChange={(e) => setCurrent({ ...current, target: e.target.value as any })}>
+                        <option value="both">Beide</option>
+                        <option value="teachers">Dozenten</option>
+                        <option value="students">Studierende</option>
+                      </select>
+                    </label>
+                    <label className="space-y-1">
+                      <span className="text-slate-600">Status</span>
+                      <select className="input" value={current.status} onChange={(e) => setCurrent({ ...current, status: e.target.value as any })}>
+                        <option value="active">Aktiv</option>
+                        <option value="inactive">Inaktiv</option>
+                        <option value="archived">Archiv</option>
+                      </select>
+                    </label>
+                    <label className="space-y-1">
+                      <span className="text-slate-600">Gültig von</span>
+                      <input className="input" type="date" value={current.valid_from ?? ''} onChange={(e) => setCurrent({ ...current, valid_from: e.target.value || null })} />
+                    </label>
+                    <label className="space-y-1">
+                      <span className="text-slate-600">Gültig bis</span>
+                      <input className="input" type="date" value={current.valid_to ?? ''} onChange={(e) => setCurrent({ ...current, valid_to: e.target.value || null })} />
+                    </label>
+                    <label className="space-y-1">
+                      <span className="text-slate-600">Land</span>
+                      <input className="input" value={current.country ?? ''} onChange={(e) => setCurrent({ ...current, country: e.target.value })} />
+                    </label>
+                    <label className="space-y-1">
+                      <span className="text-slate-600">How to redeem</span>
+                      <input className="input" value={current.how_to_redeem ?? ''} onChange={(e) => setCurrent({ ...current, how_to_redeem: e.target.value })} />
+                    </label>
+                    <label className="space-y-1">
+                      <span className="text-slate-600">Members Card Pflicht</span>
+                      <div className="flex items-center gap-2">
+                        <input type="checkbox" checked={!!current.members_card_required} onChange={(e) => setCurrent({ ...current, members_card_required: e.target.checked })} />
+                        <span className="text-slate-600 text-sm">Ja</span>
+                      </div>
+                    </label>
+                    <label className="space-y-1">
+                      <span className="text-slate-600">Logo (optional)</span>
+                      <input type="file" accept="image/*" onChange={(e) => setLogoFile(e.target.files?.[0] || null)} />
+                    </label>
+                  </div>
+                </section>
+
+                <section className="rounded-xl border border-slate-200 bg-white/70 p-4 shadow-sm space-y-3">
+                  <p className="text-xs uppercase tracking-[0.14em] text-slate-500">Firmendaten</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                    <label className="space-y-1">
+                      <span className="text-slate-600">Ansprechpartner</span>
+                      <input className="input" value={current.contact_name ?? ''} onChange={(e) => setCurrent({ ...current, contact_name: e.target.value })} />
+                    </label>
+                    <label className="space-y-1">
+                      <span className="text-slate-600">Telefon</span>
+                      <input className="input" value={current.phone ?? ''} onChange={(e) => setCurrent({ ...current, phone: e.target.value })} />
+                    </label>
+                    <label className="space-y-1">
+                      <span className="text-slate-600">E-Mail</span>
+                      <input className="input" type="email" value={current.email ?? ''} onChange={(e) => setCurrent({ ...current, email: e.target.value })} />
+                    </label>
+                    <label className="space-y-1">
+                      <span className="text-slate-600">Website</span>
+                      <input className="input" type="url" value={current.website ?? ''} onChange={(e) => setCurrent({ ...current, website: e.target.value })} />
+                    </label>
+                    <label className="space-y-1 sm:col-span-2">
+                      <span className="text-slate-600">Straße</span>
+                      <input className="input" value={current.street ?? ''} onChange={(e) => setCurrent({ ...current, street: e.target.value })} />
+                    </label>
+                    <label className="space-y-1">
+                      <span className="text-slate-600">PLZ</span>
+                      <input className="input" value={current.postal_code ?? ''} onChange={(e) => setCurrent({ ...current, postal_code: e.target.value })} />
+                    </label>
+                    <label className="space-y-1">
+                      <span className="text-slate-600">Ort</span>
+                      <input className="input" value={current.city ?? ''} onChange={(e) => setCurrent({ ...current, city: e.target.value })} />
+                    </label>
+                    <label className="space-y-1">
+                      <span className="text-slate-600">Bundesland</span>
+                      <input className="input" value={current.state ?? ''} onChange={(e) => setCurrent({ ...current, state: e.target.value })} />
+                    </label>
+                  </div>
+                </section>
+              </div>
+
+              <div className="flex justify-end gap-2">
+                <button className="rounded-lg border border-slate-300 px-4 py-2 text-slate-700 hover:bg-slate-100" onClick={() => { setModalOpen(false); resetForm(); }}>
+                  Abbrechen
+                </button>
+                <button
+                  className="rounded-lg bg-gradient-to-r from-pink-600 to-rose-500 text-white px-4 py-2 font-semibold hover:from-pink-500 hover:to-rose-400 disabled:opacity-60"
+                  onClick={handleSave}
+                  disabled={saving}
+                >
+                  {saving ? 'Speichert...' : 'Speichern'}
+                </button>
+              </div>
             </div>
           </div>
         </div>
