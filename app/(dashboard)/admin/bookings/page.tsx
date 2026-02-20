@@ -202,52 +202,54 @@ export default function BookingsPage() {
         )}
 
         {tab !== 'open' && (
-        {loading && <p className="text-sm text-slate-500">Lade Buchungen...</p>}
-        {error && <p className="text-sm text-red-600">{error}</p>}
-        {!loading && !filtered.length && <p className="text-sm text-slate-500">Keine Buchungen gefunden.</p>}
+          <>
+            {loading && <p className="text-sm text-slate-500">Lade Buchungen...</p>}
+            {error && <p className="text-sm text-red-600">{error}</p>}
+            {!loading && !filtered.length && <p className="text-sm text-slate-500">Keine Buchungen gefunden.</p>}
 
-        {!loading && filtered.length > 0 && (
-          <table className="min-w-full text-sm">
-            <thead>
-              <tr className="text-left text-slate-500">
-                <th className="py-2 pr-4">Buchungsdatum</th>
-                <th className="py-2 pr-4">Kursteilnehmer</th>
-                <th className="py-2 pr-4">Kurs</th>
-                <th className="py-2 pr-4">Kursstart</th>
-                <th className="py-2 pr-4">Kursbeitrag Brutto</th>
-                <th className="py-2 pr-4">Anbieter</th>
-                <th className="py-2 pr-4">Status</th>
-                <th className="py-2 pr-4">Aktionen</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {filtered.map((b) => (
-                <tr key={b.id} className="align-top">
-                  <td className="py-3 pr-4">{b.booking_date ? new Date(b.booking_date).toLocaleDateString() : '—'}</td>
-                  <td className="py-3 pr-4">{b.student_name ?? '—'}</td>
-                  <td className="py-3 pr-4">{b.course_title ?? '—'}</td>
-                  <td className="py-3 pr-4">{b.course_start ? new Date(b.course_start).toLocaleDateString() : '—'}</td>
-                  <td className="py-3 pr-4">
-                    {b.amount != null && !isNaN(Number(b.amount))
-                      ? `${Number(b.amount).toFixed(2)} €`
-                      : '—'}
-                  </td>
-                  <td className="py-3 pr-4">{b.partner_name ?? '—'}</td>
-                  <td className="py-3 pr-4">{b.status}</td>
-                  <td className="py-3 pr-4">
-                    <button
-                      type="button"
-                      onClick={(e) => { e.preventDefault(); loadOne(b.id); }}
-                      className="inline-flex items-center justify-center rounded-md px-3 py-1 text-sm font-semibold bg-pink-600 text-white hover:bg-pink-700 border border-pink-700 shadow-sm"
-                    >
-                      Details
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
+            {!loading && filtered.length > 0 && (
+              <table className="min-w-full text-sm">
+                <thead>
+                  <tr className="text-left text-slate-500">
+                    <th className="py-2 pr-4">Buchungsdatum</th>
+                    <th className="py-2 pr-4">Kursteilnehmer</th>
+                    <th className="py-2 pr-4">Kurs</th>
+                    <th className="py-2 pr-4">Kursstart</th>
+                    <th className="py-2 pr-4">Kursbeitrag Brutto</th>
+                    <th className="py-2 pr-4">Anbieter</th>
+                    <th className="py-2 pr-4">Status</th>
+                    <th className="py-2 pr-4">Aktionen</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {filtered.map((b) => (
+                    <tr key={b.id} className="align-top">
+                      <td className="py-3 pr-4">{b.booking_date ? new Date(b.booking_date).toLocaleDateString() : '—'}</td>
+                      <td className="py-3 pr-4">{b.student_name ?? '—'}</td>
+                      <td className="py-3 pr-4">{b.course_title ?? '—'}</td>
+                      <td className="py-3 pr-4">{b.course_start ? new Date(b.course_start).toLocaleDateString() : '—'}</td>
+                      <td className="py-3 pr-4">
+                        {b.amount != null && !isNaN(Number(b.amount))
+                          ? `${Number(b.amount).toFixed(2)} €`
+                          : '—'}
+                      </td>
+                      <td className="py-3 pr-4">{b.partner_name ?? '—'}</td>
+                      <td className="py-3 pr-4">{b.status}</td>
+                      <td className="py-3 pr-4">
+                        <button
+                          type="button"
+                          onClick={(e) => { e.preventDefault(); loadOne(b.id); }}
+                          className="inline-flex items-center justify-center rounded-md px-3 py-1 text-sm font-semibold bg-pink-600 text-white hover:bg-pink-700 border border-pink-700 shadow-sm"
+                        >
+                          Details
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </>
         )}
       </div>
 
