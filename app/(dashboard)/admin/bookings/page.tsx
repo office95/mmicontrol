@@ -99,7 +99,8 @@ export default function BookingsPage() {
     const res = await fetch(`/api/admin/bookings?id=${id}`);
     const data = await res.json();
     if (res.ok) {
-      setSelected(data);
+      const fallback = items.find((b) => b.id === id) || {};
+      setSelected({ ...fallback, ...data });
       setPayments(data.payments || []);
     }
   };
