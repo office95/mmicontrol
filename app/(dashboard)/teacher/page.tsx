@@ -604,11 +604,23 @@ export default async function TeacherPage() {
       }[]
     | null = [];
   const courseIdsForFeedback = (courses || []).map((c) => c.id);
-  if (courseIdsForFeedback.length) {
+  let feedbackCourseIds = courseIdsForFeedback;
+
+  // Fallback: wenn Partner gesetzt, Kurs-IDs über course_dates sammeln
+  if (teacherPartner) {
+    const { data: partnerDates } = await service
+      .from('course_dates')
+      .select('course_id')
+      .eq('partner_id', teacherPartner);
+    const partnerCourseIds = (partnerDates || []).map((d) => d.course_id as string).filter(Boolean);
+    feedbackCourseIds = Array.from(new Set([...feedbackCourseIds, ...partnerCourseIds]));
+  }
+
+  if (feedbackCourseIds.length) {
     const { data: fbRows } = await service
       .from('course_feedback')
       .select('course_id, course_title, ratings, recommend, improve, created_at, student_id')
-      .in('course_id', courseIdsForFeedback);
+      .in('course_id', feedbackCourseIds);
     feedbacks = fbRows || [];
     // Studentennamen/E-Mails ergänzen
     const studentIds = Array.from(new Set((feedbacks || []).map((f) => f.student_id).filter(Boolean))) as string[];
