@@ -153,6 +153,24 @@ export default async function StudentPage({ searchParams }: { searchParams: Reco
     }
   }
 
+  // Kurs-Empfehlungen für Studenten: zufällige aktive Kurse (max 5)
+  let recommended: {
+    id: string;
+    title: string;
+    price_gross?: number | null;
+    course_link?: string | null;
+    cover_url?: string | null;
+  }[] = [];
+  {
+    const { data: recRows } = await service
+      .from('courses')
+      .select('id, title, price_gross, course_link, cover_url')
+      .eq('status', 'active')
+      .limit(30);
+    const shuffled = (recRows || []).sort(() => Math.random() - 0.5);
+    recommended = shuffled.slice(0, 5);
+  }
+
   // Nächster Kurs für Countdown (falls vorhanden)
   const nextCourse = (courses || [])
     .filter((c) => c.start_date)
@@ -192,6 +210,7 @@ export default async function StudentPage({ searchParams }: { searchParams: Reco
         bookings={bookings || []}
         courses={courses || []}
         materials={materials}
+        recommended={recommended}
         profile={
           student
             ? {

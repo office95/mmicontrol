@@ -14,6 +14,13 @@ type Material = {
   signed_url?: string | null;
   cover_url?: string | null;
 };
+type RecommendedCourse = {
+  id: string;
+  title: string;
+  price_gross?: number | null;
+  course_link?: string | null;
+  cover_url?: string | null;
+};
 type StudentProfile = {
   id: string;
   name: string | null;
@@ -33,12 +40,14 @@ export default function StudentDashboardClient({
   profile,
   showProfileInitially,
   materials,
+  recommended,
 }: {
   bookings: Booking[];
   courses: Course[];
   profile: StudentProfile;
   showProfileInitially?: boolean;
   materials: Material[];
+  recommended: RecommendedCourse[];
 }) {
   const [tab, setTab] = useState<'bookings' | 'materials' | 'profile'>(showProfileInitially ? 'profile' : 'bookings');
   const courseTitle = (cid: string | null) => courses.find((c) => c.id === cid)?.title ?? 'Kurs';
@@ -67,6 +76,47 @@ export default function StudentDashboardClient({
       </div>
 
       {tab === 'bookings' && <BookingsClient bookings={bookings} />}
+      {tab === 'bookings' && (
+        <div className="space-y-3">
+          <h3 className="text-lg font-semibold text-white mt-4">Diese Kurse könnten dich auch interessieren</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+            {recommended.map((c) => (
+              <div key={c.id} className="rounded-2xl bg-white text-ink border border-slate-200 shadow-md overflow-hidden flex flex-col">
+                <div className="relative h-28 bg-slate-100">
+                  {c.cover_url ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={c.cover_url} alt={c.title} className="h-full w-full object-cover" />
+                  ) : (
+                    <div className="h-full w-full grid place-items-center text-xs text-slate-400">Kein Cover</div>
+                  )}
+                </div>
+                <div className="p-3 space-y-1 flex-1 flex flex-col">
+                  <p className="text-sm font-semibold leading-tight">{c.title}</p>
+                  <p className="text-xs text-slate-600">
+                    Kursbeitrag Brutto: {c.price_gross != null ? `${Number(c.price_gross).toFixed(2)} €` : '—'}
+                  </p>
+                  <div className="mt-auto">
+                    <a
+                      href={c.course_link || '#'}
+                      target={c.course_link ? '_blank' : undefined}
+                      className={`inline-flex items-center justify-center w-full rounded-lg px-3 py-2 text-sm font-semibold shadow ${
+                        c.course_link
+                          ? 'bg-pink-600 text-white hover:bg-pink-500'
+                          : 'bg-slate-200 text-slate-500 cursor-not-allowed'
+                      }`}
+                    >
+                      Mehr dazu
+                    </a>
+                  </div>
+                </div>
+              </div>
+            ))}
+            {!recommended.length && (
+              <p className="text-white/80">Keine Empfehlungen vorhanden.</p>
+            )}
+          </div>
+        </div>
+      )}
 
       {tab === 'materials' && (
         <div className="space-y-3">
