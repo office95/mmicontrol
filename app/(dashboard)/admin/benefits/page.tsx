@@ -273,24 +273,45 @@ const stateOptions = (country?: string | null) =>
       </div>
 
       {modalOpen && current && (
-        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center px-4">
-          <div className="w-full max-w-4xl rounded-2xl bg-white text-ink shadow-2xl p-6 relative overflow-hidden">
-            <div className="absolute -left-10 -top-16 h-48 w-48 bg-pink-100/60 rounded-full blur-3xl" />
-            <div className="absolute -right-12 -bottom-20 h-56 w-56 bg-purple-100/60 rounded-full blur-3xl" />
-            <button className="absolute top-3 right-3 text-slate-500 hover:text-ink" onClick={() => { setModalOpen(false); resetForm(); }}>×</button>
-            <div className="relative z-10 space-y-4">
+        <div className="fixed inset-0 z-50 bg-black/65 backdrop-blur-sm flex items-center justify-center px-4">
+          <div className="w-full max-w-5xl rounded-3xl bg-white text-ink shadow-2xl p-6 relative overflow-hidden">
+            <div className="absolute -left-20 -top-28 h-56 w-56 bg-pink-200/60 rounded-full blur-3xl" />
+            <div className="absolute -right-24 -bottom-32 h-64 w-64 bg-indigo-200/60 rounded-full blur-3xl" />
+            <button className="absolute top-3 right-3 text-slate-600 hover:text-ink text-xl" onClick={() => { setModalOpen(false); resetForm(); }}>×</button>
+            <div className="relative z-10 space-y-5">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs uppercase tracking-[0.18em] text-pink-500 font-semibold">
+                  <p className="text-[11px] uppercase tracking-[0.22em] text-pink-600 font-semibold">
                     {current.id ? 'Benefit bearbeiten' : 'Neuen Benefit anlegen'}
                   </p>
-                  <h3 className="text-2xl font-semibold text-ink">Firmen-Vorteil</h3>
+                  <h3 className="text-3xl font-semibold text-ink">Firmen-Vorteil</h3>
+                  <p className="text-sm text-slate-500">Logo, Vorteil, Einlösehinweis und Firmendaten in einem klaren Layout.</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="h-16 w-16 rounded-2xl bg-slate-100 border border-slate-200 overflow-hidden grid place-items-center">
+                    {current.logo_path ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={current.logo_url ?? ''} alt={current.name} className="h-full w-full object-cover" />
+                    ) : (
+                      <span className="text-xs text-slate-400">Logo</span>
+                    )}
+                  </div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                <section className="rounded-xl border border-slate-200 bg-white/70 p-4 shadow-sm space-y-3">
-                  <p className="text-xs uppercase tracking-[0.14em] text-slate-500">Benefit</p>
+              <div className="grid grid-cols-1 xl:grid-cols-3 gap-5">
+                <section className="xl:col-span-2 rounded-2xl border border-slate-200 bg-white/80 shadow-sm p-5 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Benefit</p>
+                    <div className="flex items-center gap-2 text-xs text-slate-500">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-pink-50 text-pink-700 px-2 py-1 border border-pink-100">
+                        {statusLabel[current.status] ?? current.status}
+                      </span>
+                      <span className="inline-flex items-center gap-1 rounded-full bg-slate-50 text-slate-600 px-2 py-1 border border-slate-200">
+                        {targetLabel[current.target ?? 'both'] ?? 'Beide'}
+                      </span>
+                    </div>
+                  </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                     <label className="space-y-1">
                       <span className="text-slate-600">Name*</span>
@@ -344,8 +365,8 @@ const stateOptions = (country?: string | null) =>
                       <span className="text-slate-600">Gültig bis</span>
                       <input className="input" type="date" value={current.valid_to ?? ''} onChange={(e) => setCurrent({ ...current, valid_to: e.target.value || null })} />
                     </label>
-                    <label className="space-y-1">
-                      <span className="text-slate-600">How to redeem</span>
+                    <label className="space-y-1 sm:col-span-2">
+                      <span className="text-slate-600">Einlöse-Hinweis</span>
                       <input className="input" value={current.how_to_redeem ?? ''} onChange={(e) => setCurrent({ ...current, how_to_redeem: e.target.value })} />
                     </label>
                     <label className="space-y-1">
@@ -362,8 +383,11 @@ const stateOptions = (country?: string | null) =>
                   </div>
                 </section>
 
-                <section className="rounded-xl border border-slate-200 bg-white/70 p-4 shadow-sm space-y-3">
-                  <p className="text-xs uppercase tracking-[0.14em] text-slate-500">Firmendaten</p>
+                <section className="rounded-2xl border border-slate-200 bg-gradient-to-b from-slate-50 to-white shadow-sm p-5 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Firmendaten</p>
+                    <span className="text-[11px] px-2 py-1 rounded-full bg-slate-100 text-slate-600 border border-slate-200">Kontakt & Adresse</span>
+                  </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                     <label className="space-y-1">
                       <span className="text-slate-600">Ansprechpartner</span>
@@ -431,7 +455,7 @@ const stateOptions = (country?: string | null) =>
                 </section>
               </div>
 
-              <div className="flex justify-end gap-2">
+              <div className="flex justify-end gap-3 pt-2">
                 <button className="rounded-lg border border-slate-300 px-4 py-2 text-slate-700 hover:bg-slate-100" onClick={() => { setModalOpen(false); resetForm(); }}>
                   Abbrechen
                 </button>

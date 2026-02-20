@@ -33,6 +33,23 @@ export default async function AdminPage() {
     .select('partner_id, partner_name, booking_date, amount')
     .gte('booking_date', `${currentYear - 1}-01-01`);
 
+  const monthNowList = (bookings || []).filter((b) => {
+    const d = b.booking_date ? new Date(b.booking_date) : null;
+    return d && d.getFullYear() === currentYear && d.getMonth() === currentMonth;
+  });
+  const monthPrevList = (bookings || []).filter((b) => {
+    const d = b.booking_date ? new Date(b.booking_date) : null;
+    return d && d.getFullYear() === currentYear - 1 && d.getMonth() === currentMonth;
+  });
+  const yearNowList = (bookings || []).filter((b) => {
+    const d = b.booking_date ? new Date(b.booking_date) : null;
+    return d && d.getFullYear() === currentYear;
+  });
+  const yearPrevList = (bookings || []).filter((b) => {
+    const d = b.booking_date ? new Date(b.booking_date) : null;
+    return d && d.getFullYear() === currentYear - 1;
+  });
+
   // Feedbacks mit Kurs-Partner-Zuordnung
   const { data: feedback } = await supabase
     .from('course_feedback')
@@ -147,6 +164,22 @@ export default async function AdminPage() {
       </div>
 
       <div className="space-y-4">
+        <h2 className="text-lg font-semibold text-white">Gesamtumsätze</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <RevenueCard
+            label="Umsatz aktueller Monat"
+            value={sum(monthNowList)}
+            prev={sum(monthPrevList)}
+          />
+          <RevenueCard
+            label="Umsatz aktuelles Jahr"
+            value={sum(yearNowList)}
+            prev={sum(yearPrevList)}
+          />
+        </div>
+      </div>
+
+      <div className="space-y-4">
         <h2 className="text-lg font-semibold text-white">Partner KPIs</h2>
         <div className="grid gap-4 grid-cols-1 xl:grid-cols-2">
           {perPartner.map((p) => (
@@ -193,6 +226,25 @@ function KpiBox({ label, value, prev, money = false, suffix = '' }: { label: str
       <p className="text-xs uppercase tracking-[0.14em] text-white/70">{label}</p>
       <p className="text-xl font-semibold text-white">{format(value)}</p>
       <p className="text-[11px] text-white/60">Vorjahr: {format(prev)}</p>
+    </div>
+  );
+}
+
+function RevenueCard({ label, value, prev }: { label: string; value: number; prev: number }) {
+  const diffAbs = value - prev;
+  const diffPct = prev === 0 ? (value > 0 ? 100 : 0) : ((diffAbs / prev) * 100);
+  const formatMoney = (n: number) => `${n.toFixed(2)} €`;
+  const formatPct = (n: number) => `${n.toFixed(1)} %`;
+  const trendColor = diffAbs >= 0 ? 'text-emerald-300' : 'text-rose-300';
+
+  return (
+    <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur p-5 shadow-lg space-y-2">
+      <p className="text-xs uppercase tracking-[0.2em] text-white/70">{label}</p>
+      <p className="text-3xl font-semibold text-white">{formatMoney(value)}</p>
+      <p className="text-sm text-white/70">Vorjahr: {formatMoney(prev)}</p>
+      <p className={`text-sm font-medium ${trendColor}`}>
+        Δ {formatMoney(diffAbs)} · {formatPct(diffPct)}
+      </p>
     </div>
   );
 }

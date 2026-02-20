@@ -18,6 +18,15 @@ create table if not exists public.attendance_entries (
   unique (session_id, student_id)
 );
 
+-- Ensure attendance entries disappear when a student is deleted
+alter table if exists public.attendance_entries
+  drop constraint if exists attendance_entries_student_id_fkey;
+alter table if exists public.attendance_entries
+  add constraint attendance_entries_student_id_fkey
+  foreign key (student_id)
+  references public.students(id)
+  on delete cascade;
+
 alter table if exists public.attendance_sessions enable row level security;
 alter table if exists public.attendance_entries enable row level security;
 
@@ -63,4 +72,3 @@ create policy attendance_entries_teacher_rw on public.attendance_entries
       where s.id = attendance_entries.session_id
     )
   );
-
