@@ -38,15 +38,26 @@ export async function GET(req: Request) {
       student_email: f.students?.email ?? null,
     })) ?? [];
 
-  // Bei partner_id: Kurs-IDs des Partners über course_dates holen und filtern
+  // Bei partner_id: Kurs-IDs des Partners holen (courses.partner_id ODER course_dates.partner_id) und filtern
   if (partnerId) {
-    const { data: partnerDates, error: partnerErr } = await service
+    const allowed = new Set<string>();
+
+    const { data: partnerCourses, error: coursesErr } = await service
+      .from('courses')
+      .select('id')
+      .eq('partner_id', partnerId);
+    if (coursesErr) return NextResponse.json({ error: coursesErr.message }, { status: 400 });
+    (partnerCourses || []).forEach((c: any) => c?.id && allowed.add(c.id));
+
+    const { data: partnerDates, error: datesErr } = await service
       .from('course_dates')
       .select('course_id')
       .eq('partner_id', partnerId);
-    if (partnerErr) return NextResponse.json({ error: partnerErr.message }, { status: 400 });
-    const allowed = new Set((partnerDates || []).map((c: any) => c.course_id).filter(Boolean));
-    rows = rows.filter((r) => allowed.has(r.course_id));
+    if (datesErr) return NextResponse.json({ error: datesErr.message }, { status: 400 });
+    (partnerDates || []).forEach((c: any) => c?.course_id && allowed.add(c.course_id));
+
+    if (!allowed.size) return NextResponse.json([]);
+    rows = rows.filter((r) => r.course_id && allowed.has(r.course_id));
   }
 
   return NextResponse.json(rows);
