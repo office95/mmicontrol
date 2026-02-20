@@ -115,6 +115,10 @@ export default function BenefitsPage() {
     if (!current) return;
     setSaving(true);
     let payload: any = { ...current };
+    if (!payload.id) {
+      // kein UUID vorgeben -> DB Default gen_random_uuid() nutzen
+      delete payload.id;
+    }
     // Upload Logo falls Datei gewählt
     if (logoFile) {
       const ext = logoFile.name.split('.').pop() || 'png';
