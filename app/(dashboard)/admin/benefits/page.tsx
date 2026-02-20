@@ -168,6 +168,7 @@ const stateOptions = (country?: string | null) =>
         return;
       }
       payload.logo_path = path;
+      payload.logo_url = (await supabase.storage.from('benefit-logos').createSignedUrl(path, 60 * 60)).data?.signedUrl ?? null;
     }
     // Insert / Update
     const { error: saveErr } = await supabase
@@ -215,6 +216,7 @@ const stateOptions = (country?: string | null) =>
               <thead className="text-xs uppercase tracking-[0.14em] text-white/60">
                 <tr>
                   <th className="px-3 py-2 text-left">Name</th>
+                  <th className="px-3 py-2 text-left">Logo</th>
                   <th className="px-3 py-2 text-left">Status</th>
                   <th className="px-3 py-2 text-left">Zielgruppe</th>
                   <th className="px-3 py-2 text-left">Vorteil</th>
@@ -228,6 +230,16 @@ const stateOptions = (country?: string | null) =>
                 {items.map((b) => (
                   <tr key={b.id} className="hover:bg-white/5">
                     <td className="px-3 py-2 font-semibold text-white">{b.name}</td>
+                    <td className="px-3 py-2">
+                      {b.logo_path ? (
+                        <div className="h-12 w-12 rounded-lg overflow-hidden bg-white/10 border border-white/15 grid place-items-center">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={`${(b as any).logo_url ?? ''}`} alt={b.name} className="h-full w-full object-contain" />
+                        </div>
+                      ) : (
+                        <span className="text-xs text-white/60">—</span>
+                      )}
+                    </td>
                     <td className="px-3 py-2 text-xs">
                       <span className="inline-flex items-center px-2 py-1 rounded-full border border-white/20 bg-white/10 text-white/80">
                         {statusLabel[b.status] ?? b.status}
