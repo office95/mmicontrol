@@ -84,7 +84,7 @@ export default function BenefitsPage() {
     return '—';
   };
 
-  const stateOptions = (country?: string | null) =>
+const stateOptions = (country?: string | null) =>
     country === 'Deutschland' || country === 'DE' ? STATES_DE
     : country === 'Österreich' || country === 'AT' ? STATES_AT
     : [];
@@ -132,7 +132,12 @@ export default function BenefitsPage() {
     setSaving(true);
     let payload: any = { ...current };
     // Leere Strings auf null setzen, um CHECK-Verletzungen zu vermeiden
-    payload.country = (payload.country || '').trim() || null;
+    // Country als Code speichern (AT/DE), sonst NULL
+    const countryRaw = (payload.country || '').trim();
+    payload.country =
+      countryRaw.toLowerCase() === 'österreich' || countryRaw === 'AT' ? 'AT' :
+      countryRaw.toLowerCase() === 'deutschland' || countryRaw === 'DE' ? 'DE' :
+      null;
     payload.street = (payload.street || '').trim() || null;
     payload.postal_code = (payload.postal_code || '').trim() || null;
     payload.city = (payload.city || '').trim() || null;
@@ -391,10 +396,10 @@ export default function BenefitsPage() {
                             setCurrent({ ...current, country, state: nextState });
                           }}
                         >
-                          <option value="">Bitte wählen</option>
-                          <option value="Österreich">Österreich</option>
-                          <option value="Deutschland">Deutschland</option>
-                        </select>
+                        <option value="">Bitte wählen</option>
+                        <option value="AT">Österreich</option>
+                        <option value="DE">Deutschland</option>
+                      </select>
                       </label>
                       <label className="space-y-1">
                         <span className="text-slate-600">Bundesland</span>
