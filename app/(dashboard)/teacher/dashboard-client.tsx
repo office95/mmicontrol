@@ -39,6 +39,8 @@ type Feedback = {
   recommend?: string | null;
   improve?: string | null;
   created_at?: string | null;
+  student_name?: string | null;
+  student_email?: string | null;
 };
 
 export default function DashboardClient({
