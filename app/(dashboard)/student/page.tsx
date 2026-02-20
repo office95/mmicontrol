@@ -166,9 +166,8 @@ export default async function StudentPage({ searchParams }: { searchParams: Reco
       .from('courses')
       .select('id, title, price_gross, course_link, cover_url')
       .eq('status', 'active')
-      .limit(30);
-    const shuffled = (recRows || []).sort(() => Math.random() - 0.5);
-    recommended = shuffled.slice(0, 5);
+      .limit(50);
+    recommended = (recRows || []).sort(() => Math.random() - 0.5); // zufällige Reihenfolge, alle anzeigen
   }
 
   // Nächster Kurs für Countdown (falls vorhanden)
