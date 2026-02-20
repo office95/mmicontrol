@@ -190,3 +190,40 @@ create policy leads_partner_teacher_view on leads
         and p.role = 'teacher'
     )
   );
+
+-- 13) benefit_companies & benefit_redemptions (Rabatt-Partner)
+alter table if exists public.benefit_companies enable row level security;
+alter table if exists public.benefit_redemptions enable row level security;
+
+drop policy if exists benefit_companies_admin_all on public.benefit_companies;
+create policy benefit_companies_admin_all on public.benefit_companies
+  for all using (auth.uid() in (select id from v_admin));
+
+drop policy if exists benefit_companies_select_active on public.benefit_companies;
+create policy benefit_companies_select_active on public.benefit_companies
+  for select using (
+    status = 'active'
+    and (valid_from is null or valid_from <= now()::date)
+    and (valid_to   is null or valid_to   >= now()::date)
+    and exists (
+      select 1 from profiles p
+      where p.id = auth.uid()
+        and (
+          (p.role = 'teacher' and (target in ('teachers','both') or target is null))
+          or (p.role = 'student' and (target in ('students','both') or target is null))
+          or p.role = 'admin'
+        )
+    )
+  );
+
+drop policy if exists benefit_redemptions_admin_all on public.benefit_redemptions;
+create policy benefit_redemptions_admin_all on public.benefit_redemptions
+  for all using (auth.uid() in (select id from v_admin));
+
+drop policy if exists benefit_redemptions_own_select on public.benefit_redemptions;
+create policy benefit_redemptions_own_select on public.benefit_redemptions
+  for select using (user_id = auth.uid());
+
+drop policy if exists benefit_redemptions_insert_self on public.benefit_redemptions;
+create policy benefit_redemptions_insert_self on public.benefit_redemptions
+  for insert with check (user_id = auth.uid());
