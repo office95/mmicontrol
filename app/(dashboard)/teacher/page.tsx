@@ -598,15 +598,33 @@ export default async function TeacherPage() {
         recommend: string | null;
         improve: string | null;
         created_at: string | null;
+        student_id?: string | null;
+        student_name?: string | null;
+        student_email?: string | null;
       }[]
     | null = [];
   const courseIdsForFeedback = (courses || []).map((c) => c.id);
   if (courseIdsForFeedback.length) {
     const { data: fbRows } = await service
       .from('course_feedback')
-      .select('course_id, course_title, ratings, recommend, improve, created_at')
+      .select('course_id, course_title, ratings, recommend, improve, created_at, student_id')
       .in('course_id', courseIdsForFeedback);
     feedbacks = fbRows || [];
+    // Studentennamen/E-Mails ergänzen
+    const studentIds = Array.from(new Set((feedbacks || []).map((f) => f.student_id).filter(Boolean))) as string[];
+    if (studentIds.length) {
+      const { data: students } = await service
+        .from('students')
+        .select('id, name, email')
+        .in('id', studentIds);
+      const sMap = new Map<string, { name?: string | null; email?: string | null }>();
+      students?.forEach((s) => sMap.set(s.id, { name: (s as any).name, email: (s as any).email }));
+      feedbacks = (feedbacks || []).map((f) => ({
+        ...f,
+        student_name: f.student_id ? sMap.get(f.student_id)?.name ?? null : null,
+        student_email: f.student_id ? sMap.get(f.student_id)?.email ?? null : null,
+      }));
+    }
   }
 
   return (

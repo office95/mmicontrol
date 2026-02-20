@@ -197,29 +197,63 @@ function StarDisplay({ value }: { value: number }) {
   );
 }
 
+function StarInputReadOnly({ value }: { value: number }) {
+  const full = Math.round(value);
+  return (
+    <div className="flex gap-1 text-pink-500 text-lg">
+      {[1, 2, 3, 4, 5].map((i) => (
+        <span key={i} className={i <= full ? 'opacity-100' : 'opacity-30'}>★</span>
+      ))}
+    </div>
+  );
+}
+
 function FeedbackModal({ course, feedbacks, onClose }: { course: CourseCard | null; feedbacks: Feedback[]; onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
       <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white text-ink shadow-2xl p-6 relative">
         <button className="absolute top-3 right-3 text-slate-500 hover:text-ink" onClick={onClose}>×</button>
-        <h3 className="text-2xl font-semibold mb-2">Feedback · {course?.title ?? 'Kurs'}</h3>
+        <h3 className="text-2xl font-semibold mb-2">Kursbewertung · {course?.title ?? 'Kurs'}</h3>
         {!feedbacks.length && <p className="text-slate-600">Noch kein Feedback.</p>}
         <div className="space-y-3">
           {feedbacks.map((f, idx) => (
             <div key={idx} className="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-2">
-              <div className="flex flex-wrap gap-3 text-sm text-slate-700">
-                <span>Gesamt: <strong>{f.ratings?.overall ?? 0}/5</strong></span>
-                <span>Dozent: <strong>{f.ratings?.teacher ?? 0}/5</strong></span>
-                <span>Verständlich: <strong>{f.ratings?.clarity ?? 0}/5</strong></span>
-                <span>Praxis: <strong>{f.ratings?.practice ?? 0}/5</strong></span>
-                <span>Betreuung: <strong>{f.ratings?.support ?? 0}/5</strong></span>
-                <span>Technik: <strong>{f.ratings?.tech ?? 0}/5</strong></span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-slate-700">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-slate-500">Gesamt</span>
+                  <StarInputReadOnly value={Number(f.ratings?.overall ?? 0)} />
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-slate-500">Dozent</span>
+                  <StarInputReadOnly value={Number(f.ratings?.teacher ?? 0)} />
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-slate-500">Verständlich</span>
+                  <StarInputReadOnly value={Number(f.ratings?.clarity ?? 0)} />
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-slate-500">Praxis</span>
+                  <StarInputReadOnly value={Number(f.ratings?.practice ?? 0)} />
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-slate-500">Betreuung</span>
+                  <StarInputReadOnly value={Number(f.ratings?.support ?? 0)} />
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-slate-500">Technik</span>
+                  <StarInputReadOnly value={Number(f.ratings?.tech ?? 0)} />
+                </div>
               </div>
               <p className="text-sm text-slate-700">Weiterempfehlung: <strong>{f.recommend ?? '—'}</strong></p>
               {f.improve && (
                 <div className="text-sm text-slate-600 bg-white border border-slate-200 rounded-lg p-3">
                   {f.improve}
                 </div>
+              )}
+              {(f.student_name || f.student_email) && (
+                <p className="text-xs text-slate-500">
+                  Teilnehmer: {f.student_name ?? '—'} · {f.student_email ?? '—'}
+                </p>
               )}
               <p className="text-xs text-slate-500">
                 Eingereicht am {f.created_at ? new Date(f.created_at).toLocaleDateString() : '—'}
