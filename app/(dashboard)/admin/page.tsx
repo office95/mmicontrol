@@ -171,36 +171,7 @@ export default async function AdminPage() {
         </div>
       </div>
 
-      <div className="space-y-4">
-        <h2 className="text-lg font-semibold text-white">Kurs-Feedback (gesamt)</h2>
-        <div className="grid gap-4 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
-          {courseFeedbackList.map((c) => (
-            <div key={c.id} className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur p-5 shadow-lg space-y-2">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-[11px] uppercase tracking-[0.16em] text-white/60">Kurs</p>
-                  <h3 className="text-lg font-semibold text-white">{c.title}</h3>
-                </div>
-                <span className="text-xs px-3 py-1 rounded-full bg-pink-100/80 text-pink-800 border border-pink-200">
-                  {c.count} Feedbacks
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="flex gap-1 text-pink-400 text-lg">
-                  {[1,2,3,4,5].map(i => (
-                    <span key={i} className={i <= Math.round(c.avg) ? 'opacity-100' : 'opacity-30'}>★</span>
-                  ))}
-                </div>
-                <span className="text-sm text-white/80">{c.avg.toFixed(1)} / 5</span>
-              </div>
-              <p className="text-sm text-white/80">Weiterempfehlung: <strong className="text-emerald-300">{c.recPct}%</strong></p>
-            </div>
-          ))}
-          {!courseFeedbackList.length && (
-            <p className="text-white/80">Noch kein Feedback vorhanden.</p>
-          )}
-        </div>
-      </div>
+      {/* Kurs-Feedback gesamt entfernt laut Anforderung */}
     </div>
   );
 }

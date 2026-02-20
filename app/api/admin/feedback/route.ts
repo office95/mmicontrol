@@ -69,6 +69,7 @@ export async function GET(req: Request) {
 
   // 5) Zeilen anreichern & Partner ableiten
   let rows = feedbackRows.map((f) => {
+    const studentObj = Array.isArray((f as any).students) ? (f as any).students[0] : (f as any).students;
     const booking = f.booking_id ? bookingMap.get(f.booking_id) : null;
     const cd = booking?.course_date_id ? courseDateMap.get(booking.course_date_id) : null;
     const cid = f.course_id ?? booking?.course_id ?? cd?.course_id ?? null;
@@ -82,8 +83,8 @@ export async function GET(req: Request) {
       recommend: f.recommend,
       improve: f.improve,
       created_at: f.created_at,
-      student_name: f.students?.name ?? null,
-      student_email: f.students?.email ?? null,
+      student_name: studentObj?.name ?? null,
+      student_email: studentObj?.email ?? null,
       partner_id,
     };
   });
