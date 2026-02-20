@@ -22,6 +22,7 @@ create table if not exists public.benefit_companies (
   discount_value numeric(10,2),
   code text,
   members_card_required boolean default true,
+  how_to_redeem text,
   target text check (target in ('teachers','students','both')) default 'both',
   valid_from date,
   valid_to date,
