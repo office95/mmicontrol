@@ -25,6 +25,21 @@ type CourseCard = {
   participants: { name: string; email: string; phone?: string | null; booking_date?: string | null; student_id?: string | null }[];
   bookings_count?: number;
 };
+type Benefit = {
+  id: string;
+  name: string;
+  action_title: string | null;
+  description: string | null;
+  logo_url: string | null;
+  discount_type: string | null;
+  discount_value: number | null;
+  code: string | null;
+  valid_from: string | null;
+  valid_to: string | null;
+  members_card_required: boolean;
+  how_to_redeem: string | null;
+  website: string | null;
+};
 type Feedback = {
   course_id: string | null;
   course_title: string | null;
@@ -52,6 +67,7 @@ export default function DashboardClient({
   materials,
   feedbacks,
   feedbackOverallAvg,
+  benefits,
 }: {
   kpis: KPIs;
   interests: InterestRank[];
@@ -61,8 +77,9 @@ export default function DashboardClient({
   materials: any[];
   feedbacks: Feedback[];
   feedbackOverallAvg?: number | null;
+  benefits: Benefit[];
 }) {
-  const [tab, setTab] = useState<'perf' | 'courses' | 'materials' | 'feedback'>('perf');
+  const [tab, setTab] = useState<'perf' | 'courses' | 'materials' | 'feedback' | 'benefits'>('perf');
   const feedbackByCourse = useMemo(() => {
     const map = new Map<string, Feedback[]>();
     feedbacks.forEach((f) => {
@@ -106,6 +123,12 @@ export default function DashboardClient({
           onClick={() => setTab('feedback')}
         >
           Kurs-Feedback
+        </button>
+        <button
+          className={`px-3 py-2 rounded-lg border ${tab === 'benefits' ? 'border-pink-400 bg-pink-500/15 text-white' : 'border-white/20 bg-white/10'}`}
+          onClick={() => setTab('benefits')}
+        >
+          Benefits
         </button>
       </div>
 
@@ -190,6 +213,66 @@ export default function DashboardClient({
               onClose={() => setSelectedCourseId(null)}
             />
           )}
+        </div>
+      )}
+
+      {tab === 'benefits' && (
+        <div className="space-y-4">
+          <div className="rounded-2xl bg-white/10 border border-white/15 p-5 backdrop-blur-md shadow-xl">
+            <h3 className="text-lg font-semibold text-white mb-2">Benefits für Dozenten</h3>
+            <p className="text-sm text-white/70">Members Card vorzeigen und Vorteil nutzen.</p>
+            <div className="overflow-x-auto scrollbar-hide">
+              <div className="flex gap-4 py-3 min-w-full">
+                {benefits.map((b) => (
+                  <div key={b.id} className="min-w-[220px] max-w-[240px] rounded-2xl bg-white text-ink border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+                    <div className="relative h-24 bg-slate-100">
+                      {b.logo_url ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={b.logo_url} alt={b.name} className="h-full w-full object-contain p-3" />
+                      ) : (
+                        <div className="h-full w-full grid place-items-center text-xs text-slate-400">Logo</div>
+                      )}
+                      <div className="absolute top-2 left-2 inline-flex items-center px-2 py-1 rounded-full bg-pink-100 text-pink-700 text-[11px]">
+                        {b.discount_type === 'percent'
+                          ? `${b.discount_value ?? ''}%`
+                          : b.discount_type === 'fixed'
+                            ? `${b.discount_value ?? ''} €`
+                            : 'Vorteil'}
+                      </div>
+                    </div>
+                    <div className="p-3 space-y-1 flex-1 flex flex-col">
+                      <p className="text-sm font-semibold leading-tight">{b.name}</p>
+                      <p className="text-xs text-slate-600 line-clamp-3">
+                        {b.action_title || b.description || 'Vorteil mit Members Card.'}
+                      </p>
+                      <p className="text-[11px] text-slate-500">
+                        Gültig: {b.valid_to ? new Date(b.valid_to).toLocaleDateString() : 'offen'}
+                      </p>
+                      <p className="text-[11px] text-emerald-600 font-semibold">
+                        {b.how_to_redeem || 'Members Card vorzeigen'}
+                      </p>
+                      <div className="mt-auto">
+                        {b.website ? (
+                          <a
+                            href={b.website}
+                            target="_blank"
+                            className="inline-flex items-center justify-center w-full rounded-lg px-3 py-2 text-xs font-semibold shadow bg-pink-600 text-white hover:bg-pink-500"
+                          >
+                            Mehr dazu
+                          </a>
+                        ) : (
+                          <span className="text-xs text-slate-500">Kein Link</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                {!benefits.length && (
+                  <p className="text-white/80">Keine Benefits hinterlegt.</p>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>
