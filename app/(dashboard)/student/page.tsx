@@ -1,8 +1,6 @@
 import { createSupabaseServerClient } from '@/lib/supabase-server';
 import { createClient } from '@supabase/supabase-js';
-import ProfileModal from '@/components/student-profile-modal';
-import ProfileWrapper from './profile-wrapper';
-import BookingsClient from './bookings-client';
+import StudentDashboardClient from './student-dashboard-client';
 
 export default async function StudentPage({ searchParams }: { searchParams: Record<string, string | string[] | undefined> }) {
   // Auth-Client (für Session)
@@ -154,11 +152,9 @@ export default async function StudentPage({ searchParams }: { searchParams: Reco
         </div>
       </div>
 
-      <h2 className="text-xl font-semibold text-white">Meine Buchungen</h2>
-      <BookingsClient bookings={bookings || []} />
-
-      <ProfileWrapper
-        open={showProfile}
+      <StudentDashboardClient
+        bookings={bookings || []}
+        courses={courses || []}
         profile={
           student
             ? {
@@ -175,6 +171,7 @@ export default async function StudentPage({ searchParams }: { searchParams: Reco
               }
             : null
         }
+        showProfileInitially={showProfile}
       />
 
       {selectedBooking && (
