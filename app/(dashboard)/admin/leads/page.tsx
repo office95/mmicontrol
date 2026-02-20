@@ -352,7 +352,14 @@ export default function LeadsPage() {
                     onDragStart={(e) => e.dataTransfer.setData('lead-id', l.id)}
                     className="rounded-xl border border-slate-200/70 bg-white/90 p-3 shadow-[0_8px_22px_rgba(15,23,42,0.12)] cursor-move transition hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(15,23,42,0.16)]"
                   >
-                    <p className="text-sm font-bold text-ink truncate">{l.name}</p>
+                    <p className="text-sm font-bold text-ink truncate flex items-center gap-1">
+                      {l.name}
+                      {l.is_customer && (
+                        <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 border border-emerald-200 text-[10px] font-bold">
+                          ✓
+                        </span>
+                      )}
+                    </p>
                     {l.interest_titles?.length ? (
                       <p className="text-[12px] font-semibold text-slate-700 truncate">
                         Kurs: {l.interest_titles.join(', ')}
