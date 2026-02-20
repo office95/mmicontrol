@@ -127,8 +127,8 @@ export default function BookingsPage() {
     (selected?.amount != null && selected?.paid_total != null
       ? Number(selected.amount) - Number(selected.paid_total)
       : null);
-  const derivedDeposit = selected?.deposit ?? null;
-  const derivedDuration = selected?.duration_hours ?? null;
+  const derivedDeposit = selected?.deposit ?? 0;
+  const derivedDuration = selected?.duration_hours ?? 0;
 
   return (
     <div className="space-y-6">
