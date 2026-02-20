@@ -627,6 +627,16 @@ export default async function TeacherPage() {
     }
   }
 
+  const feedbackOverallAvg =
+    feedbacks && feedbacks.length
+      ? Number(
+          (
+            feedbacks.reduce((acc, f) => acc + Number(f.ratings?.overall ?? 0), 0) /
+            feedbacks.length
+          ).toFixed(1)
+        )
+      : null;
+
   return (
     <div className="space-y-8">
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 bg-white/10 border border-white/15 rounded-xl p-6 shadow-lg relative overflow-hidden">
@@ -656,6 +666,7 @@ export default async function TeacherPage() {
         courses={courses || []}
         materials={materials || []}
         feedbacks={feedbacks || []}
+        feedbackOverallAvg={feedbackOverallAvg}
       />
     </div>
   );

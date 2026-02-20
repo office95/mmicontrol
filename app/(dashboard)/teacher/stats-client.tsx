@@ -16,13 +16,14 @@ export default function TeacherStatsClient({ kpis, interests, sources, notes }: 
   interests: { place: number; labels: string[] }[];
   sources: { label: string; value: number }[];
   notes: { label: string; value: number }[];
+  feedbackOverallAvg?: number | null;
 }) {
   const sourceDonut = useMemo(() => buildDonut(sources), [sources]);
   const notesBars = useMemo(() => buildBars(notes), [notes]);
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Kpi title="Buchungen Monat" value={kpis.monthBookings} compare={kpis.monthBookingsPrev} />
         <Kpi title="Buchungen Jahr" value={kpis.yearBookings} compare={kpis.yearBookingsPrev} />
         <Kpi
@@ -30,6 +31,11 @@ export default function TeacherStatsClient({ kpis, interests, sources, notes }: 
           value={kpis.yearParticipants}
           compare={kpis.yearParticipantsPrev}
           showPercent
+        />
+        <Kpi
+          title="Ø Kursbewertung"
+          value={typeof feedbackOverallAvg === 'number' ? `${feedbackOverallAvg.toFixed(1)} / 5` : '—'}
+          compare={undefined}
         />
       </div>
 
