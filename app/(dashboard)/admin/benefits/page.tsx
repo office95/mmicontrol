@@ -115,6 +115,12 @@ export default function BenefitsPage() {
     if (!current) return;
     setSaving(true);
     let payload: any = { ...current };
+    // Leere Strings auf null setzen, um CHECK-Verletzungen zu vermeiden
+    payload.country = (payload.country || '').trim() || null;
+    payload.code = (payload.code || '').trim() || null;
+    payload.action_title = (payload.action_title || '').trim() || null;
+    payload.description = (payload.description || '').trim() || null;
+    payload.how_to_redeem = (payload.how_to_redeem || '').trim() || null;
     if (!payload.id) {
       // kein UUID vorgeben -> DB Default gen_random_uuid() nutzen
       delete payload.id;
