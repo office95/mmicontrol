@@ -35,24 +35,25 @@ export default async function StudentPage({ searchParams }: { searchParams: Reco
         start_date?: string | null;
       }[]
     | null = [];
+  let courseIds: string[] = [];
   if (user?.id) {
     const { data: memberships } = await service
       .from('course_members')
       .select('course_id')
       .eq('user_id', user.id);
-    const ids = memberships?.map((m) => m.course_id).filter(Boolean) || [];
-    if (ids.length) {
+    courseIds = memberships?.map((m) => m.course_id).filter(Boolean) || [];
+    if (courseIds.length) {
       const { data: courseRows } = await service
         .from('courses')
         .select('id, title, description')
-        .in('id', ids);
+        .in('id', courseIds);
       courses = courseRows || [];
 
       // Starttermine zu den Kursen laden
       const { data: dates } = await service
         .from('course_dates')
         .select('course_id, start_date')
-        .in('course_id', ids);
+        .in('course_id', courseIds);
       const dateMap = new Map<string, string | null>();
       const today = new Date();
       dates?.forEach((d) => {
@@ -117,6 +118,41 @@ export default async function StudentPage({ searchParams }: { searchParams: Reco
 
   const showProfile = searchParams?.profile === '1';
 
+  // Kursunterlagen (Materials) direkt laden
+  let materials: {
+    id: string;
+    title: string;
+    course_id: string | null;
+    module_number: number | null;
+    signed_url?: string | null;
+    cover_url?: string | null;
+  }[] = [];
+  if (courseIds.length) {
+    const { data: materialsRaw } = await service
+      .from('materials')
+      .select('id, title, course_id, module_number, storage_path, cover_path, visibility')
+      .in('course_id', courseIds)
+      .in('visibility', ['students', 'both'])
+      .order('module_number', { ascending: true });
+
+    for (const m of materialsRaw || []) {
+      const fileUrl = m.storage_path
+        ? (await service.storage.from('materials').createSignedUrl(m.storage_path, 60 * 60)).data?.signedUrl ?? null
+        : null;
+      const coverUrl = m.cover_path
+        ? (await service.storage.from('materials').createSignedUrl(m.cover_path, 60 * 60)).data?.signedUrl ?? null
+        : null;
+      materials.push({
+        id: m.id,
+        title: m.title,
+        course_id: m.course_id,
+        module_number: m.module_number,
+        signed_url: fileUrl,
+        cover_url: coverUrl,
+      });
+    }
+  }
+
   // Nächster Kurs für Countdown (falls vorhanden)
   const nextCourse = (courses || [])
     .filter((c) => c.start_date)
@@ -155,6 +191,7 @@ export default async function StudentPage({ searchParams }: { searchParams: Reco
       <StudentDashboardClient
         bookings={bookings || []}
         courses={courses || []}
+        materials={materials}
         profile={
           student
             ? {
