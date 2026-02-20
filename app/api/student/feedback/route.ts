@@ -29,6 +29,17 @@ export async function POST(req: Request) {
     .maybeSingle();
   if (booking?.student_id) student_id = booking.student_id;
 
+  // Nur eine Bewertung pro Buchung/User zulassen
+  const { data: existing } = await service
+    .from('course_feedback')
+    .select('id')
+    .eq('booking_id', booking_id)
+    .eq('user_id', user.id)
+    .maybeSingle();
+  if (existing) {
+    return NextResponse.json({ error: 'Feedback bereits vorhanden' }, { status: 409 });
+  }
+
   const { error } = await service.from('course_feedback').insert({
     booking_id,
     course_id: course_id ?? booking?.course_id ?? null,

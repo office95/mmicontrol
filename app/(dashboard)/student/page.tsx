@@ -127,6 +127,20 @@ export default async function StudentPage({ searchParams }: { searchParams: Reco
 
   const showProfile = searchParams?.profile === '1';
 
+  // Bereits abgegebene Feedbacks laden (pro Buchung / User)
+  let feedbacks: Record<string, any> = {};
+  const bookingIds = (bookings || []).map((b) => b.id);
+  if (bookingIds.length && user?.id) {
+    const { data: fbRows } = await service
+      .from('course_feedback')
+      .select('id, booking_id, ratings, expectations, improve, recommend, created_at')
+      .eq('user_id', user.id)
+      .in('booking_id', bookingIds);
+    (fbRows || []).forEach((fb) => {
+      feedbacks[fb.booking_id] = fb;
+    });
+  }
+
   // Kursunterlagen (Materials) direkt laden
   let materials: {
     id: string;
@@ -231,6 +245,7 @@ export default async function StudentPage({ searchParams }: { searchParams: Reco
         courses={courses || []}
         materials={materials}
         recommended={recommended}
+        feedbacks={feedbacks}
         profile={
           student
             ? {

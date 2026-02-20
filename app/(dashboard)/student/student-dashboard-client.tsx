@@ -42,6 +42,7 @@ export default function StudentDashboardClient({
   materials,
   recommended,
   feedbackReminder,
+  feedbacks,
 }: {
   bookings: Booking[];
   courses: Course[];
@@ -50,6 +51,7 @@ export default function StudentDashboardClient({
   materials: Material[];
   recommended: RecommendedCourse[];
   feedbackReminder?: boolean;
+  feedbacks: Record<string, any>;
 }) {
   const [tab, setTab] = useState<'bookings' | 'materials' | 'profile' | 'feedback'>(showProfileInitially ? 'profile' : 'bookings');
   const courseTitle = (cid: string | null) => courses.find((c) => c.id === cid)?.title ?? 'Kurs';
@@ -209,7 +211,9 @@ export default function StudentDashboardClient({
           </div>
           <FeedbackList
             bookings={bookings}
+            feedbacks={feedbacks}
             onOpen={(b) => { setSelectedBooking(b); setShowFeedbackModal(true); }}
+            onView={(b) => { setSelectedBooking(b); setShowFeedbackModal(true); }}
           />
         </div>
       )}
@@ -237,6 +241,8 @@ export default function StudentDashboardClient({
       {showFeedbackModal && selectedBooking && (
         <FeedbackModal
           booking={selectedBooking}
+          existing={feedbacks[selectedBooking.id]}
+          readOnly={!!feedbacks[selectedBooking.id]}
           onClose={() => { setShowFeedbackModal(false); setSelectedBooking(null); }}
         />
       )}
@@ -244,7 +250,17 @@ export default function StudentDashboardClient({
   );
 }
 
-function FeedbackList({ bookings, onOpen }: { bookings: Booking[]; onOpen: (b: Booking) => void }) {
+function FeedbackList({
+  bookings,
+  feedbacks,
+  onOpen,
+  onView,
+}: {
+  bookings: Booking[];
+  feedbacks: Record<string, any>;
+  onOpen: (b: Booking) => void;
+  onView: (b: Booking) => void;
+}) {
   const uniqueCourses = useMemo(() => bookings, [bookings]);
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
@@ -257,12 +273,21 @@ function FeedbackList({ bookings, onOpen }: { bookings: Booking[]; onOpen: (b: B
             Start: {b.course_start ? new Date(b.course_start).toLocaleDateString() : '—'}
           </p>
           <div className="mt-auto pt-3">
-            <button
-              className="w-full inline-flex items-center justify-center rounded-lg bg-pink-600 text-white px-3 py-2 text-sm font-semibold hover:bg-pink-500"
-              onClick={() => onOpen(b)}
-            >
-              Bewerten
-            </button>
+            {feedbacks[b.id] ? (
+              <button
+                className="w-full inline-flex items-center justify-center rounded-lg bg-slate-200 text-slate-700 px-3 py-2 text-sm font-semibold hover:bg-slate-300"
+                onClick={() => onView(b)}
+              >
+                Feedback ansehen
+              </button>
+            ) : (
+              <button
+                className="w-full inline-flex items-center justify-center rounded-lg bg-pink-600 text-white px-3 py-2 text-sm font-semibold hover:bg-pink-500"
+                onClick={() => onOpen(b)}
+              >
+                Bewerten
+              </button>
+            )}
           </div>
         </div>
       ))}
@@ -273,15 +298,16 @@ function FeedbackList({ bookings, onOpen }: { bookings: Booking[]; onOpen: (b: B
   );
 }
 
-function StarInput({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+function StarInput({ value, onChange, readOnly = false }: { value: number; onChange: (v: number) => void; readOnly?: boolean }) {
   return (
     <div className="flex gap-1 text-pink-500 text-xl">
       {[1, 2, 3, 4, 5].map((i) => (
         <button
           key={i}
           type="button"
-          className={i <= value ? 'text-pink-500' : 'text-slate-300'}
-          onClick={() => onChange(i)}
+          disabled={readOnly}
+          className={`${i <= value ? 'text-pink-500' : 'text-slate-300'} ${readOnly ? 'cursor-default' : ''}`}
+          onClick={() => !readOnly && onChange(i)}
         >
           ★
         </button>
@@ -290,23 +316,32 @@ function StarInput({ value, onChange }: { value: number; onChange: (v: number) =
   );
 }
 
-function FeedbackModal({ booking, onClose }: { booking: Booking; onClose: () => void }) {
+type FeedbackRecord = {
+  ratings?: any;
+  expectations?: string;
+  improve?: string;
+  recommend?: string;
+  created_at?: string;
+};
+
+function FeedbackModal({ booking, existing, readOnly, onClose }: { booking: Booking; existing?: FeedbackRecord; readOnly?: boolean; onClose: () => void }) {
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState({
-    overall: 0,
-    teacher: 0,
-    clarity: 0,
-    practice: 0,
-    support: 0,
-    tech: 0,
-    expectations: 'voll',
-    improve: '',
-    recommend: 'ja',
+    overall: existing?.ratings?.overall ?? 0,
+    teacher: existing?.ratings?.teacher ?? 0,
+    clarity: existing?.ratings?.clarity ?? 0,
+    practice: existing?.ratings?.practice ?? 0,
+    support: existing?.ratings?.support ?? 0,
+    tech: existing?.ratings?.tech ?? 0,
+    expectations: existing?.expectations ?? 'voll',
+    improve: existing?.improve ?? '',
+    recommend: existing?.recommend ?? 'ja',
   });
 
   async function submit() {
+    if (readOnly) return;
     setSaving(true);
     setError(null);
     setSuccess(null);
@@ -358,7 +393,11 @@ function FeedbackModal({ booking, onClose }: { booking: Booking; onClose: () => 
           ].map(([label, key]) => (
             <div key={key} className="flex items-center justify-between gap-4">
               <p className="text-sm text-slate-700">{label}</p>
-              <StarInput value={(form as any)[key]} onChange={(v) => setForm((f) => ({ ...f, [key]: v }))} />
+              <StarInput
+                value={(form as any)[key]}
+                onChange={(v) => setForm((f) => ({ ...f, [key]: v }))}
+                readOnly={readOnly}
+              />
             </div>
           ))}
 
@@ -368,6 +407,7 @@ function FeedbackModal({ booking, onClose }: { booking: Booking; onClose: () => 
               className="input"
               value={form.expectations}
               onChange={(e) => setForm((f) => ({ ...f, expectations: e.target.value }))}
+              disabled={readOnly}
             >
               <option value="voll">Ja, voll und ganz</option>
               <option value="groesstenteils">Größtenteils</option>
@@ -382,6 +422,7 @@ function FeedbackModal({ booking, onClose }: { booking: Booking; onClose: () => 
               className="input"
               value={form.improve}
               onChange={(e) => setForm((f) => ({ ...f, improve: e.target.value }))}
+              disabled={readOnly}
               rows={3}
             />
           </div>
@@ -392,6 +433,7 @@ function FeedbackModal({ booking, onClose }: { booking: Booking; onClose: () => 
               className="input"
               value={form.recommend}
               onChange={(e) => setForm((f) => ({ ...f, recommend: e.target.value }))}
+              disabled={readOnly}
             >
               <option value="ja">Ja</option>
               <option value="vielleicht">Vielleicht</option>
@@ -402,12 +444,19 @@ function FeedbackModal({ booking, onClose }: { booking: Booking; onClose: () => 
 
         {error && <p className="text-sm text-red-600 mt-3">{error}</p>}
         {success && <p className="text-sm text-emerald-600 mt-3">{success}</p>}
+        {readOnly && existing?.created_at && (
+          <p className="text-xs text-slate-500 mt-2">Gesendet am {new Date(existing.created_at).toLocaleDateString()}</p>
+        )}
 
         <div className="mt-5 flex justify-end gap-3">
-          <button className="rounded-lg border border-slate-300 px-4 py-2 text-slate-700 hover:bg-slate-100" onClick={onClose}>Abbrechen</button>
-          <button className="button-primary" onClick={submit} disabled={saving || success !== null}>
-            {saving ? 'Speichern...' : 'Feedback senden'}
+          <button className="rounded-lg border border-slate-300 px-4 py-2 text-slate-700 hover:bg-slate-100" onClick={onClose}>
+            {readOnly ? 'Schließen' : 'Abbrechen'}
           </button>
+          {!readOnly && (
+            <button className="button-primary" onClick={submit} disabled={saving || success !== null}>
+              {saving ? 'Speichern...' : 'Feedback senden'}
+            </button>
+          )}
         </div>
       </div>
     </div>
