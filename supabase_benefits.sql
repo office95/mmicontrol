@@ -16,6 +16,7 @@ create table if not exists public.benefit_companies (
   city text,
   state text,
   country text check (country in ('AT','DE')),
+  logo_url text,
   action_title text,
   description text,
   discount_type text check (discount_type in ('percent','fixed','perk')),
