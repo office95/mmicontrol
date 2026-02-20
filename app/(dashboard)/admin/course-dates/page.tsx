@@ -400,6 +400,16 @@ function FeedbackModal({
       <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white text-ink shadow-2xl p-6 relative">
         <button className="absolute top-3 right-3 text-slate-500 hover:text-ink" onClick={onClose}>×</button>
         <h3 className="text-2xl font-semibold mb-3">{title}</h3>
+        {items.length > 0 && (
+          <div className="mb-4 inline-flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
+            <div className="text-xs text-slate-500 uppercase tracking-[0.14em]">Ø Gesamt</div>
+            <div className="flex items-center gap-2">
+              <StarInputReadOnly value={avgOverall(items)} />
+              <span className="text-sm font-semibold text-ink">{avgOverall(items).toFixed(1)} / 5</span>
+              <span className="text-xs text-slate-500">({items.length} Feedbacks)</span>
+            </div>
+          </div>
+        )}
         {loading && (
           <p className="text-slate-600 flex items-center gap-2">
             Lade Feedback...
@@ -459,4 +469,10 @@ function StarInputReadOnly({ value }: { value: number }) {
       ))}
     </div>
   );
+}
+
+function avgOverall(items: any[]) {
+  if (!items.length) return 0;
+  const sum = items.reduce((acc, f) => acc + Number(f.ratings?.overall ?? 0), 0);
+  return sum / items.length;
 }
