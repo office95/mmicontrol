@@ -62,7 +62,7 @@ export default function BookingsPage() {
   const [payNote, setPayNote] = useState('');
   const [savingPayment, setSavingPayment] = useState(false);
   const [statusSaving, setStatusSaving] = useState(false);
-  const [tab, setTab] = useState<'overview' | 'payments' | 'dunning'>('overview');
+  const [tab, setTab] = useState<'overview' | 'payments' | 'dunning' | 'open'>('overview');
   const [metrics, setMetrics] = useState<Metrics | null>(null);
 
   const load = async () => {
@@ -185,6 +185,23 @@ export default function BookingsPage() {
       </div>
 
       <div className="card p-6 shadow-xl text-slate-900 overflow-x-auto">
+        <div className="flex gap-3 mb-4 text-sm font-semibold text-slate-600">
+          {(['overview', 'open', 'payments', 'dunning'] as const).map((t) => (
+            <button
+              key={t}
+              className={`pb-2 border-b-2 ${tab === t ? 'border-pink-500 text-ink' : 'border-transparent text-slate-400'}`}
+              onClick={() => setTab(t)}
+            >
+              {t === 'overview' ? 'Übersicht' : t === 'open' ? 'Offene Saldenliste' : t === 'payments' ? 'Zahlungen' : 'Mahnwesen'}
+            </button>
+          ))}
+        </div>
+
+        {tab === 'open' && !loading && (
+          <OpenSaldoTable items={filtered.filter((b) => (b.open_amount ?? b.saldo ?? 0) > 0.001)} />
+        )}
+
+        {tab !== 'open' && (
         {loading && <p className="text-sm text-slate-500">Lade Buchungen...</p>}
         {error && <p className="text-sm text-red-600">{error}</p>}
         {!loading && !filtered.length && <p className="text-sm text-slate-500">Keine Buchungen gefunden.</p>}
@@ -230,6 +247,7 @@ export default function BookingsPage() {
               ))}
             </tbody>
           </table>
+        )}
         )}
       </div>
 
@@ -491,6 +509,55 @@ function GlassCard({ label, value, tone, children }: { label: string; value: str
       <p className="text-[11px] uppercase tracking-[0.18em] text-white/70 mb-2">{label}</p>
       <p className="text-2xl font-semibold mb-1">{value}</p>
       {children}
+    </div>
+  );
+}
+
+// Offene Saldenliste
+function OpenSaldoTable({ items }: { items: BookingRow[] }) {
+  const total = items.reduce((s, b) => s + (Number(b.open_amount ?? b.saldo ?? 0) || 0), 0);
+  const sorted = [...items].sort((a, b) => Number(b.open_amount ?? b.saldo ?? 0) - Number(a.open_amount ?? a.saldo ?? 0));
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between text-sm text-slate-700 mb-2">
+        <span>Offene Salden: {sorted.length} Buchungen</span>
+        <span className="font-semibold text-pink-600">{total.toFixed(2)} € gesamt</span>
+      </div>
+      <table className="min-w-full text-sm">
+        <thead>
+          <tr className="text-left text-slate-500">
+            <th className="py-2 pr-4">Buchungsdatum</th>
+            <th className="py-2 pr-4">Teilnehmer</th>
+            <th className="py-2 pr-4">Kurs</th>
+            <th className="py-2 pr-4">Status</th>
+            <th className="py-2 pr-4 text-right">Offener Betrag</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-slate-200">
+          {sorted.map((b) => {
+            const open = Number(b.open_amount ?? b.saldo ?? 0) || 0;
+            return (
+              <tr key={b.id} className="hover:bg-slate-50">
+                <td className="py-2 pr-4 text-slate-700">{b.booking_date ? new Date(b.booking_date).toLocaleDateString() : '—'}</td>
+                <td className="py-2 pr-4">
+                  <div className="font-semibold text-ink">{b.student_name ?? '—'}</div>
+                  <div className="text-xs text-slate-500">{b.partner_name ?? '—'}</div>
+                </td>
+                <td className="py-2 pr-4">
+                  <div className="text-slate-800">{b.course_title ?? '—'}</div>
+                  <div className="text-xs text-slate-500">Start: {b.course_start ? new Date(b.course_start).toLocaleDateString() : '—'}</div>
+                </td>
+                <td className="py-2 pr-4 text-xs">
+                  <span className="inline-flex px-2 py-1 rounded-full bg-amber-100 text-amber-800 border border-amber-200">
+                    {b.status}
+                  </span>
+                </td>
+                <td className="py-2 pr-4 text-right font-semibold text-pink-700">{open.toFixed(2)} €</td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
     </div>
   );
 }
