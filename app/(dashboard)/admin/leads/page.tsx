@@ -273,6 +273,17 @@ export default function LeadsPage() {
                     <span className="px-3 py-1 rounded-full bg-pink-50 text-pink-700">
                       Status: {statusLabel[l.status || 'offen'] ?? l.status ?? 'offen'}
                     </span>
+                    {(() => {
+                      const todos = (l.notes || []).filter((n) => (n as any).todo);
+                      if (!todos.length) return null;
+                      const last = todos.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0];
+                      const date = last.created_at ? new Date(last.created_at).toLocaleDateString() : '';
+                      return (
+                        <span className="px-3 py-1 rounded-full bg-amber-100 text-amber-800 border border-amber-200">
+                          ToDo: {(last as any).todo ?? (last as any).text ?? ''} {date ? `(${date})` : ''}
+                        </span>
+                      );
+                    })()}
                   </div>
                 </div>
                 <div className="flex items-center gap-2 text-xs">
