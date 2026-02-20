@@ -15,23 +15,19 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: 'course_id oder partner_id erforderlich' }, { status: 400 });
   }
 
-  // 1) Feedbacks laden
-  const { data: fbData, error: fbErr } = await service
-    .from('course_feedback')
-    .select('id, booking_id, course_id, course_title, ratings, recommend, improve, created_at, student_id, students(name, email)')
-    .maybeSingle(); // placeholder to satisfy type
-
-  // Supabase Typing workaround: neu laden mit eq/in wenn nötig
+  // 1) Feedbacks laden (optional Kursfilter)
   let feedbackQuery = service
     .from('course_feedback')
-    .select('id, booking_id, course_id, course_title, ratings, recommend, improve, created_at, student_id, students(name, email))');
+    .select('id, booking_id, course_id, course_title, ratings, recommend, improve, created_at, student_id, students(name, email)');
   if (courseId) feedbackQuery = feedbackQuery.eq('course_id', courseId);
-  const { data: feedback, error: feedbackError } = await feedbackQuery;
-  if (feedbackError) return NextResponse.json({ error: feedbackError.message }, { status: 400 });
-  const feedbackRows = feedback || [];
+  const { data: feedbackRows, error: fbErr } = await feedbackQuery;
+  if (fbErr) return NextResponse.json({ error: fbErr.message }, { status: 400 });
 
-  // 2) Buchungen zu Feedbacks holen (für partner_id / course_id Fallback)
-  const bookingIds = Array.from(new Set(feedbackRows.map((f: any) => f.booking_id).filter(Boolean)));
+  // Wenn weder courseId noch partnerId Feedbacks liefern, direkt zurück
+  if (!feedbackRows?.length) return NextResponse.json([]);
+
+  // 2) Buchungen der Feedbacks holen
+  const bookingIds = Array.from(new Set(feedbackRows.map((f) => f.booking_id).filter(Boolean)));
   const bookingMap = new Map<string, any>();
   if (bookingIds.length) {
     const { data: bookings, error: bErr } = await service
@@ -42,14 +38,8 @@ export async function GET(req: Request) {
     bookings?.forEach((b) => bookingMap.set(b.id, b));
   }
 
-  // 3) course_dates für Partner-Fallback
-  const courseDateIds = Array.from(
-    new Set(
-      Array.from(bookingMap.values())
-        .map((b: any) => b.course_date_id)
-        .filter(Boolean)
-    )
-  );
+  // 3) Course_Dates für Partner/Kurs-Fallback
+  const courseDateIds = Array.from(new Set(Array.from(bookingMap.values()).map((b: any) => b.course_date_id).filter(Boolean)));
   const courseDateMap = new Map<string, any>();
   if (courseDateIds.length) {
     const { data: cds, error: cdErr } = await service
@@ -60,25 +50,25 @@ export async function GET(req: Request) {
     cds?.forEach((cd) => courseDateMap.set(cd.id, cd));
   }
 
-  // 4) Kurse für Partner-Fallback
-  const courseIds = Array.from(
+  // 4) Kurs-Partner per courses ergänzen
+  const courseIdsFromData = Array.from(
     new Set([
-      ...feedbackRows.map((f: any) => f.course_id).filter(Boolean),
+      ...feedbackRows.map((f) => f.course_id).filter(Boolean),
       ...Array.from(courseDateMap.values()).map((cd: any) => cd.course_id).filter(Boolean),
     ])
   );
   const courseMap = new Map<string, any>();
-  if (courseIds.length) {
+  if (courseIdsFromData.length) {
     const { data: courseRows, error: cErr } = await service
       .from('courses')
       .select('id, partner_id')
-      .in('id', courseIds);
+      .in('id', courseIdsFromData);
     if (cErr) return NextResponse.json({ error: cErr.message }, { status: 400 });
     courseRows?.forEach((c) => courseMap.set(c.id, c));
   }
 
-  // 5) Zeilen anreichern
-  let rows = feedbackRows.map((f: any) => {
+  // 5) Zeilen anreichern & Partner ableiten
+  let rows = feedbackRows.map((f) => {
     const booking = f.booking_id ? bookingMap.get(f.booking_id) : null;
     const cd = booking?.course_date_id ? courseDateMap.get(booking.course_date_id) : null;
     const cid = f.course_id ?? booking?.course_id ?? cd?.course_id ?? null;
@@ -98,7 +88,7 @@ export async function GET(req: Request) {
     };
   });
 
-  // 6) Partnerfilter anwenden (nach Anreicherung)
+  // 6) Partnerfilter nach Anreicherung
   if (partnerId) {
     rows = rows.filter((r) => r.partner_id === partnerId);
   }
