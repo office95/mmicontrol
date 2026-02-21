@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import Link from 'next/link';
+import SupportReply from '@/components/support-reply';
 
 export const revalidate = 0;
 export const dynamic = 'force-dynamic';
@@ -53,6 +54,7 @@ export default async function SupportDetail({ params }: { params: { id: string }
             </div>
           ))}
         </div>
+        <SupportReply ticketId={ticket.id} currentStatus={ticket.status} currentPriority={ticket.priority} />
       </div>
     </div>
   );

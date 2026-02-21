@@ -68,6 +68,7 @@ export default function DashboardClient({
   feedbacks,
   feedbackOverallAvg,
   benefits,
+  supportCount,
 }: {
   kpis: KPIs;
   interests: InterestRank[];
@@ -78,6 +79,7 @@ export default function DashboardClient({
   feedbacks: Feedback[];
   feedbackOverallAvg?: number | null;
   benefits: Benefit[];
+  supportCount?: number;
 }) {
   const [tab, setTab] = useState<'perf' | 'courses' | 'materials' | 'feedback' | 'benefits'>('perf');
   const feedbackByCourse = useMemo(() => {
@@ -130,6 +132,17 @@ export default function DashboardClient({
         >
           Benefits
         </button>
+        <a
+          href="/teacher/support"
+          className="px-3 py-2 rounded-lg border border-white/20 bg-white/10 hover:border-pink-300 hover:text-white flex items-center gap-2"
+        >
+          Support
+          {supportCount ? (
+            <span className="inline-flex h-5 px-2 items-center justify-center rounded-full bg-rose-500 text-white text-xs font-bold">
+              {supportCount}
+            </span>
+          ) : null}
+        </a>
       </div>
 
       {tab === 'perf' && (

@@ -763,6 +763,15 @@ export default async function TeacherPage() {
         )
       : null;
 
+  // Offene Support-Tickets zählen (für Badge)
+  const { count: supportCount } = user?.id
+    ? await service
+        .from('support_tickets')
+        .select('id', { count: 'exact', head: true })
+        .eq('created_by', user.id)
+        .in('status', ['open', 'in_progress'])
+    : ({ count: 0 } as any);
+
   return (
     <div className="space-y-8">
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 bg-white/10 border border-white/15 rounded-xl p-6 shadow-lg relative overflow-hidden">
@@ -794,6 +803,7 @@ export default async function TeacherPage() {
         feedbacks={feedbacks || []}
         feedbackOverallAvg={feedbackOverallAvg}
         benefits={benefits || []}
+        supportCount={supportCount || 0}
       />
     </div>
   );
