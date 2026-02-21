@@ -47,11 +47,37 @@ export default function TeacherSupportPage() {
   };
 
   return (
-    <div className="space-y-6 text-slate-900">
-      <div>
-        <p className="text-xs uppercase tracking-[0.2em] text-pink-600">Support</p>
-        <h1 className="text-3xl font-semibold">Support für Dozenten</h1>
-        <p className="text-sm text-slate-600">Tickets erstellen und den Verlauf einsehen.</p>
+    <div className="min-h-screen bg-slate-50 text-slate-900 px-4 sm:px-6 lg:px-10 py-6 space-y-6">
+      {/* Tabs analog zum Dashboard */}
+      <div className="flex flex-wrap gap-2 text-sm font-semibold">
+        {[
+          ['Performance', '/teacher'],
+          ['Meine Kurse & Teilnehmer', '/teacher?tab=courses'],
+          ['Kursunterlagen', '/teacher?tab=materials'],
+          ['Kurs-Feedback', '/teacher?tab=feedback'],
+          ['Benefits', '/teacher?tab=benefits'],
+          ['Support', '/teacher/support'],
+        ].map(([label, href]) => (
+          <a
+            key={label}
+            href={href}
+            className={`px-3 py-2 rounded-lg border ${href === '/teacher/support' ? 'border-pink-400 bg-pink-100 text-pink-800' : 'border-slate-300 bg-white text-slate-700 hover:border-pink-300 hover:text-pink-700'}`}
+          >
+            {label}
+          </a>
+        ))}
+      </div>
+
+      {/* Hero */}
+      <div className="rounded-2xl bg-gradient-to-r from-pink-500 via-rose-500 to-purple-600 text-white p-6 shadow-xl flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <p className="text-[11px] uppercase tracking-[0.2em] text-white/80">Support Center</p>
+          <h1 className="text-2xl font-semibold">Schnelle Hilfe für Dozenten</h1>
+          <p className="text-sm text-white/80">Stelle Fragen oder melde Probleme – wir antworten werktags zeitnah.</p>
+        </div>
+        <div className="rounded-xl bg-white/15 px-4 py-3 text-sm text-white/90 border border-white/30">
+          Priorität Hoch wird bevorzugt behandelt. Letzte Updates siehst du unten.
+        </div>
       </div>
 
       <div className="rounded-2xl bg-white p-6 shadow-xl border border-slate-200 space-y-3">
@@ -92,6 +118,7 @@ export default function TeacherSupportPage() {
                 <summary className="flex items-center justify-between cursor-pointer">
                   <div className="space-y-0.5">
                     <p className="font-semibold text-slate-900">{t.subject}</p>
+                    <p className="text-xs text-slate-600">Ticket-Nr.: #{t.id?.slice(0, 8)?.toUpperCase() || '—'}</p>
                     <p className="text-xs text-slate-600">Status: {t.status} · Priorität: {t.priority} · Letzte Nachricht: {new Date(t.last_message_at).toLocaleString()}</p>
                   </div>
                   <span className={`px-2 py-1 rounded-full border text-xs ${t.status === 'open' ? 'border-emerald-300 text-emerald-700 bg-emerald-50' : t.status === 'in_progress' ? 'border-amber-300 text-amber-700 bg-amber-50' : 'border-slate-300 text-slate-700 bg-slate-100'}`}>
