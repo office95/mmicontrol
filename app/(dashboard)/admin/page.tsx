@@ -32,6 +32,12 @@ export default async function AdminPage() {
     .from('bookings')
     .select('partner_id, partner_name, booking_date, amount')
     .gte('booking_date', `${currentYear - 1}-01-01`);
+  const { data: support } = await supabase
+    .from('support_tickets')
+    .select('id, subject, priority, status, created_at, last_message_at, role')
+    .eq('status', 'open')
+    .order('last_message_at', { ascending: false })
+    .limit(5);
 
   const monthNowList = (bookings || []).filter((b) => {
     const d = b.booking_date ? new Date(b.booking_date) : null;
@@ -154,6 +160,36 @@ export default async function AdminPage() {
         <StatCard label="Gesamt Dozenten" value={teachers?.length ?? 0} />
         <StatCard label="Gesamt Teilnehmer" value={students?.length ?? 0} />
         <StatCard label="Gesamt Kurse" value={courses?.length ?? 0} />
+      </div>
+
+      <div className="card shadow-xl p-6 space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-white">Neue Support-Tickets</h2>
+          <Link href="/admin/support" className="text-sm text-pink-200 hover:text-pink-100">Alle anzeigen</Link>
+        </div>
+        {!support?.length && <p className="text-slate-300 text-sm">Keine offenen Tickets.</p>}
+        {support?.length ? (
+          <div className="divide-y divide-white/10">
+            {support.map((t) => (
+              <div key={t.id} className="py-3 flex items-center justify-between">
+                <div>
+                  <p className="text-white font-semibold">{t.subject}</p>
+                  <p className="text-xs text-white/70">
+                    {t.role ?? '—'} · {new Date(t.created_at as string).toLocaleString()}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 text-xs">
+                  <span className={`px-2 py-1 rounded-full border ${t.priority === 'high' ? 'border-rose-200 text-rose-100 bg-rose-500/20' : 'border-white/20 text-white/80 bg-white/10'}`}>
+                    {t.priority === 'high' ? 'High' : 'Normal'}
+                  </span>
+                  <span className="px-2 py-1 rounded-full border border-emerald-200 text-emerald-100 bg-emerald-500/20">
+                    {t.status}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : null}
       </div>
 
       <div className="card shadow-xl p-6 space-y-4">

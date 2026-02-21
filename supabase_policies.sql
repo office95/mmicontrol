@@ -234,3 +234,30 @@ create policy benefit_redemptions_own_select on public.benefit_redemptions
 drop policy if exists benefit_redemptions_insert_self on public.benefit_redemptions;
 create policy benefit_redemptions_insert_self on public.benefit_redemptions
   for insert with check (user_id = auth.uid());
+
+-- 14) Support Tickets
+create table if not exists public.support_tickets (
+  id uuid primary key default gen_random_uuid(),
+  created_by uuid references auth.users(id),
+  role text check (role in ('student','teacher','admin')),
+  subject text not null,
+  message text not null,
+  status text check (status in ('open','in_progress','closed')) default 'open',
+  priority text check (priority in ('normal','high')) default 'normal',
+  created_at timestamptz default now(),
+  last_message_at timestamptz default now()
+);
+
+alter table if exists public.support_tickets enable row level security;
+
+drop policy if exists support_tickets_admin_all on public.support_tickets;
+create policy support_tickets_admin_all on public.support_tickets
+  for all using (auth.uid() in (select id from public.v_admin));
+
+drop policy if exists support_tickets_owner_select on public.support_tickets;
+create policy support_tickets_owner_select on public.support_tickets
+  for select using (created_by = auth.uid());
+
+drop policy if exists support_tickets_owner_insert on public.support_tickets;
+create policy support_tickets_owner_insert on public.support_tickets
+  for insert with check (created_by = auth.uid());
