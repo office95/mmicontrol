@@ -400,12 +400,35 @@ export default function BookingsPage() {
                       <input type="number" className="input" value={payAmount} onChange={(e) => setPayAmount(e.target.value)} placeholder="0,00" />
                     </div>
                     <div>
-                      <label className="text-xs uppercase tracking-[0.12em] text-slate-500">Methode</label>
-                      <input className="input" value={payMethod} onChange={(e) => setPayMethod(e.target.value)} placeholder="Überweisung, Bar..." />
+                      <label className="text-xs uppercase tracking-[0.12em] text-slate-500">Zahlungsmethode</label>
+                      <select className="input" value={payMethod} onChange={(e) => setPayMethod(e.target.value)}>
+                        <option value="">Bitte wählen</option>
+                        {['WIX Payment', 'Stripe', 'Banküberweisung', 'Barzahlung', 'Kreditkarte', 'Apple Pay', 'Google Pay'].map((opt) => (
+                          <option key={opt} value={opt}>{opt}</option>
+                        ))}
+                      </select>
                     </div>
                     <div>
                       <label className="text-xs uppercase tracking-[0.12em] text-slate-500">Kommentar</label>
-                      <input className="input" value={payNote} onChange={(e) => setPayNote(e.target.value)} placeholder="Verwendungszweck" />
+                      <select
+                        className="input"
+                        value={payNote}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setPayNote(val);
+                          setSelected((prev) => {
+                            if (!prev) return prev;
+                            if (val === 'Anzahlung') return { ...prev, status: 'Anzahlung erhalten' } as BookingRow;
+                            if (val === 'Restzahlung') return { ...prev, status: 'abgeschlossen' } as BookingRow;
+                            return prev; // Teilzahlung oder leer -> unverändert
+                          });
+                        }}
+                      >
+                        <option value="">Bitte wählen</option>
+                        <option value="Anzahlung">Anzahlung</option>
+                        <option value="Restzahlung">Restzahlung</option>
+                        <option value="Teilzahlung">Teilzahlung</option>
+                      </select>
                     </div>
                   </div>
                   <div className="flex justify-end">
@@ -415,6 +438,11 @@ export default function BookingsPage() {
                       onClick={async () => {
                         if (!selected) return;
                         setSavingPayment(true);
+                        // Status-Ableitung basierend auf Kommentar
+                        let derivedStatus = selected.status;
+                        if (payNote === 'Anzahlung') derivedStatus = 'Anzahlung erhalten';
+                        else if (payNote === 'Restzahlung') derivedStatus = 'abgeschlossen';
+
                         const res = await fetch('/api/admin/payments', {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json' },
@@ -428,6 +456,14 @@ export default function BookingsPage() {
                         });
                         setSavingPayment(false);
                         if (res.ok) {
+                          // Status ggf. aktualisieren
+                          if (derivedStatus && derivedStatus !== selected.status) {
+                            await fetch('/api/admin/bookings', {
+                              method: 'PATCH',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ id: selected.id, status: derivedStatus }),
+                            });
+                          }
                           setPayAmount('');
                           setPayMethod('');
                           setPayNote('');
