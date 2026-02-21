@@ -12,6 +12,8 @@ alter table if exists public.quiz_questions enable row level security;
 alter table if exists public.quiz_attempts enable row level security;
 alter table if exists public.course_dates enable row level security;
 alter table if exists public.bookings enable row level security;
+-- Rechnungsnummer (manuell aus Zoho), optional
+alter table if exists public.bookings add column if not exists invoice_number text;
 alter table if exists public.students enable row level security;
 alter table if exists public.leads enable row level security;
 

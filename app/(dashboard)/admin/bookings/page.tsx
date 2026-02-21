@@ -332,12 +332,12 @@ export default function BookingsPage() {
               {selected.student_name ?? '—'} · {selected.course_title ?? '—'} · Code {selected.booking_code ?? '—'}
             </p>
 
-            <div className="flex flex-wrap gap-2 mb-4">
-              {[
-                ['overview', 'Basis'],
-                ['payments', 'Zahlungen'],
-                ['dunning', 'Status & Mahnwesen'],
-              ].map(([key, label]) => (
+              <div className="flex flex-wrap gap-2 mb-4">
+                {[
+                  ['overview', 'Basis'],
+                  ['payments', 'Zahlungen'],
+                  ['dunning', 'Status & Mahnwesen'],
+                ].map(([key, label]) => (
                 <button
                   key={key}
                   className={`rounded-full border px-4 py-1 text-sm font-semibold transition ${modalTab === key ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300'}`}
@@ -361,6 +361,7 @@ export default function BookingsPage() {
                   <p className="text-xs font-semibold text-ink uppercase tracking-[0.15em] mb-3">Basis</p>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                     {[
+                      ['Rechnungsnummer', selected.invoice_number ? `MMI-${selected.invoice_number}` : '—'],
                       ['Kursteilnehmer', selected.student_name ?? '—'],
                       ['Buchungscode', selected.booking_code ?? '—'],
                       ['Buchungsdatum', selected.booking_date ? new Date(selected.booking_date).toLocaleDateString() : '—'],

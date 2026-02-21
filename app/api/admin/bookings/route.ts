@@ -8,7 +8,7 @@ const service = createClient(
 
 const SELECT =
   `id, booking_code, booking_date, amount, status, student_id, course_id, course_date_id, partner_id,
-   course_title, course_start, partner_name, student_name, student_email, vat_rate, price_net, deposit, saldo, duration_hours,
+   course_title, course_start, partner_name, student_name, student_email, vat_rate, price_net, deposit, saldo, duration_hours, invoice_number,
    next_dunning_at, auto_dunning_enabled`;
 
 async function fillAmounts(rows: any | any[]) {
