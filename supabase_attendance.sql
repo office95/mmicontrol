@@ -55,6 +55,30 @@ create policy attendance_sessions_teacher_rw on public.attendance_sessions
     )
   );
 
+-- Teacher über Partner-Zuordnung (falls nicht in course_members erfasst)
+drop policy if exists attendance_sessions_partner_teacher_rw on public.attendance_sessions;
+create policy attendance_sessions_partner_teacher_rw on public.attendance_sessions
+  for all using (
+    exists (
+      select 1 from public.course_dates cd
+      join public.profiles p on p.id = auth.uid()
+      where cd.course_id = attendance_sessions.course_id
+        and p.partner_id is not null
+        and p.partner_id = cd.partner_id
+        and p.role = 'teacher'
+    )
+  )
+  with check (
+    exists (
+      select 1 from public.course_dates cd
+      join public.profiles p on p.id = auth.uid()
+      where cd.course_id = attendance_sessions.course_id
+        and p.partner_id is not null
+        and p.partner_id = cd.partner_id
+        and p.role = 'teacher'
+    )
+  );
+
 -- Teacher: entries of own sessions
 drop policy if exists attendance_entries_teacher_rw on public.attendance_entries;
 create policy attendance_entries_teacher_rw on public.attendance_entries
@@ -70,5 +94,31 @@ create policy attendance_entries_teacher_rw on public.attendance_entries
       select 1 from public.attendance_sessions s
       join public.course_members cm on cm.course_id = s.course_id and cm.role='teacher' and cm.user_id = auth.uid()
       where s.id = attendance_entries.session_id
+    )
+  );
+
+-- Teacher über Partner (falls keine course_members-Einträge)
+drop policy if exists attendance_entries_partner_teacher_rw on public.attendance_entries;
+create policy attendance_entries_partner_teacher_rw on public.attendance_entries
+  for all using (
+    exists (
+      select 1 from public.attendance_sessions s
+      join public.course_dates cd on cd.course_id = s.course_id
+      join public.profiles p on p.id = auth.uid()
+      where s.id = attendance_entries.session_id
+        and p.partner_id is not null
+        and p.partner_id = cd.partner_id
+        and p.role = 'teacher'
+    )
+  )
+  with check (
+    exists (
+      select 1 from public.attendance_sessions s
+      join public.course_dates cd on cd.course_id = s.course_id
+      join public.profiles p on p.id = auth.uid()
+      where s.id = attendance_entries.session_id
+        and p.partner_id is not null
+        and p.partner_id = cd.partner_id
+        and p.role = 'teacher'
     )
   );
