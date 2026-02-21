@@ -22,6 +22,7 @@ type BookingRow = {
   saldo?: number | null;
   duration_hours?: number | null;
   invoice_number?: string | null;
+  due_date?: string | null;
   payments?: PaymentRow[];
   paid_total?: number;
   open_amount?: number;
@@ -135,6 +136,22 @@ export default function BookingsPage() {
 
   const openItems = filtered.filter((b) => (b.open_amount ?? b.saldo ?? 0) > 0.001);
 
+  const today = new Date();
+  const todayYmd = today.toISOString().slice(0, 10);
+  const in7 = new Date(today.getTime() + 7 * 86400000).toISOString().slice(0, 10);
+
+  const dueStats = useMemo(() => {
+    let dueSoon = 0;
+    let overdue = 0;
+    items.forEach((b) => {
+      const open = Number(b.open_amount ?? b.saldo ?? 0) || 0;
+      if (!b.due_date || open <= 0.001) return;
+      if (b.due_date < todayYmd) overdue += 1;
+      else if (b.due_date <= in7) dueSoon += 1;
+    });
+    return { dueSoon, overdue };
+  }, [items, todayYmd, in7]);
+
   return (
     <div className="space-y-6">
       <style>{`
@@ -201,6 +218,16 @@ export default function BookingsPage() {
           onChange={(e) => setSearch(e.target.value)}
         />
       </div>
+      {viewTab === 'overview' && (
+        <div className="flex gap-3 text-xs text-slate-200">
+          <span className={`inline-flex items-center gap-2 rounded-full px-3 py-1 border ${dueStats.overdue ? 'border-rose-200 bg-rose-500/20 text-rose-100' : 'border-white/15 bg-white/10 text-white/80'}`}>
+            Überfällig: {dueStats.overdue}
+          </span>
+          <span className={`inline-flex items-center gap-2 rounded-full px-3 py-1 border ${dueStats.dueSoon ? 'border-amber-200 bg-amber-500/20 text-amber-100' : 'border-white/15 bg-white/10 text-white/80'}`}>
+            Fällig ≤7 Tage: {dueStats.dueSoon}
+          </span>
+        </div>
+      )}
 
       <div className="card p-6 shadow-xl text-slate-900 overflow-x-auto">
         <div className="flex gap-3 mb-4 text-sm font-semibold text-slate-600">
@@ -274,6 +301,7 @@ export default function BookingsPage() {
                     <th className="py-2 pr-4">Kursteilnehmer</th>
                     <th className="py-2 pr-4">Kurs</th>
                     <th className="py-2 pr-4">Kursstart</th>
+                    <th className="py-2 pr-4">Fälligkeit</th>
                     <th className="py-2 pr-4">Kursbeitrag Brutto</th>
                     <th className="py-2 pr-4">Anbieter</th>
                     <th className="py-2 pr-4">Status</th>
@@ -287,6 +315,22 @@ export default function BookingsPage() {
                       <td className="py-3 pr-4">{b.student_name ?? '—'}</td>
                       <td className="py-3 pr-4">{b.course_title ?? '—'}</td>
                       <td className="py-3 pr-4">{b.course_start ? new Date(b.course_start).toLocaleDateString() : '—'}</td>
+                      <td className="py-3 pr-4">
+                        {b.due_date
+                          ? new Date(b.due_date).toLocaleDateString()
+                          : '—'}
+                        {(() => {
+                          const open = Number(b.open_amount ?? b.saldo ?? 0) || 0;
+                          if (!b.due_date || open <= 0.001) return null;
+                          if (b.due_date < todayYmd) {
+                            return <span className="ml-2 inline-flex px-2 py-0.5 rounded-full text-xs bg-rose-100 text-rose-700 border border-rose-200">überfällig</span>;
+                          }
+                          if (b.due_date <= in7) {
+                            return <span className="ml-2 inline-flex px-2 py-0.5 rounded-full text-xs bg-amber-100 text-amber-800 border border-amber-200">bald fällig</span>;
+                          }
+                          return null;
+                        })()}
+                      </td>
                       <td className="py-3 pr-4">
                         {b.amount != null && !isNaN(Number(b.amount))
                           ? `${Number(b.amount).toFixed(2)} €`
@@ -374,6 +418,17 @@ export default function BookingsPage() {
                           placeholder="12345"
                         />
                       </div>
+                    </div>
+                    <div className="rounded-lg border border-slate-200 bg-white px-3 py-2">
+                      <p className="text-[11px] uppercase tracking-[0.12em] text-slate-500 mb-1">Fälligkeit</p>
+                      <input
+                        type="date"
+                        className="input"
+                        value={(selected.due_date as string | null) ?? ''}
+                        onChange={(e) =>
+                          setSelected((prev) => (prev ? { ...prev, due_date: e.target.value || null } : prev))
+                        }
+                      />
                     </div>
                     {[
                       ['Kursteilnehmer', selected.student_name ?? '—'],
@@ -561,11 +616,16 @@ export default function BookingsPage() {
                       onClick={async () => {
                         if (!selected) return;
                         setStatusSaving(true);
+                        // Invoice/Due-Date speichern
+                        const invoiceClean = (selected.invoice_number || '').trim();
+                        const due = selected.due_date || null;
                         const res = await fetch('/api/admin/bookings', {
                           method: 'PATCH',
                           headers: { 'Content-Type': 'application/json' },
                           body: JSON.stringify({
                             id: selected.id,
+                            invoice_number: invoiceClean || null,
+                            due_date: due,
                             status: selected.status,
                             next_dunning_at: (selected as any).next_dunning_at || null,
                             auto_dunning_enabled: (selected as any).auto_dunning_enabled ?? null,

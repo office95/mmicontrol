@@ -16,6 +16,9 @@ alter table if exists public.bookings enable row level security;
 alter table if exists public.bookings add column if not exists invoice_number text;
 alter table if exists public.students enable row level security;
 alter table if exists public.leads enable row level security;
+-- Zusatzfelder für Buchungen
+alter table if exists public.bookings add column if not exists invoice_number text;
+alter table if exists public.bookings add column if not exists due_date date;
 
 -- Hilfs-View auf Rolle
 create or replace view public.v_admin as

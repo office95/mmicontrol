@@ -8,7 +8,7 @@ const service = createClient(
 
 const SELECT =
   `id, booking_code, booking_date, amount, status, student_id, course_id, course_date_id, partner_id,
-   course_title, course_start, partner_name, student_name, student_email, vat_rate, price_net, deposit, saldo, duration_hours, invoice_number,
+   course_title, course_start, partner_name, student_name, student_email, vat_rate, price_net, deposit, saldo, duration_hours, invoice_number, due_date,
    next_dunning_at, auto_dunning_enabled`;
 
 async function fillAmounts(rows: any | any[]) {
@@ -78,6 +78,7 @@ export async function POST(req: Request) {
     deposit: body.deposit ?? null,
     saldo: body.saldo ?? null,
     duration_hours: body.duration_hours ?? null,
+    due_date: body.due_date ?? null,
     status: body.status || 'offen',
     student_id: body.student_id,
     course_id: cd?.course_id ?? body.course_id ?? null,
