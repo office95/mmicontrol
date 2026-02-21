@@ -361,8 +361,21 @@ export default function BookingsPage() {
                 <section className="rounded-xl border border-slate-200 bg-slate-50/70 p-4 shadow-sm">
                   <p className="text-xs font-semibold text-ink uppercase tracking-[0.15em] mb-3">Basis</p>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div className="rounded-lg border border-slate-200 bg-white px-3 py-2">
+                      <p className="text-[11px] uppercase tracking-[0.12em] text-slate-500 mb-1">Rechnungsnummer</p>
+                      <div className="flex items-center gap-2">
+                        <span className="text-slate-500 text-sm">MMI-</span>
+                        <input
+                          className="input flex-1"
+                          value={selected.invoice_number ?? ''}
+                          onChange={(e) =>
+                            setSelected((prev) => (prev ? { ...prev, invoice_number: e.target.value } : prev))
+                          }
+                          placeholder="12345"
+                        />
+                      </div>
+                    </div>
                     {[
-                      ['Rechnungsnummer', selected.invoice_number ? `MMI-${selected.invoice_number}` : '—'],
                       ['Kursteilnehmer', selected.student_name ?? '—'],
                       ['Buchungscode', selected.booking_code ?? '—'],
                       ['Buchungsdatum', selected.booking_date ? new Date(selected.booking_date).toLocaleDateString() : '—'],
