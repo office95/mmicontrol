@@ -21,6 +21,7 @@ type BookingRow = {
   deposit?: number | null;
   saldo?: number | null;
   duration_hours?: number | null;
+  invoice_number?: string | null;
   payments?: PaymentRow[];
   paid_total?: number;
   open_amount?: number;
