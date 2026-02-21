@@ -112,7 +112,7 @@ export default function BookingsPage() {
     const term = search.trim().toLowerCase();
     return items.filter((b) => {
       const statusOk = status === 'alle' ? true : b.status === status;
-      const text = `${b.student_name ?? ''} ${b.course_title ?? ''} ${b.partner_name ?? ''} ${b.booking_code ?? ''}`.toLowerCase();
+      const text = `${b.student_name ?? ''} ${b.course_title ?? ''} ${b.partner_name ?? ''} ${b.booking_code ?? ''} ${b.invoice_number ?? ''}`.toLowerCase();
       const searchOk = term === '' ? true : text.includes(term);
       return statusOk && searchOk;
     });
