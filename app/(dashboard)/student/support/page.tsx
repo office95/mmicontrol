@@ -81,9 +81,6 @@ export default function StudentSupportPage() {
 
       <div className="rounded-2xl bg-white p-6 shadow-xl border border-slate-200 space-y-3">
         <p className="text-sm text-slate-700">Neues Ticket</p>
-
-      <div className="rounded-2xl bg-white p-6 shadow-xl border border-slate-200 space-y-3">
-        <p className="text-sm text-slate-700">Neues Ticket</p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
           <input className="input bg-white border border-slate-300 text-slate-900" placeholder="Betreff" value={subject} onChange={(e) => setSubject(e.target.value)} />
           <select className="input bg-white border border-slate-300 text-slate-900" value={priority} onChange={(e) => setPriority(e.target.value as any)}>
