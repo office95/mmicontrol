@@ -261,3 +261,41 @@ create policy support_tickets_owner_select on public.support_tickets
 drop policy if exists support_tickets_owner_insert on public.support_tickets;
 create policy support_tickets_owner_insert on public.support_tickets
   for insert with check (created_by = auth.uid());
+
+-- Support Messages (Thread pro Ticket)
+create table if not exists public.support_messages (
+  id uuid primary key default gen_random_uuid(),
+  ticket_id uuid not null references public.support_tickets(id) on delete cascade,
+  author_id uuid references auth.users(id),
+  author_role text check (author_role in ('student','teacher','admin')),
+  body text not null,
+  created_at timestamptz default now()
+);
+
+alter table if exists public.support_messages enable row level security;
+
+-- Admin: alles
+drop policy if exists support_messages_admin_all on public.support_messages;
+create policy support_messages_admin_all on public.support_messages
+  for all using (auth.uid() in (select id from public.v_admin));
+
+-- Besitzer: lesen/schreiben in eigenen Tickets
+drop policy if exists support_messages_owner_select on public.support_messages;
+create policy support_messages_owner_select on public.support_messages
+  for select using (
+    exists (
+      select 1 from public.support_tickets t
+      where t.id = support_messages.ticket_id
+        and t.created_by = auth.uid()
+    )
+  );
+
+drop policy if exists support_messages_owner_insert on public.support_messages;
+create policy support_messages_owner_insert on public.support_messages
+  for insert with check (
+    exists (
+      select 1 from public.support_tickets t
+      where t.id = support_messages.ticket_id
+        and t.created_by = auth.uid()
+    )
+  );
