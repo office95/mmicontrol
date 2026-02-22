@@ -91,9 +91,9 @@ export default function StudentDashboardClient({
   benefits: Benefit[];
   feedbackReminder?: boolean;
   feedbacks: Record<string, any>;
-  supportCount?: number;
 }) {
   const [tab, setTab] = useState<'bookings' | 'materials' | 'profile' | 'feedback'>(showProfileInitially ? 'profile' : 'bookings');
+  const [unread, setUnread] = useState(0);
   const courseTitle = (cid: string | null) => courses.find((c) => c.id === cid)?.title ?? 'Kurs';
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
@@ -101,6 +101,13 @@ export default function StudentDashboardClient({
   const [reminderVisible, setReminderVisible] = useState<boolean>(!!feedbackReminder);
 
   // sanftes Auto-Scroll der Empfehlungen (nur wenn Tab aktiv)
+  useEffect(() => {
+    fetch('/api/support/unread').then(async (r) => {
+      const d = await r.json();
+      setUnread(d.count || 0);
+    });
+  }, []);
+
   useEffect(() => {
     const el = scrollRef.current;
     if (!el || !recommended.length || tab !== 'bookings') return;
@@ -144,14 +151,14 @@ export default function StudentDashboardClient({
         </button>
         <a
           href="/student/support"
-          className="px-3 py-2 rounded-lg border border-white/20 bg-white/10 hover:border-pink-300 hover:text-white flex items-center gap-2"
+          className="relative px-3 py-2 rounded-lg border border-white/20 bg-white/10 hover:border-pink-300 hover:text-white flex items-center gap-2"
         >
           Support
-          {supportCount ? (
+          {unread > 0 && (
             <span className="inline-flex h-5 px-2 items-center justify-center rounded-full bg-rose-500 text-white text-xs font-bold">
-              {supportCount}
+              {unread}
             </span>
-          ) : null}
+          )}
         </a>
       </div>
 

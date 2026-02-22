@@ -68,7 +68,6 @@ export default function DashboardClient({
   feedbacks,
   feedbackOverallAvg,
   benefits,
-  supportCount,
 }: {
   kpis: KPIs;
   interests: InterestRank[];
@@ -79,9 +78,16 @@ export default function DashboardClient({
   feedbacks: Feedback[];
   feedbackOverallAvg?: number | null;
   benefits: Benefit[];
-  supportCount?: number;
 }) {
   const [tab, setTab] = useState<'perf' | 'courses' | 'materials' | 'feedback' | 'benefits'>('perf');
+  const [unread, setUnread] = useState(0);
+
+  useEffect(() => {
+    fetch('/api/support/unread').then(async (r) => {
+      const d = await r.json();
+      setUnread(d.count || 0);
+    });
+  }, []);
   const feedbackByCourse = useMemo(() => {
     const map = new Map<string, Feedback[]>();
     feedbacks.forEach((f) => {
@@ -134,14 +140,14 @@ export default function DashboardClient({
         </button>
         <a
           href="/teacher/support"
-          className="px-3 py-2 rounded-lg border border-white/20 bg-white/10 hover:border-pink-300 hover:text-white flex items-center gap-2"
+          className="relative px-3 py-2 rounded-lg border border-white/20 bg-white/10 hover:border-pink-300 hover:text-white flex items-center gap-2"
         >
           Support
-          {supportCount ? (
+          {unread > 0 && (
             <span className="inline-flex h-5 px-2 items-center justify-center rounded-full bg-rose-500 text-white text-xs font-bold">
-              {supportCount}
+              {unread}
             </span>
-          ) : null}
+          )}
         </a>
       </div>
 
