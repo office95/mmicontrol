@@ -39,7 +39,7 @@ export async function GET(req: Request) {
 
   const { data, error } = await supabase
     .from('support_tickets')
-    .select('id, subject, status, priority, role, created_at, last_message_at, created_by, profiles(full_name, email)')
+    .select('id, subject, status, priority, role, created_at, last_message_at, created_by, creator:profiles!support_tickets_created_by_fkey(full_name, email)')
     .order('last_message_at', { ascending: false });
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
   return NextResponse.json(data || []);
