@@ -142,7 +142,7 @@ export default async function AdminSupportPage({ searchParams }: { searchParams?
       : true;
     return statusOk && queryOk;
   });
-  const visibleTickets = filteredTickets.length ? filteredTickets : sortedTickets;
+  const visibleTickets = filteredTickets;
 
   return (
     <div className="min-h-screen bg-transparent text-slate-900 px-4 sm:px-6 lg:px-10 py-8">
