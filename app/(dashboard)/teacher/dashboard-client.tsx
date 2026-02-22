@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import TeacherStatsClient from './stats-client';
 import CourseListClient from './course-list-client';
 import TeacherMaterials from './materials/teacher-materials-client';
