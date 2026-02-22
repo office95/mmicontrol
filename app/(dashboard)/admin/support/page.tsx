@@ -153,8 +153,12 @@ export default async function AdminSupportPage({ searchParams }: { searchParams?
         {visibleTickets && (
           <div className="divide-y divide-slate-200">
             {visibleTickets.map((t) => {
+              const messages = (t.support_messages as any[]) || [];
+              const hasInitialAlready = messages.some(
+                (m) => m.body === t.message && m.author_id === t.created_by
+              );
               const thread = [
-                ...(t.message
+                ...(!hasInitialAlready && t.message
                   ? [{
                       id: 'initial',
                       author_role: t.role || 'student',
@@ -166,7 +170,7 @@ export default async function AdminSupportPage({ searchParams }: { searchParams?
                       teachers: null,
                     }]
                   : []),
-                ...((t.support_messages as any[]) || []),
+                ...messages,
               ];
 
               return (
@@ -180,13 +184,19 @@ export default async function AdminSupportPage({ searchParams }: { searchParams?
                       </p>
                     </div>
                     <div className="flex flex-col items-end gap-2 text-xs ml-4">
-                      <span className={`px-2 py-1 rounded-full border ${t.priority === 'high' ? 'border-rose-300 text-rose-700 bg-rose-50' : 'border-slate-300 text-slate-700 bg-slate-100'}`}>
-                        {t.priority === 'high' ? 'High' : 'Normal'}
-                      </span>
-                      <span className={`px-2 py-1 rounded-full border ${t.status === 'open' ? 'border-emerald-200 text-emerald-700 bg-emerald-50' : t.status === 'in_progress' ? 'border-amber-200 text-amber-700 bg-amber-50' : 'border-slate-300 text-slate-700 bg-slate-100'}`}>
-                        {t.status === 'open' ? 'Offen' : t.status === 'in_progress' ? 'In Bearbeitung' : 'Geschlossen'}
-                      </span>
-                      <Link href={`/admin/support/${t.id}`} className="text-pink-600 hover:text-pink-700">Vollansicht</Link>
+                      <div className="flex flex-col items-end gap-1">
+                        <span className={`px-2 py-1 rounded-full border ${t.priority === 'high' ? 'border-rose-300 text-rose-700 bg-rose-50' : 'border-slate-300 text-slate-700 bg-slate-100'}`}>
+                          <span className="text-[10px] uppercase tracking-[0.14em] mr-1 text-slate-500">Priorität</span>
+                          {t.priority === 'high' ? 'High' : 'Normal'}
+                        </span>
+                        <span className={`px-2 py-1 rounded-full border ${t.status === 'open' ? 'border-emerald-200 text-emerald-700 bg-emerald-50' : t.status === 'in_progress' ? 'border-amber-200 text-amber-700 bg-amber-50' : 'border-slate-300 text-slate-700 bg-slate-100'}`}>
+                          <span className="text-[10px] uppercase tracking-[0.14em] mr-1 text-slate-500">Status</span>
+                          {t.status === 'open' ? 'Offen' : t.status === 'in_progress' ? 'In Bearbeitung' : 'Geschlossen'}
+                        </span>
+                      </div>
+                      <Link href={`/admin/support/${t.id}`} className="px-3 py-1 rounded-full bg-pink-600 text-white text-xs font-semibold hover:bg-pink-500">
+                        Antworten
+                      </Link>
                     </div>
                   </summary>
 
