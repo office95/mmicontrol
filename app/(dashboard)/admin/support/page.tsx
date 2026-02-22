@@ -27,12 +27,44 @@ export default async function AdminSupportPage() {
     .order('last_message_at', { ascending: false })
     .limit(50);
 
+  const now = new Date();
+  const currYear = now.getFullYear();
+  const currMonth = now.getMonth();
+
+  const openCount = (tickets || []).filter((t) => t.status === 'open').length;
+  const monthCount = (tickets || []).filter((t) => {
+    const d = t.created_at ? new Date(t.created_at) : null;
+    return d && d.getFullYear() === currYear && d.getMonth() === currMonth;
+  }).length;
+  const yearCount = (tickets || []).filter((t) => {
+    const d = t.created_at ? new Date(t.created_at) : null;
+    return d && d.getFullYear() === currYear;
+  }).length;
+
+  const closed = (tickets || []).filter((t) => t.status === 'closed' && t.last_message_at && t.created_at);
+  const avgResolutionMs = closed.length
+    ? closed.reduce((acc, t) => {
+        const start = new Date(t.created_at).getTime();
+        const end = new Date(t.last_message_at!).getTime();
+        return acc + Math.max(0, end - start);
+      }, 0) / closed.length
+    : null;
+  const avgResolutionDays = avgResolutionMs ? avgResolutionMs / (1000 * 60 * 60 * 24) : null;
+
   return (
     <div className="min-h-screen bg-transparent text-white space-y-6 px-4 sm:px-6 lg:px-10 py-6">
       <div>
         <p className="text-xs uppercase tracking-[0.2em] text-pink-200">Admin</p>
         <h1 className="text-3xl font-semibold text-white">Support</h1>
         <p className="text-sm text-white/70">Neueste Support-Tickets und schnelle Übersicht.</p>
+      </div>
+
+      {/* KPIs */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <KpiCard label="Offene Tickets" value={openCount} />
+        <KpiCard label="Ø Erledigungsdauer" value={avgResolutionDays != null ? `${avgResolutionDays.toFixed(1)} Tage` : '—'} />
+        <KpiCard label="Tickets diesen Monat" value={monthCount} />
+        <KpiCard label="Tickets dieses Jahr" value={yearCount} />
       </div>
 
       <div className="rounded-2xl bg-white border border-slate-200 p-6 shadow-xl text-slate-900">
@@ -75,6 +107,15 @@ export default async function AdminSupportPage() {
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+function KpiCard({ label, value }: { label: string; value: string | number }) {
+  return (
+    <div className="rounded-2xl bg-white border border-slate-200 p-4 shadow-sm text-slate-900">
+      <p className="text-xs uppercase tracking-[0.18em] text-slate-500">{label}</p>
+      <p className="text-2xl font-semibold mt-1">{value}</p>
     </div>
   );
 }
