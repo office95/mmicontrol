@@ -13,7 +13,10 @@ export default async function SupportDetail({ params }: { params: { id: string }
 
   const { data: ticket } = await supabase
     .from('support_tickets')
-    .select('id, subject, status, priority, role, created_at, last_message_at, message, created_by')
+    .select(`
+      id, subject, status, priority, role, created_at, last_message_at, message, created_by,
+      creator:profiles!support_tickets_created_by_fkey ( full_name, email )
+    `)
     .eq('id', params.id)
     .maybeSingle();
 
@@ -57,6 +60,9 @@ export default async function SupportDetail({ params }: { params: { id: string }
           <p className="text-xs uppercase tracking-[0.2em] text-pink-200">Support</p>
           <h1 className="text-3xl font-semibold text-white">{ticket.subject}</h1>
           <p className="text-sm text-white/70">Status: {ticket.status} · Priorität: {ticket.priority} · Rolle: {ticket.role}</p>
+          <p className="text-sm text-white/80 mt-1">
+            Von: {((ticket as any).creator?.full_name as string) || '—'} · {((ticket as any).creator?.email as string) || '—'}
+          </p>
         </div>
         <Link href="/admin/support" className="text-sm text-pink-200 hover:text-pink-100">Zurück zur Übersicht</Link>
       </div>
