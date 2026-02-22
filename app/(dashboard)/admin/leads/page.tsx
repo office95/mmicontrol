@@ -169,6 +169,14 @@ export default function LeadsPage() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
+
+      {/* KPIs */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
+        <Kpi label="Offene Leads" value={leads.filter((l) => (l.status || 'offen') === 'offen').length} />
+        <Kpi label="Leads gesamt" value={leads.length} />
+        <Kpi label="Ø Bearbeitungsdauer" value={avgLeadDays != null ? `${avgLeadDays.toFixed(1)} Tage` : '—'} />
+      </div>
+
         <select
           className="input max-w-xs h-9 py-1 text-sm"
           value={qualityFilter}
@@ -524,6 +532,16 @@ function PieCard({ title, data, total }: { title: string; data: Record<string, n
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+
+function Kpi({ label, value }: { label: string; value: string | number }) {
+  return (
+    <div className="rounded-2xl border border-white/20 bg-white/10 text-white p-4 shadow">
+      <p className="text-xs uppercase tracking-[0.16em] text-white/70">{label}</p>
+      <p className="text-2xl font-semibold">{value}</p>
     </div>
   );
 }
