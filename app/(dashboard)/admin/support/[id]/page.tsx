@@ -22,14 +22,20 @@ export default async function SupportDetail({ params }: { params: { id: string }
 
   const { data: messages } = await supabase
     .from('support_messages')
-    .select(`
-      id, author_role, author_id, body, created_at,
-      profiles:author_id ( full_name ),
-      students:author_id ( full_name ),
-      teachers:author_id ( full_name )
-    `)
+    .select('id, author_role, author_id, body, created_at')
     .eq('ticket_id', params.id)
     .order('created_at', { ascending: true });
+
+  // Autor-Namen nachladen
+  const authorIds = Array.from(new Set((messages || []).map((m) => m.author_id).filter(Boolean))) as string[];
+  const authorMap = new Map<string, string>();
+  if (authorIds.length) {
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('id, full_name')
+      .in('id', authorIds);
+    profiles?.forEach((p) => authorMap.set(p.id, p.full_name || ''));
+  }
 
   const initialMessage = ticket?.message
     ? [{
@@ -74,7 +80,7 @@ export default async function SupportDetail({ params }: { params: { id: string }
             const name =
               m.author_role === 'admin'
                 ? 'Music Mission Team'
-                : (m.profiles as any)?.full_name || (m.students as any)?.full_name || (m.teachers as any)?.full_name || m.author_role || 'Teilnehmer';
+                : authorMap.get(m.author_id) || m.author_role || 'Teilnehmer';
             const cls =
               m.author_role === 'admin'
                 ? 'border-rose-200 bg-rose-50'
