@@ -114,10 +114,10 @@ export default function TeacherSupportPage() {
                   <div className="space-y-0.5">
                     <p className="font-semibold text-slate-900">{t.subject}</p>
                     <p className="text-xs text-slate-600">Ticket-Nr.: #{t.id?.slice(0, 8)?.toUpperCase() || '—'}</p>
-                    <p className="text-xs text-slate-600">Status: {t.status} · Priorität: {t.priority} · Letzte Nachricht: {new Date(t.last_message_at).toLocaleString()}</p>
+                    <p className="text-xs text-slate-600">Status: {t.status === 'open' ? 'Offen' : t.status === 'in_progress' ? 'In Bearbeitung' : 'Geschlossen'} · Priorität: {t.priority === 'high' ? 'High' : 'Normal'} · Letzte Nachricht: {new Date(t.last_message_at).toLocaleString()}</p>
                   </div>
                   <span className={`px-2 py-1 rounded-full border text-xs ${t.status === 'open' ? 'border-emerald-300 text-emerald-700 bg-emerald-50' : t.status === 'in_progress' ? 'border-amber-300 text-amber-700 bg-amber-50' : 'border-slate-300 text-slate-700 bg-slate-100'}`}>
-                    {t.status}
+                    {t.status === 'open' ? 'Offen' : t.status === 'in_progress' ? 'In Bearbeitung' : 'Geschlossen'}
                   </span>
                 </summary>
                 <TicketThread ticketId={t.id} />
