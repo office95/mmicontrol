@@ -45,10 +45,6 @@ export default function CourseDatesPage() {
   const [resModal, setResModal] = useState<{ open: boolean; item: CourseDateListRow | null }>({ open: false, item: null });
   const [resForm, setResForm] = useState({ start_date: '', end_date: '', time_from: '', time_to: '', reason: '', update_bookings: true });
   const [resSaving, setResSaving] = useState(false);
-  const [reschedules, setReschedules] = useState<Record<string, any[]>>({});
-  const [resModal, setResModal] = useState<{ open: boolean; item: CourseDateListRow | null }>({ open: false, item: null });
-  const [resForm, setResForm] = useState({ start_date: '', end_date: '', time_from: '', time_to: '', reason: '', update_bookings: true });
-  const [resSaving, setResSaving] = useState(false);
 
   const load = async () => {
     setLoading(true);
