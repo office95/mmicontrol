@@ -25,32 +25,32 @@ export default async function SupportDetail({ params }: { params: { id: string }
 
   if (!ticket) {
     return (
-      <div className="text-white">
+      <div className="min-h-screen bg-slate-50 text-slate-900 px-4 sm:px-6 lg:px-10 py-6">
         <p>Ticket nicht gefunden.</p>
-        <Link href="/admin/support" className="text-pink-200">Zurück</Link>
+        <Link href="/admin/support" className="text-pink-600">Zurück</Link>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div className="min-h-screen bg-slate-50 text-slate-900 space-y-6 px-4 sm:px-6 lg:px-10 py-6">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-xs uppercase tracking-[0.2em] text-pink-200">Support</p>
-          <h1 className="text-3xl font-semibold text-white">{ticket.subject}</h1>
-          <p className="text-sm text-slate-200">Status: {ticket.status} · Priorität: {ticket.priority} · Rolle: {ticket.role}</p>
+          <p className="text-xs uppercase tracking-[0.2em] text-pink-600">Support</p>
+          <h1 className="text-3xl font-semibold">{ticket.subject}</h1>
+          <p className="text-sm text-slate-600">Status: {ticket.status} · Priorität: {ticket.priority} · Rolle: {ticket.role}</p>
         </div>
-        <Link href="/admin/support" className="text-sm text-pink-200 hover:text-pink-100">Zurück zur Übersicht</Link>
+        <Link href="/admin/support" className="text-sm text-pink-600 hover:text-pink-700">Zurück zur Übersicht</Link>
       </div>
 
-      <div className="card p-6 shadow-xl text-white space-y-4">
-        <div className="text-xs text-white/70">Erstellt: {new Date(ticket.created_at).toLocaleString()} · Letzte Nachricht: {new Date(ticket.last_message_at).toLocaleString()}</div>
+      <div className="rounded-2xl bg-white p-6 shadow-xl border border-slate-200 space-y-4">
+        <div className="text-xs text-slate-600">Erstellt: {new Date(ticket.created_at).toLocaleString()} · Letzte Nachricht: {new Date(ticket.last_message_at).toLocaleString()}</div>
         <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-2">
           {messages?.map((m) => (
-            <div key={m.id} className={`rounded-2xl px-3 py-2 border ${m.author_role === 'admin' ? 'border-pink-300/40 bg-pink-500/10' : 'border-white/15 bg-white/5'}`}>
-              <div className="text-[11px] uppercase tracking-[0.14em] text-white/60 mb-1">{m.author_role}</div>
-              <p className="text-sm text-white/90 whitespace-pre-wrap">{m.body}</p>
-              <p className="text-[11px] text-white/50 mt-1">{new Date(m.created_at).toLocaleString()}</p>
+            <div key={m.id} className={`rounded-2xl px-3 py-2 border ${m.author_role === 'admin' ? 'border-pink-200 bg-pink-50' : 'border-slate-200 bg-slate-50'}`}>
+              <div className="text-[11px] uppercase tracking-[0.14em] text-slate-500 mb-1">{m.author_role}</div>
+              <p className="text-sm text-slate-800 whitespace-pre-wrap">{m.body}</p>
+              <p className="text-[11px] text-slate-500 mt-1">{new Date(m.created_at).toLocaleString()}</p>
             </div>
           ))}
         </div>
