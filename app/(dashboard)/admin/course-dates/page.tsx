@@ -454,6 +454,96 @@ export default function CourseDatesPage() {
           onClose={() => setFeedbackOpen(false)}
         />
       )}
+
+      {resModal.open && resModal.item && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
+          <div className="w-full max-w-2xl rounded-2xl bg-white text-ink shadow-2xl p-6 relative">
+            <button className="absolute top-3 right-3 text-slate-500 hover:text-ink" onClick={() => setResModal({ open: false, item: null })}>
+              ×
+            </button>
+            <h3 className="text-2xl font-semibold mb-1">Kurstermin verschieben</h3>
+            <p className="text-sm text-slate-600 mb-4">{resModal.item.course?.title ?? 'Kurs'} · {resModal.item.partner?.name ?? 'Kein Anbieter'}</p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+              <label className="space-y-1">
+                <span className="text-xs uppercase tracking-[0.14em] text-slate-500">Neuer Start</span>
+                <input
+                  type="date"
+                  className="input bg-white border border-slate-300 text-slate-900"
+                  value={resForm.start_date}
+                  onChange={(e) => setResForm((f) => ({ ...f, start_date: e.target.value }))}
+                />
+              </label>
+              <label className="space-y-1">
+                <span className="text-xs uppercase tracking-[0.14em] text-slate-500">Neues Ende</span>
+                <input
+                  type="date"
+                  className="input bg-white border border-slate-300 text-slate-900"
+                  value={resForm.end_date}
+                  onChange={(e) => setResForm((f) => ({ ...f, end_date: e.target.value }))}
+                />
+              </label>
+              <label className="space-y-1">
+                <span className="text-xs uppercase tracking-[0.14em] text-slate-500">Neue Zeit von</span>
+                <input
+                  type="text"
+                  className="input bg-white border border-slate-300 text-slate-900"
+                  placeholder="z.B. 09:00"
+                  value={resForm.time_from}
+                  onChange={(e) => setResForm((f) => ({ ...f, time_from: e.target.value }))}
+                />
+              </label>
+              <label className="space-y-1">
+                <span className="text-xs uppercase tracking-[0.14em] text-slate-500">Neue Zeit bis</span>
+                <input
+                  type="text"
+                  className="input bg-white border border-slate-300 text-slate-900"
+                  placeholder="z.B. 17:00"
+                  value={resForm.time_to}
+                  onChange={(e) => setResForm((f) => ({ ...f, time_to: e.target.value }))}
+                />
+              </label>
+            </div>
+
+            <div className="mt-3 space-y-2">
+              <label className="text-xs uppercase tracking-[0.14em] text-slate-500">Grund</label>
+              <textarea
+                className="input h-24 bg-white border border-slate-300 text-slate-900"
+                placeholder="Warum wird verschoben?"
+                value={resForm.reason}
+                onChange={(e) => setResForm((f) => ({ ...f, reason: e.target.value }))}
+              />
+            </div>
+
+            <label className="mt-4 flex items-center gap-2 text-sm text-slate-700">
+              <input
+                type="checkbox"
+                className="h-4 w-4 rounded border-slate-300"
+                checked={resForm.update_bookings}
+                onChange={(e) => setResForm((f) => ({ ...f, update_bookings: e.target.checked }))}
+              />
+              Buchungen auf neuen Termin umstellen
+            </label>
+
+            <div className="mt-5 flex justify-end gap-2">
+              <button
+                className="px-4 py-2 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50"
+                onClick={() => setResModal({ open: false, item: null })}
+                disabled={resSaving}
+              >
+                Abbrechen
+              </button>
+              <button
+                className="px-4 py-2 rounded-lg bg-indigo-600 text-white font-semibold hover:bg-indigo-500 disabled:opacity-60"
+                onClick={submitReschedule}
+                disabled={resSaving || !resForm.start_date}
+              >
+                {resSaving ? 'Speichere…' : 'Verschiebung speichern'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
