@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import Link from 'next/link';
+import SupportFilterSelect from '@/components/support-filter-select';
 
 export const revalidate = 0;
 export const dynamic = 'force-dynamic';
@@ -87,25 +88,10 @@ export default async function AdminSupportPage({ searchParams }: { searchParams?
       <div className="rounded-2xl bg-white border border-slate-200 p-6 shadow-xl text-slate-900">
         <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
           <h2 className="text-lg font-semibold">Offene Tickets</h2>
-          <form className="flex items-center gap-2 text-sm" method="get" action="/admin/support">
+          <div className="flex items-center gap-2 text-sm">
             <label className="text-xs uppercase tracking-[0.14em] text-slate-500">Status</label>
-            <select
-              name="status"
-              defaultValue={statusFilter}
-              className="px-3 py-2 rounded-lg border border-slate-300 bg-white text-slate-800 text-xs font-semibold"
-            >
-              <option value="all">Alle</option>
-              <option value="open">Offen</option>
-              <option value="in_progress">In Bearbeitung</option>
-              <option value="closed">Erledigt</option>
-            </select>
-            <button
-              type="submit"
-              className="px-3 py-2 rounded-lg bg-slate-900 text-white text-xs font-semibold hover:bg-pink-600"
-            >
-              Anwenden
-            </button>
-          </form>
+            <SupportFilterSelect current={statusFilter} />
+          </div>
           <div className="flex gap-2 text-xs">
             <span className="px-2 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
               offen: {(tickets || []).filter((t) => t.status === 'open').length}
