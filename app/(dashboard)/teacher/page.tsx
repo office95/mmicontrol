@@ -27,6 +27,19 @@ export default async function TeacherPage() {
       .maybeSingle();
     teacherPartner = (profile as any)?.partner_id ?? null;
   }
+
+  // Kein Partner zugeordnet: nichts anzeigen außer Hinweis
+  if (!teacherPartner) {
+    return (
+      <div className="min-h-screen bg-transparent text-white px-4 sm:px-6 lg:px-10 py-8">
+        <div className="rounded-2xl bg-gradient-to-r from-slate-800 via-slate-700 to-slate-800 text-white p-6 shadow-xl border border-white/10">
+          <p className="text-[11px] uppercase tracking-[0.24em] text-white/70">Dozent · Partner</p>
+          <h1 className="text-3xl font-semibold">Noch kein Partner zugewiesen</h1>
+          <p className="text-sm text-white/80 mt-1">Bitte wenden Sie sich an das Music Mission Team.</p>
+        </div>
+      </div>
+    );
+  }
   const registeredAt = user?.created_at ? new Date(user.created_at) : null;
 
   const now = new Date();
