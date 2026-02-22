@@ -182,7 +182,7 @@ export default function CourseDatesPage() {
               const latest = latestReschedule(t.id);
               const hasHist = !!reschedules[t.id]?.length;
               return (
-                <div key={t.id} className="rounded-2xl border border-white/10 bg-white/85 shadow-sm p-4 space-y-3">
+                <div key={t.id} className="rounded-2xl border border-white/10 bg-white/90 shadow-sm p-4 space-y-3">
                   <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
                     <div className="space-y-1">
                       <div className="flex items-center gap-2 flex-wrap">
@@ -192,7 +192,7 @@ export default function CourseDatesPage() {
                         >
                           {t.course?.title ?? 'Unbekannter Kurs'}
                         </button>
-                        <span className={`px-2 py-0.5 rounded-full text-[11px] border ${statusColor[t.status] ?? 'bg-slate-100 text-slate-700 border-slate-200'}`}>
+                        <span className={`px-2 py-0.5 rounded-full text-[12px] border ${statusColor[t.status] ?? 'bg-slate-100 text-slate-700 border-slate-200'}`}>
                           {t.status}
                         </span>
 

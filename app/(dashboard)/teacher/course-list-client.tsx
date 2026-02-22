@@ -9,6 +9,8 @@ type CourseCard = {
   title: string;
   description: string | null;
   start_date: string | null;
+  course_date_id?: string | null;
+  reschedule?: { latest: any | null; history: any[] };
   duration_hours?: number | null;
   participants: Participant[];
 };
@@ -47,9 +49,35 @@ export default function CourseListClient({ courses }: { courses: CourseCard[] })
                     <span>Start: <strong className="text-ink">{formatDate(c.start_date)}</strong></span>
                     <span>· Dauer: <strong className="text-ink">{c.duration_hours != null ? `${c.duration_hours} h` : '—'}</strong></span>
                     <span>· TN: <strong className="text-ink">{c.participants.length}</strong></span>
+                    {c.reschedule?.latest && (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-800 border border-indigo-100 text-[12px] font-semibold">
+                        Verschoben v{c.reschedule.latest.version}
+                      </span>
+                    )}
                   </div>
                 </div>
                 <p className="text-sm text-slate-700">{c.description}</p>
+                {c.reschedule?.latest && (
+                  <div className="mt-2 text-[13px] text-indigo-900 bg-indigo-50 border border-indigo-100 rounded-lg px-3 py-2 inline-flex flex-wrap gap-2 items-center">
+                    <span className="font-semibold">Neuer Start:</span>
+                    <span>{c.reschedule.latest.new_start_date ? new Date(c.reschedule.latest.new_start_date).toLocaleDateString() : '—'}</span>
+                    <span className="text-slate-600">Grund: {c.reschedule.latest.reason || 'nicht angegeben'}</span>
+                  </div>
+                )}
+                {c.reschedule?.history?.length ? (
+                  <details className="mt-1 text-[12px] text-slate-600 border border-slate-200 rounded-lg bg-white/80 p-2">
+                    <summary className="cursor-pointer text-ink font-semibold flex items-center gap-2">Verschiebungshistorie</summary>
+                    <div className="mt-2 space-y-1">
+                      {c.reschedule.history.map((r) => (
+                        <div key={`${c.id}-r-${r.version}`} className="flex flex-wrap gap-2">
+                          <span className="font-semibold text-indigo-700">v{r.version}</span>
+                          <span>{r.old_start_date ? new Date(r.old_start_date).toLocaleDateString() : '—'} → {r.new_start_date ? new Date(r.new_start_date).toLocaleDateString() : '—'}</span>
+                          {r.reason && <span className="text-slate-500">Grund: {r.reason}</span>}
+                        </div>
+                      ))}
+                    </div>
+                  </details>
+                ) : null}
               </div>
               <div className="flex flex-wrap gap-2 md:justify-end">
                 <button

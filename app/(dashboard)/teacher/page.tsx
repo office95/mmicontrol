@@ -199,24 +199,40 @@ export default async function TeacherPage() {
   if ((!courses || !courses.length) && teacherPartner) {
     const { data: partnerDates } = await service
       .from('course_dates')
-      .select('course_id, start_date, courses(id,title,description,duration_hours)')
+      .select('id, course_id, start_date, courses(id,title,description,duration_hours)')
       .eq('partner_id', teacherPartner);
 
     const courseMap = new Map<string, any>();
-    const dateMap = new Map<string, string | null>();
+    const dateMap = new Map<string, { start_date: string | null; course_date_id: string | null }>();
     partnerDates?.forEach((d: any) => {
-      if (d.courses?.id) {
-        courseMap.set(d.courses.id, {
-          id: d.courses.id,
-          title: d.courses.title,
-          description: d.courses.description ?? null,
-          duration_hours: d.courses.duration_hours ?? null,
-        });
-        if (d.start_date) dateMap.set(d.courses.id, d.start_date);
-      }
-    });
+        if (d.courses?.id) {
+          courseMap.set(d.courses.id, {
+            id: d.courses.id,
+            title: d.courses.title,
+            description: d.courses.description ?? null,
+            duration_hours: d.courses.duration_hours ?? null,
+          });
+        if (d.start_date) dateMap.set(d.courses.id, { start_date: d.start_date, course_date_id: d.id });
+        }
+      });
 
     const fallbackCourseIds = Array.from(courseMap.keys());
+
+    // Reschedules für diese Termine
+    const courseDateIds = (partnerDates || []).map((d: any) => d.id).filter(Boolean) as string[];
+    const rescheduleMap = new Map<string, { latest: any | null; history: any[] }>();
+    if (courseDateIds.length) {
+      const { data: resRows } = await service
+        .from('course_reschedules')
+        .select('course_date_id, version, reason, new_start_date, old_start_date, created_at')
+        .in('course_date_id', courseDateIds)
+        .order('version', { ascending: false });
+      (resRows || []).forEach((r) => {
+        const existing = rescheduleMap.get(r.course_date_id)?.history || [];
+        const history = [r, ...existing].slice(0, 3);
+        rescheduleMap.set(r.course_date_id, { latest: history[0], history });
+      });
+    }
 
     // Teilnehmer laden
     let participantMap = new Map<string, { name: string; email: string; phone?: string | null; student_id?: string | null }[]>();
@@ -250,7 +266,9 @@ export default async function TeacherPage() {
 
     courses = fallbackCourseIds.map((id) => ({
       ...courseMap.get(id),
-      start_date: dateMap.get(id) ?? null,
+      start_date: dateMap.get(id)?.start_date ?? null,
+      course_date_id: dateMap.get(id)?.course_date_id ?? null,
+      reschedule: dateMap.get(id)?.course_date_id ? rescheduleMap.get(dateMap.get(id)!.course_date_id!) ?? { latest: null, history: [] } : { latest: null, history: [] },
       participants: [
         ...(participantMap.get(id) || []),
         ...(bookingParticipants.get(id) || []),
