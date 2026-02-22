@@ -38,6 +38,7 @@ export default async function StudentPage({ searchParams }: { searchParams: Reco
   let courseIds: string[] = [];
   let courseDates:
     | {
+        id: string;
         course_id: string;
         start_date: string | null;
         end_date: string | null;
@@ -60,34 +61,51 @@ export default async function StudentPage({ searchParams }: { searchParams: Reco
       // Starttermine zu den Kursen laden
       const { data: courseDatesData } = await service
         .from('course_dates')
-        .select('course_id, start_date, end_date')
+        .select('id, course_id, start_date, end_date')
         .in('course_id', courseIds);
       courseDates = courseDatesData || [];
-      const dateMap = new Map<string, string | null>();
+      const dateMap = new Map<string, { start_date: string | null; course_date_id: string | null }>();
       const today = new Date();
       courseDates.forEach((d) => {
         if (!d.start_date) return;
         const existing = dateMap.get(d.course_id);
         const currentDate = new Date(d.start_date);
-        const existingDate = existing ? new Date(existing) : null;
+        const existingDate = existing?.start_date ? new Date(existing.start_date) : null;
         // wähle den nächstgelegenen zukünftigen Termin; falls keiner, nimm den frühesten vergangenen
         const isFuture = currentDate >= today;
         const isExistingFuture = existingDate ? existingDate >= today : false;
         if (!existing) {
-          dateMap.set(d.course_id, d.start_date);
+          dateMap.set(d.course_id, { start_date: d.start_date, course_date_id: d.id });
         } else if (isFuture && (!isExistingFuture || currentDate < existingDate!)) {
-          dateMap.set(d.course_id, d.start_date);
+          dateMap.set(d.course_id, { start_date: d.start_date, course_date_id: d.id });
         } else if (!isFuture && !isExistingFuture && currentDate < existingDate!) {
           // beide Vergangenheit: nimm den neueren (näher an heute)
-          dateMap.set(d.course_id, d.start_date);
+          dateMap.set(d.course_id, { start_date: d.start_date, course_date_id: d.id });
         }
       });
       // Kursliste mit Startdatum anreichern
       courses = courses.map((c) => ({
         ...c,
-        start_date: dateMap.get(c.id) ?? null,
+        start_date: dateMap.get(c.id)?.start_date ?? null,
+        course_date_id: dateMap.get(c.id)?.course_date_id ?? null,
       }));
     }
+  }
+
+  // Reschedules je Kurs-Termin laden
+  const courseDateIds = (courseDates || []).map((d) => d.id).filter(Boolean) as string[];
+  const rescheduleMap = new Map<string, { latest: any | null; history: any[] }>();
+  if (courseDateIds.length) {
+    const { data: resRows } = await service
+      .from('course_reschedules')
+      .select('course_date_id, version, reason, new_start_date, old_start_date, created_at')
+      .in('course_date_id', courseDateIds)
+      .order('version', { ascending: false });
+    (resRows || []).forEach((r) => {
+      const existing = rescheduleMap.get(r.course_date_id)?.history || [];
+      const history = [r, ...existing].slice(0, 3);
+      rescheduleMap.set(r.course_date_id, { latest: history[0], history });
+    });
   }
 
   // Buchungen (service, OR auf email + student_id)
@@ -115,11 +133,20 @@ export default async function StudentPage({ searchParams }: { searchParams: Reco
 
     const { data: bookingRows } = await service
       .from('bookings')
-      .select('id, booking_code, booking_date, status, amount, course_id, course_title, course_start, partner_name, student_name, vat_rate, price_net, deposit, saldo, duration_hours')
+      .select('id, booking_code, booking_date, status, amount, course_id, course_title, course_start, partner_name, student_name, vat_rate, price_net, deposit, saldo, duration_hours, course_date_id')
       .or(orParts.join(','))
       .order('booking_date', { ascending: false });
     bookings = bookingRows || [];
   }
+
+  // Buchungen mit Reschedule-Daten anreichern (über course_date_id)
+  bookings = (bookings || []).map((b) => {
+    const res = b.course_date_id ? rescheduleMap.get(b.course_date_id) : undefined;
+    return {
+      ...b,
+      reschedule: res ?? { latest: null, history: [] },
+    } as any;
+  });
 
   const bookingId = typeof searchParams?.booking === 'string' ? searchParams.booking : null;
   const selectedBooking = bookingId

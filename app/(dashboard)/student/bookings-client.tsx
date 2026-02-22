@@ -10,6 +10,7 @@ type Booking = {
   course_title: string | null;
   course_start: string | null;
   partner_name: string | null;
+  reschedule?: { latest: any | null; history: any[] };
   student_name?: string | null;
   vat_rate?: number | null;
   price_net?: number | null;
@@ -65,7 +66,19 @@ export default function BookingsClient({ bookings }: { bookings: Booking[] }) {
                   <span>· Status: {b.status}</span>
                   {b.amount != null && <span>· Betrag: {Number(b.amount).toFixed(2)} €</span>}
                   <span>· Buchungsdatum: {b.booking_date ? new Date(b.booking_date).toLocaleDateString() : '—'}</span>
+                  {b.reschedule?.latest && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-800 border border-indigo-100 text-[12px] font-semibold">
+                      Verschoben v{b.reschedule.latest.version}
+                    </span>
+                  )}
                 </div>
+                {b.reschedule?.latest && (
+                  <div className="mt-2 text-[13px] text-indigo-900 bg-indigo-50 border border-indigo-100 rounded-lg px-3 py-2 inline-flex flex-wrap gap-2 items-center">
+                    <span className="font-semibold">Neuer Termin:</span>
+                    <span>{b.reschedule.latest.new_start_date ? new Date(b.reschedule.latest.new_start_date).toLocaleDateString() : '—'}</span>
+                    <span className="text-slate-600">Grund: {b.reschedule.latest.reason || 'nicht angegeben'}</span>
+                  </div>
+                )}
               </div>
               <div className="flex items-center gap-2 md:justify-end">
                 <span className="rounded-full bg-slate-100 text-xs text-slate-700 px-3 py-1 border border-slate-200">
@@ -130,6 +143,15 @@ export default function BookingsClient({ bookings }: { bookings: Booking[] }) {
                     <p className="text-[15px] text-slate-800">{value}</p>
                   </div>
                 ))}
+                {selected.reschedule?.latest && (
+                  <div className="rounded-lg border border-indigo-100 bg-indigo-50 px-3 py-3 md:col-span-2 text-[13px] text-indigo-900">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-semibold">Verschoben v{selected.reschedule.latest.version}</span>
+                      <span>Neuer Termin: {selected.reschedule.latest.new_start_date ? new Date(selected.reschedule.latest.new_start_date).toLocaleDateString() : '—'}</span>
+                      <span className="text-slate-700">Grund: {selected.reschedule.latest.reason || 'nicht angegeben'}</span>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
@@ -161,6 +183,21 @@ export default function BookingsClient({ bookings }: { bookings: Booking[] }) {
                 ) : null}
               </div>
             )}
+
+            {selected.reschedule?.history?.length ? (
+              <details className="mt-4 rounded-lg border border-slate-200 bg-white/80 px-3 py-2 text-[12px] text-slate-600">
+                <summary className="cursor-pointer text-ink font-semibold flex items-center gap-2">Verschiebungshistorie</summary>
+                <div className="mt-2 space-y-1">
+                  {selected.reschedule.history.map((r: any) => (
+                    <div key={`hist-${r.version}`} className="flex flex-wrap gap-2">
+                      <span className="font-semibold text-indigo-700">v{r.version}</span>
+                      <span>{r.old_start_date ? new Date(r.old_start_date).toLocaleDateString() : '—'} → {r.new_start_date ? new Date(r.new_start_date).toLocaleDateString() : '—'}</span>
+                      {r.reason && <span className="text-slate-500">Grund: {r.reason}</span>}
+                    </div>
+                  ))}
+                </div>
+              </details>
+            ) : null}
 
             <div className="mt-6 flex justify-end">
               <button
