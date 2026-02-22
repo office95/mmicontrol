@@ -43,14 +43,14 @@ export default async function SupportDetail({ params }: { params: { id: string }
         <Link href="/admin/support" className="text-sm text-pink-200 hover:text-pink-100">Zurück zur Übersicht</Link>
       </div>
 
-      <div className="rounded-2xl bg-transparent p-6 border border-white/15 space-y-4">
-        <div className="text-xs text-white/70">Erstellt: {new Date(ticket.created_at).toLocaleString()} · Letzte Nachricht: {new Date(ticket.last_message_at).toLocaleString()}</div>
+      <div className="rounded-2xl bg-white text-slate-900 p-6 border border-slate-200 shadow-xl space-y-4">
+        <div className="text-xs text-slate-600">Erstellt: {new Date(ticket.created_at).toLocaleString()} · Letzte Nachricht: {new Date(ticket.last_message_at).toLocaleString()}</div>
         <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-2">
           {messages?.map((m) => (
-            <div key={m.id} className={`rounded-2xl px-3 py-2 border ${m.author_role === 'admin' ? 'border-pink-300/40 bg-pink-500/10' : 'border-white/15 bg-white/5'}`}>
-              <div className="text-[11px] uppercase tracking-[0.14em] text-white/60 mb-1">{m.author_role}</div>
-              <p className="text-sm text-white/90 whitespace-pre-wrap">{m.body}</p>
-              <p className="text-[11px] text-white/60 mt-1">{new Date(m.created_at).toLocaleString()}</p>
+            <div key={m.id} className={`rounded-2xl px-3 py-2 border ${m.author_role === 'admin' ? 'border-rose-200 bg-rose-50' : 'border-slate-200 bg-slate-50'}`}>
+              <div className="text-[11px] uppercase tracking-[0.14em] text-slate-500 mb-1">{m.author_role}</div>
+              <p className="text-sm text-slate-800 whitespace-pre-wrap">{m.body}</p>
+              <p className="text-[11px] text-slate-500 mt-1">{new Date(m.created_at).toLocaleString()}</p>
             </div>
           ))}
         </div>
