@@ -3,6 +3,7 @@
 import BookingsClient from './bookings-client';
 import ProfileWrapper from './profile-wrapper';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { createSupabaseBrowserClient } from '@/lib/supabase-browser';
 
 type Payment = { id: string; payment_date: string | null; amount: number | null; method: string | null; note: string | null };
 
@@ -101,6 +102,8 @@ export default function StudentDashboardClient({
 
   // sanftes Auto-Scroll der Empfehlungen (nur wenn Tab aktiv)
   useEffect(() => {
+    const supabase = createSupabaseBrowserClient();
+
     const loadUnread = async () => {
       try {
         const r = await fetch('/api/support/unread');
@@ -110,7 +113,17 @@ export default function StudentDashboardClient({
         setUnread(0);
       }
     };
+
     loadUnread();
+
+    const channel = supabase.channel('support-unread-student')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'support_tickets' }, loadUnread)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'support_messages' }, loadUnread)
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   useEffect(() => {

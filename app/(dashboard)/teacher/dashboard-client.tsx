@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState, useEffect } from 'react';
+import { createSupabaseBrowserClient } from '@/lib/supabase-browser';
 import TeacherStatsClient from './stats-client';
 import CourseListClient from './course-list-client';
 import TeacherMaterials from './materials/teacher-materials-client';
@@ -83,10 +84,26 @@ export default function DashboardClient({
   const [unread, setUnread] = useState(0);
 
   useEffect(() => {
-    fetch('/api/support/unread').then(async (r) => {
-      const d = await r.json();
-      setUnread(d.count || 0);
-    });
+    const supabase = createSupabaseBrowserClient();
+    const loadUnread = async () => {
+      try {
+        const r = await fetch('/api/support/unread');
+        const d = await r.json();
+        setUnread(d.count || 0);
+      } catch (e) {
+        setUnread(0);
+      }
+    };
+    loadUnread();
+
+    const channel = supabase.channel('support-unread-teacher')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'support_tickets' }, loadUnread)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'support_messages' }, loadUnread)
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
   const feedbackByCourse = useMemo(() => {
     const map = new Map<string, Feedback[]>();
