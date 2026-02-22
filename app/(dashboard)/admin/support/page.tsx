@@ -112,7 +112,13 @@ export default async function AdminSupportPage({ searchParams }: { searchParams?
         : statusFilter === 'closed'
           ? 'Geschlossen'
           : 'Alle Tickets';
-  const sortedTickets = (tickets || []).sort((a, b) => new Date(b.last_message_at || b.created_at).getTime() - new Date(a.last_message_at || a.created_at).getTime());
+  const weight = { open: 0, in_progress: 1, closed: 2 } as Record<string, number>;
+  const sortedTickets = (tickets || []).sort((a, b) => {
+    const wa = weight[a.status] ?? 3;
+    const wb = weight[b.status] ?? 3;
+    if (wa !== wb) return wa - wb;
+    return new Date(b.last_message_at || b.created_at).getTime() - new Date(a.last_message_at || a.created_at).getTime();
+  });
   const filteredTickets = sortedTickets.filter((t) => {
     const statusOk = statusFilter === 'all' ? true : (t.status || 'open') === statusFilter;
     const queryOk = qParam
@@ -194,13 +200,21 @@ export default async function AdminSupportPage({ searchParams }: { searchParams?
               ];
 
               return (
-                <details key={t.id} className="py-4 group">
-                  <summary className="flex items-start justify-between cursor-pointer">
-                  <div className="space-y-1">
-                    <p className="text-base font-semibold text-slate-900 group-open:text-pink-700">{t.subject}</p>
-                    <p className="text-xs font-mono text-slate-500 text-[13px] font-semibold">Ticket #{t.id?.slice(0,8)?.toUpperCase()}</p>
-                    {t.message && <p className="text-sm text-slate-700 line-clamp-2">{t.message}</p>}
-                    <p className="text-xs text-slate-500">
+                <details
+                  key={t.id}
+                  className={`py-4 group rounded-xl border ${t.status === 'open' ? 'border-rose-200 bg-rose-50/60 shadow-md' : 'border-slate-200 bg-white'}`}
+                >
+                  <summary className="flex items-start justify-between cursor-pointer px-3">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        {t.status === 'open' && (
+                          <span className="px-2 py-1 rounded-full text-[11px] font-semibold bg-rose-500 text-white">Neu</span>
+                        )}
+                        <p className="text-base font-semibold text-slate-900 group-open:text-pink-700">{t.subject}</p>
+                      </div>
+                      <p className="text-xs font-mono text-slate-600 font-semibold">Ticket #{t.id?.slice(0,8)?.toUpperCase()}</p>
+                      {t.message && <p className="text-sm text-slate-700 line-clamp-2">{t.message}</p>}
+                      <p className="text-xs text-slate-500">
                         Rolle: {t.role ?? '—'} · Erstellt: {new Date(t.created_at).toLocaleString()} · Letzte Nachricht: {new Date(t.last_message_at).toLocaleString()}
                       </p>
                     </div>
