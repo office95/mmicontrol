@@ -312,21 +312,23 @@ export default function CourseDatesPage() {
           const starts = sorted.map((t) => toDate(t.start_date)).filter(Boolean) as Date[];
           const ends = sorted.map((t) => toDate(t.end_date || t.start_date)).filter(Boolean) as Date[];
 
-          // Start 7 Tage vor heute, damit Kontext sichtbar bleibt
-          let minDate = new Date(today.getTime() - 7 * dayMs);
+          // Padding vor/nach heute und Terminen für Scrollbar
+          const padBeforeDays = 14;
+          const padAfterDays = 60;
+          let minDate = new Date(today.getTime() - padBeforeDays * dayMs);
           if (starts.length) {
             const minStart = Math.min(...starts.map((d) => d.getTime()));
-            minDate = new Date(Math.min(minDate.getTime(), minStart));
+            minDate = new Date(Math.min(minDate.getTime(), minStart - padBeforeDays * dayMs));
           }
-          let maxDate = new Date(
-            Math.max(today.getTime(), ...(ends.length ? ends.map((d) => d.getTime()) : [today.getTime() + dayMs * 7]))
-          );
-          // Ansicht auf max. ~45 Tage (1,5 Monate) begrenzen, aber min. 45 Tage, damit Scroll möglich
-          const targetDays = 45;
-          if ((maxDate.getTime() - minDate.getTime()) / dayMs < targetDays) {
-            maxDate = new Date(minDate.getTime() + targetDays * dayMs);
-          } else if ((maxDate.getTime() - minDate.getTime()) / dayMs > targetDays) {
-            maxDate = new Date(minDate.getTime() + targetDays * dayMs);
+          let maxDate = new Date(today.getTime() + padAfterDays * dayMs);
+          if (ends.length) {
+            const maxEnd = Math.max(...ends.map((d) => d.getTime()));
+            maxDate = new Date(Math.max(maxDate.getTime(), maxEnd + padAfterDays * dayMs));
+          }
+          // Mindestbreite: 120 Tage, aber keine Obergrenze mehr (scrollbar übernimmt)
+          const minSpanDays = 120;
+          if ((maxDate.getTime() - minDate.getTime()) / dayMs < minSpanDays) {
+            maxDate = new Date(minDate.getTime() + minSpanDays * dayMs);
           }
 
           const totalDays = Math.max(1, Math.ceil((maxDate.getTime() - minDate.getTime()) / dayMs));
