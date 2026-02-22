@@ -8,6 +8,7 @@ export default function SupportReply({ ticketId, currentStatus, currentPriority 
   const [priority, setPriority] = useState(currentPriority || 'normal');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [justClosed, setJustClosed] = useState(false);
 
   const send = async () => {
     if (!message.trim()) return;
@@ -31,6 +32,9 @@ export default function SupportReply({ ticketId, currentStatus, currentPriority 
       });
 
       setMessage('');
+      if (status === 'closed') {
+        setJustClosed(true);
+      }
       window.location.reload();
     } catch (e: any) {
       setError(e?.message || 'Unbekannter Fehler');
@@ -39,7 +43,7 @@ export default function SupportReply({ ticketId, currentStatus, currentPriority 
     }
   };
 
-  const locked = currentStatus === 'closed';
+  const locked = currentStatus === 'closed' || justClosed;
 
   return (
     <div className="space-y-3 bg-white border border-slate-200 rounded-2xl p-4 text-slate-900 shadow-sm">
