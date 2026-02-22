@@ -6,6 +6,7 @@ import { createClient } from '@supabase/supabase-js';
 
 const PAGES = [
   'admin-dashboard',
+  'admin-support',
   'teacher-dashboard',
   'student-dashboard',
   'teacher-materials',
@@ -62,6 +63,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
   // Neue Seiten-Slugs automatisch für RBAC registrieren
   await ensureSlugs([
   'admin-dashboard',
+  'admin-support',
   'admin-partners',
   'admin-roles',
   'admin-benefits',
@@ -94,6 +96,16 @@ export default async function DashboardLayout({ children }: { children: ReactNod
 
   const permissions = await getPermissions(roleLabel);
 
+  // Offene Support-Tickets (Badge)
+  let supportOpen = 0;
+  if (roleLabel === 'admin') {
+    const { count } = await service
+      .from('support_tickets')
+      .select('id', { count: 'exact', head: true })
+      .eq('status', 'open');
+    supportOpen = count ?? 0;
+  }
+
   // Admin: fehlende Slugs automatisch freischalten
   if (roleLabel === 'admin' && PAGES.length) {
     await service.from('role_permissions').upsert(
@@ -108,6 +120,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
     { href: '/admin/materials', label: 'Kursmaterial', roles: ['admin'], slug: 'materials' },
     { href: '/admin/course-dates', label: 'Kurstermine', roles: ['admin'], slug: 'course-dates' },
     { href: '/admin/benefits', label: 'Benefits', roles: ['admin'], slug: 'admin-benefits' },
+    { href: '/admin/support', label: 'Support', roles: ['admin'], slug: 'admin-support' },
     { href: '/admin/partners', label: 'Partner', roles: ['admin'], slug: 'admin-partners' },
     { href: '/admin/leads', label: 'Leads', roles: ['admin'], slug: 'admin-leads' },
     { href: '/admin/bookings', label: 'Buchungsübersicht', roles: ['admin'], slug: 'admin-bookings' },
@@ -215,9 +228,14 @@ export default async function DashboardLayout({ children }: { children: ReactNod
                     <Link
                       key={l.href}
                       href={l.href as any}
-                      className="block rounded-lg px-5 py-3.5 text-[16px] md:text-[17px] font-semibold text-white/90 bg-white/12 border border-white/20 hover:bg-white/20 transition"
+                      className="relative block rounded-lg px-5 py-3.5 text-[16px] md:text-[17px] font-semibold text-white/90 bg-white/12 border border-white/20 hover:bg-white/20 transition"
                     >
                       {l.label}
+                      {l.href === '/admin/support' && supportOpen > 0 && (
+                        <span className="absolute -right-2 -top-2 h-6 min-w-[22px] px-1 rounded-full bg-rose-500 text-white text-[12px] font-semibold flex items-center justify-center">
+                          {supportOpen}
+                        </span>
+                      )}
                     </Link>
                   )
                 ))}
