@@ -19,7 +19,22 @@ export async function GET(req: Request) {
       .eq('id', id)
       .single();
     if (error) return NextResponse.json({ error: error.message }, { status: 400 });
-    return NextResponse.json(ticket);
+
+    // Autor-Namen auflösen
+    const authorIds = Array.from(new Set((ticket?.support_messages || []).map((m: any) => m.author_id).filter(Boolean)));
+    const { data: profiles } = await service
+      .from('profiles')
+      .select('id, full_name')
+      .in('id', authorIds.length ? authorIds : ['00000000-0000-0000-0000-000000000000']);
+    const nameMap = new Map<string, string>();
+    (profiles || []).forEach((p: any) => nameMap.set(p.id, p.full_name || ''));
+
+    const msgs = (ticket?.support_messages || []).map((m: any) => ({
+      ...m,
+      author_name: m.author_role === 'admin' ? 'Music Mission Team' : nameMap.get(m.author_id) || 'Unbekannt',
+    }));
+
+    return NextResponse.json({ ...ticket, support_messages: msgs });
   }
 
   const { data, error } = await supabase

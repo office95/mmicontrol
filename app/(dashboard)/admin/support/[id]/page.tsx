@@ -19,7 +19,7 @@ export default async function SupportDetail({ params }: { params: { id: string }
 
   const { data: messages } = await supabase
     .from('support_messages')
-    .select('id, author_role, author_id, body, created_at')
+    .select('id, author_role, author_id, body, created_at, profiles(full_name)')
     .eq('ticket_id', params.id)
     .order('created_at', { ascending: true });
 
@@ -46,13 +46,22 @@ export default async function SupportDetail({ params }: { params: { id: string }
       <div className="rounded-2xl bg-white text-slate-900 p-6 border border-slate-200 shadow-xl space-y-4">
         <div className="text-xs text-slate-600">Erstellt: {new Date(ticket.created_at).toLocaleString()} · Letzte Nachricht: {new Date(ticket.last_message_at).toLocaleString()}</div>
         <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-2">
-          {messages?.map((m) => (
-            <div key={m.id} className={`rounded-2xl px-3 py-2 border ${m.author_role === 'admin' ? 'border-rose-200 bg-rose-50' : 'border-slate-200 bg-slate-50'}`}>
-              <div className="text-[11px] uppercase tracking-[0.14em] text-slate-500 mb-1">{m.author_role}</div>
-              <p className="text-sm text-slate-800 whitespace-pre-wrap">{m.body}</p>
-              <p className="text-[11px] text-slate-500 mt-1">{new Date(m.created_at).toLocaleString()}</p>
-            </div>
-          ))}
+          {messages?.map((m) => {
+            const name = m.author_role === 'admin' ? 'Music Mission Team' : (m.profiles as any)?.full_name || m.author_role || 'Teilnehmer';
+            const cls =
+              m.author_role === 'admin'
+                ? 'border-rose-200 bg-rose-50'
+                : m.author_role === 'teacher'
+                  ? 'border-indigo-200 bg-indigo-50'
+                  : 'border-slate-200 bg-slate-50';
+            return (
+              <div key={m.id} className={`rounded-2xl px-3 py-2 border ${cls}`}>
+                <div className="text-[11px] uppercase tracking-[0.14em] text-slate-500 mb-1">{name}</div>
+                <p className="text-sm text-slate-800 whitespace-pre-wrap">{m.body}</p>
+                <p className="text-[11px] text-slate-500 mt-1">{new Date(m.created_at).toLocaleString()}</p>
+              </div>
+            );
+          })}
         </div>
         <SupportReply ticketId={ticket.id} currentStatus={ticket.status} currentPriority={ticket.priority} />
       </div>

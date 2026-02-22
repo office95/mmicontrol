@@ -189,10 +189,21 @@ function TicketThread({ ticketId }: { ticketId: string }) {
       {!loading && messages.length === 0 && <p className="text-sm text-white/70">Noch keine Antworten.</p>}
       <div className="space-y-2">
         {messages.map((m) => (
-          <div key={m.id} className={`rounded-xl px-3 py-2 border ${m.author_role === 'admin' ? 'border-pink-300/40 bg-pink-500/10' : 'border-white/15 bg-white/5'}`}>
-            <div className="text-[11px] uppercase tracking-[0.14em] text-white/60 mb-1">{m.author_role}</div>
-            <p className="text-sm text-white/90 whitespace-pre-wrap">{m.body}</p>
-            <p className="text-[11px] text-white/60 mt-1">{new Date(m.created_at).toLocaleString()}</p>
+          <div
+            key={m.id}
+            className={`rounded-xl px-3 py-2 border ${
+              m.author_role === 'admin'
+                ? 'border-rose-200 bg-rose-50 text-slate-900'
+                : m.author_role === 'teacher'
+                  ? 'border-indigo-200 bg-indigo-50 text-slate-900'
+                  : 'border-slate-200 bg-slate-50 text-slate-900'
+            }`}
+          >
+            <div className="text-[11px] uppercase tracking-[0.14em] text-slate-500 mb-1">
+              {m.author_role === 'admin' ? 'Music Mission Team' : (m.author_name || m.author_role || 'Teilnehmer')}
+            </div>
+            <p className="text-sm text-slate-800 whitespace-pre-wrap">{m.body}</p>
+            <p className="text-[11px] text-slate-500 mt-1">{new Date(m.created_at).toLocaleString()}</p>
           </div>
         ))}
       </div>
