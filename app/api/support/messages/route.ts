@@ -50,10 +50,14 @@ export async function POST(req: Request) {
   });
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
 
-  // Status updaten: gewünschter Status falls mitgeschickt, sonst in_progress
+  // Status updaten: gewünschter Status falls mitgeschickt, sonst in_progress.
+  // Sonderfall: erstes Admin-Reply auf ein offenes Ticket -> in_progress.
   const desired = (body?.status as string) || undefined;
   const allowedStatus = ['open', 'in_progress', 'closed'];
-  const nextStatus = allowedStatus.includes(desired || '') ? desired : 'in_progress';
+  let nextStatus = allowedStatus.includes(desired || '') ? desired : 'in_progress';
+  if (!desired && ticket.status === 'open') {
+    nextStatus = 'in_progress';
+  }
   await service
     .from('support_tickets')
     .update({ status: nextStatus, last_message_at: new Date().toISOString() })
