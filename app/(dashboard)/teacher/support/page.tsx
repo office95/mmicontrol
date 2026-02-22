@@ -47,7 +47,7 @@ export default function TeacherSupportPage() {
   };
 
   return (
-    <div className="min-h-screen bg-transparent text-slate-900 px-4 sm:px-6 lg:px-10 py-6 space-y-6">
+    <div className="min-h-screen bg-transparent text-white px-4 sm:px-6 lg:px-10 py-6 space-y-6">
       {/* Tabs analog zum Dashboard */}
       <div className="flex flex-wrap gap-2 text-sm font-semibold">
         {[
@@ -80,7 +80,7 @@ export default function TeacherSupportPage() {
         </div>
       </div>
 
-      <div className="rounded-2xl bg-white p-6 border border-slate-200 shadow-sm space-y-3">
+      <div className="rounded-2xl bg-white p-6 border border-slate-200 shadow-sm space-y-3 text-slate-900">
         <p className="text-sm text-slate-700">Neues Ticket</p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
           <input className="input bg-white border border-slate-300 text-slate-900" placeholder="Betreff" value={subject} onChange={(e) => setSubject(e.target.value)} />
@@ -104,7 +104,7 @@ export default function TeacherSupportPage() {
         />
       </div>
 
-      <div className="rounded-2xl bg-white p-6 border border-slate-200 shadow-sm space-y-4">
+      <div className="rounded-2xl bg-white p-6 border border-slate-200 shadow-sm space-y-4 text-slate-900">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold text-slate-900">Meine Tickets</h2>
           {loading && <p className="text-sm text-slate-500">Lade…</p>}
