@@ -92,21 +92,8 @@ export default async function StudentPage({ searchParams }: { searchParams: Reco
     }
   }
 
-  // Reschedules je Kurs-Termin laden
-  const courseDateIds = (courseDates || []).map((d) => d.id).filter(Boolean) as string[];
-  const rescheduleMap = new Map<string, { latest: any | null; history: any[] }>();
-  if (courseDateIds.length) {
-    const { data: resRows } = await service
-      .from('course_reschedules')
-      .select('course_date_id, version, reason, new_start_date, old_start_date, created_at')
-      .in('course_date_id', courseDateIds)
-      .order('version', { ascending: false });
-    (resRows || []).forEach((r) => {
-      const existing = rescheduleMap.get(r.course_date_id)?.history || [];
-      const history = [r, ...existing].slice(0, 3);
-      rescheduleMap.set(r.course_date_id, { latest: history[0], history });
-    });
-  }
+  // Reschedules je Kurs-Termin laden (IDs aus courseDates und späteren Bookings)
+  let rescheduleMap = new Map<string, { latest: any | null; history: any[] }>();
 
   // Buchungen (service, OR auf email + student_id)
   let bookings: {
@@ -140,11 +127,34 @@ export default async function StudentPage({ searchParams }: { searchParams: Reco
     bookings = bookingRows || [];
   }
 
+  // Reschedules nachladen, falls course_date_id nur aus Buchungen kommt
+  const bookingCourseDateIds = (bookings || []).map((b) => (b as any).course_date_id).filter(Boolean) as string[];
+  const allCdIds = Array.from(new Set([...
+    (courseDates || []).map((d) => d.id).filter(Boolean),
+    ...bookingCourseDateIds,
+  ]));
+  if (allCdIds.length) {
+    const { data: resRows } = await service
+      .from('course_reschedules')
+      .select('course_date_id, version, reason, new_start_date, old_start_date, created_at')
+      .in('course_date_id', allCdIds)
+      .order('version', { ascending: false });
+    rescheduleMap = new Map<string, { latest: any | null; history: any[] }>();
+    (resRows || []).forEach((r) => {
+      const existing = rescheduleMap.get(r.course_date_id)?.history || [];
+      const history = [r, ...existing].slice(0, 3);
+      rescheduleMap.set(r.course_date_id, { latest: history[0], history });
+    });
+  }
+
   // Buchungen mit Reschedule-Daten anreichern (über course_date_id)
   bookings = (bookings || []).map((b) => {
-    const res = b.course_date_id ? rescheduleMap.get(b.course_date_id) : undefined;
+    const res = (b as any).course_date_id ? rescheduleMap.get((b as any).course_date_id) : undefined;
+    // wenn kein course_start gesetzt, aber reschedule.latest.new_start_date existiert -> setzen
+    const effectiveStart = res?.latest?.new_start_date ?? b.course_start;
     return {
       ...b,
+      course_start: effectiveStart,
       reschedule: res ?? { latest: null, history: [] },
     } as any;
   });
