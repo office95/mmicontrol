@@ -36,7 +36,7 @@ export default async function AdminSupportPage({ searchParams }: { searchParams?
       )
     `)
     .order('last_message_at', { ascending: false })
-    .limit(50);
+    .limit(200);
 
   const now = new Date();
   const currYear = now.getFullYear();
@@ -65,7 +65,8 @@ export default async function AdminSupportPage({ searchParams }: { searchParams?
   const statusParam = Array.isArray(searchParams?.status) ? searchParams?.status[0] : searchParams?.status;
   const allowed: Array<'all' | 'open' | 'in_progress' | 'closed'> = ['all', 'open', 'in_progress', 'closed'];
   const statusFilter = (allowed.includes((statusParam as any) || '') ? statusParam : 'all') as 'all' | 'open' | 'in_progress' | 'closed';
-  const visibleTickets = (tickets || []).filter((t) =>
+  const sortedTickets = (tickets || []).sort((a, b) => new Date(b.last_message_at || b.created_at).getTime() - new Date(a.last_message_at || a.created_at).getTime());
+  const visibleTickets = sortedTickets.filter((t) =>
     statusFilter === 'all' ? true : (t.status || 'open') === statusFilter
   );
 
