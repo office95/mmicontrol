@@ -774,21 +774,6 @@ export default async function TeacherPage() {
 
   return (
     <div className="space-y-8">
-      <div className="flex items-center justify-between mb-3 text-white/80 text-sm">
-        <span>Support benötigt? Wir sind für dich da.</span>
-        <a
-          href="/teacher/support"
-          className="inline-flex items-center gap-2 rounded-full bg-white text-ink px-4 py-2 text-sm font-semibold shadow-lg hover:bg-pink-50"
-        >
-          Support
-          {supportCount ? (
-            <span className="inline-flex h-5 px-2 items-center justify-center rounded-full bg-rose-500 text-white text-xs font-bold">
-              {supportCount}
-            </span>
-          ) : null}
-        </a>
-      </div>
-
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 bg-white/10 border border-white/15 rounded-xl p-6 shadow-lg relative overflow-hidden">
         <div className="space-y-1">
           <p className="text-[12px] uppercase tracking-[0.28em] text-pink-200 mb-1">Willkommen</p>
