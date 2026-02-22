@@ -24,7 +24,14 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   const body = await req.json();
-  const { course_date_id, start_date, end_date, time_from, time_to, reason, update_bookings } = body || {};
+  let { course_date_id, start_date, end_date, time_from, time_to, reason, update_bookings } = body || {};
+  // leere Strings in NULL umwandeln
+  start_date = start_date || null;
+  end_date = end_date || null;
+  time_from = time_from || null;
+  time_to = time_to || null;
+  reason = reason || null;
+
   if (!course_date_id || !start_date) return NextResponse.json({ error: 'course_date_id und start_date erforderlich' }, { status: 400 });
 
   const { data: cd, error: cdErr } = await service
