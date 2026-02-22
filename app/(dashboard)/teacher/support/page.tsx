@@ -11,6 +11,7 @@ export default function TeacherSupportPage() {
   const [message, setMessage] = useState('');
   const [unread, setUnread] = useState(0);
   const [seenTick, setSeenTick] = useState(0);
+  const [statusFilter, setStatusFilter] = useState<'all' | 'open' | 'in_progress' | 'closed'>('all');
 
   const seenKey = (id: string) => `support_seen_${id}`;
   const isTicketUnread = (t: any) => {
@@ -60,6 +61,10 @@ export default function TeacherSupportPage() {
     setPriority('normal');
     load();
   };
+
+  const filteredTickets = tickets.filter((t) =>
+    statusFilter === 'all' ? true : (t.status || 'open') === statusFilter
+  );
 
   return (
     <div className="min-h-screen bg-transparent text-white px-4 sm:px-6 lg:px-10 py-6 space-y-6">
@@ -123,14 +128,28 @@ export default function TeacherSupportPage() {
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold text-slate-900">Meine Tickets</h2>
           {loading && <p className="text-sm text-slate-500">Lade…</p>}
+          <div className="flex items-center gap-2 text-sm">
+            <label className="text-xs uppercase tracking-[0.14em] text-slate-500">Status</label>
+            <select
+              className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value as any)}
+            >
+              <option value="all">Alle</option>
+              <option value="open">Offen</option>
+              <option value="in_progress">In Bearbeitung</option>
+              <option value="closed">Geschlossen</option>
+            </select>
+          </div>
         </div>
         {error && <p className="text-sm text-rose-600">{error}</p>}
         {!loading && !tickets.length && <p className="text-sm text-slate-600">Keine Tickets vorhanden.</p>}
-        {tickets.length > 0 && (
+        {!loading && tickets.length > 0 && filteredTickets.length === 0 && (
+          <p className="text-sm text-slate-600">Keine Tickets mit diesem Status.</p>
+        )}
+        {tickets.length > 0 && filteredTickets.length > 0 && (
           <div className="divide-y divide-slate-200">
-            {tickets
-              .filter((t) => t.status !== 'closed')
-              .map((t) => (
+            {filteredTickets.map((t) => (
               <details key={t.id} className="py-3">
                 <summary
                   className="flex items-center justify-between cursor-pointer"
