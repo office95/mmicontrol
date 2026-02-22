@@ -17,7 +17,7 @@ type Ticket = {
   support_messages?: any[];
 };
 
-export default async function AdminSupportPage() {
+export default async function AdminSupportPage({ searchParams }: { searchParams?: { status?: string } }) {
   const supabase = createClient(
     process.env.SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -61,6 +61,9 @@ export default async function AdminSupportPage() {
     : null;
   const avgResolutionDays = avgResolutionMs ? avgResolutionMs / (1000 * 60 * 60 * 24) : null;
 
+  const statusFilter = (searchParams?.status ?? 'all') as 'all' | 'open' | 'in_progress' | 'closed';
+  const visibleTickets = (tickets || []).filter((t) => statusFilter === 'all' ? true : t.status === statusFilter);
+
   return (
     <div className="min-h-screen bg-transparent text-white space-y-6 px-4 sm:px-6 lg:px-10 py-6">
       <div>
@@ -78,8 +81,24 @@ export default async function AdminSupportPage() {
       </div>
 
       <div className="rounded-2xl bg-white border border-slate-200 p-6 shadow-xl text-slate-900">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
           <h2 className="text-lg font-semibold">Offene Tickets</h2>
+          <div className="flex items-center gap-2 text-sm">
+            {[
+              ['all', 'Alle'],
+              ['open', 'Offen'],
+              ['in_progress', 'In Bearbeitung'],
+              ['closed', 'Erledigt'],
+            ].map(([value, label]) => (
+              <a
+                key={value}
+                href={value === 'all' ? '/admin/support' : `/admin/support?status=${value}`}
+                className={`px-3 py-1.5 rounded-full border text-xs font-semibold transition-colors ${statusFilter === value ? 'bg-pink-100 border-pink-300 text-pink-800' : 'bg-white border-slate-200 text-slate-600 hover:border-pink-300 hover:text-pink-700'}`}
+              >
+                {label}
+              </a>
+            ))}
+          </div>
           <div className="flex gap-2 text-xs">
             <span className="px-2 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
               offen: {(tickets || []).filter((t) => t.status === 'open').length}
@@ -92,9 +111,9 @@ export default async function AdminSupportPage() {
 
         {(!tickets || tickets.length === 0) && <p className="text-sm text-slate-600">Keine Tickets vorhanden.</p>}
 
-        {tickets && (
+        {visibleTickets && (
           <div className="divide-y divide-slate-200">
-            {tickets.map((t) => {
+            {visibleTickets.map((t) => {
               const thread = [
                 ...(t.message
                   ? [{
