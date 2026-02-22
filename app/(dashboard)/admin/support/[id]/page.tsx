@@ -28,6 +28,19 @@ export default async function SupportDetail({ params }: { params: { id: string }
     .eq('ticket_id', params.id)
     .order('created_at', { ascending: true });
 
+  const initialMessage = ticket?.message
+    ? [{
+        id: 'initial',
+        author_role: ticket.role || 'student',
+        author_id: ticket.created_by,
+        body: ticket.message,
+        created_at: ticket.created_at,
+        profiles: null,
+        students: null,
+        teachers: null,
+      }]
+    : [];
+
   if (!ticket) {
     return (
       <div className="min-h-screen bg-slate-50 text-slate-900 px-4 sm:px-6 lg:px-10 py-6">
@@ -51,7 +64,7 @@ export default async function SupportDetail({ params }: { params: { id: string }
       <div className="rounded-2xl bg-white text-slate-900 p-6 border border-slate-200 shadow-xl space-y-4">
         <div className="text-xs text-slate-600">Erstellt: {new Date(ticket.created_at).toLocaleString()} · Letzte Nachricht: {new Date(ticket.last_message_at).toLocaleString()}</div>
         <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-2">
-          {messages?.map((m) => {
+          {[...initialMessage, ...(messages || [])].map((m) => {
             const name =
               m.author_role === 'admin'
                 ? 'Music Mission Team'
