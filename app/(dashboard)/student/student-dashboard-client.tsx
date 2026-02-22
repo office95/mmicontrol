@@ -80,7 +80,6 @@ export default function StudentDashboardClient({
   benefits,
   feedbackReminder,
   feedbacks,
-  supportCount,
 }: {
   bookings: Booking[];
   courses: Course[];
