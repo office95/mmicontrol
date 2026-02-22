@@ -24,7 +24,23 @@ export default async function AdminSupportPage({ searchParams }: { searchParams?
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
 
-  const { data: tickets } = await supabase
+  let ticketsError: string | null = null;
+  let tickets:
+    | {
+        id: string;
+        subject: string;
+        status: string;
+        priority: string;
+        role: string | null;
+        created_at: string;
+        last_message_at: string;
+        message?: string;
+        created_by?: string;
+        support_messages?: any[];
+      }[]
+    | null = null;
+
+  const rich = await supabase
     .from('support_tickets')
     .select(`
       id, subject, status, priority, role, created_at, last_message_at, message, created_by,
@@ -37,6 +53,19 @@ export default async function AdminSupportPage({ searchParams }: { searchParams?
     `)
     .order('last_message_at', { ascending: false })
     .limit(200);
+
+  if (rich.error) {
+    ticketsError = rich.error.message;
+    const fallback = await supabase
+      .from('support_tickets')
+      .select('id, subject, status, priority, role, created_at, last_message_at, message, created_by')
+      .order('last_message_at', { ascending: false })
+      .limit(200);
+    tickets = fallback.data || [];
+    if (fallback.error && !ticketsError) ticketsError = fallback.error.message;
+  } else {
+    tickets = rich.data || [];
+  }
 
   const now = new Date();
   const currYear = now.getFullYear();
@@ -104,6 +133,7 @@ export default async function AdminSupportPage({ searchParams }: { searchParams?
           </div>
         </div>
 
+        {ticketsError && <p className="text-sm text-rose-600">Fehler beim Laden: {ticketsError}</p>}
         {(!tickets || tickets.length === 0) && <p className="text-sm text-slate-600">Keine Tickets vorhanden.</p>}
 
         {visibleTickets && (
