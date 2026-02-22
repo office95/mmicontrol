@@ -42,7 +42,18 @@ export async function GET(req: Request) {
     q.order('booking_date', { ascending: false });
   }
 
-  const { data, error } = await q;
+  let { data, error } = await q;
+  if (!error && (!data || (Array.isArray(data) && data.length === 0))) {
+    // Fallback: case-insensitive Email-Match
+    const fallback = await service
+      .from('bookings')
+      .select(SELECT)
+      .ilike('student_email', email)
+      .order('booking_date', { ascending: false });
+    if (!fallback.error && fallback.data) {
+      data = fallback.data;
+    }
+  }
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
 
   // details include payments
