@@ -80,6 +80,22 @@ export default async function AdminSupportPage({ searchParams }: { searchParams?
   const currYear = now.getFullYear();
   const currMonth = now.getMonth();
 
+  // Autoren auflösen
+  const creatorIds = Array.from(new Set((tickets || []).map((t) => t.created_by).filter(Boolean))) as string[];
+  let creatorMap = new Map<string, { name: string; email: string }>();
+  if (creatorIds.length) {
+    const { data: creators } = await supabase
+      .from('profiles')
+      .select('id, full_name, email')
+      .in('id', creatorIds);
+    creators?.forEach((c) => {
+      creatorMap.set(c.id, {
+        name: c.full_name || 'Unbekannt',
+        email: (c as any).email || '',
+      });
+    });
+  }
+
   const openCount = (tickets || []).filter((t) => t.status === 'open').length;
   const monthCount = (tickets || []).filter((t) => {
     const d = t.created_at ? new Date(t.created_at) : null;
@@ -213,6 +229,9 @@ export default async function AdminSupportPage({ searchParams }: { searchParams?
                         <p className="text-base font-semibold text-slate-900 group-open:text-pink-700">{t.subject}</p>
                       </div>
                       <p className="text-xs font-mono text-slate-600 font-semibold">Ticket #{t.id?.slice(0,8)?.toUpperCase()}</p>
+                      <p className="text-xs text-slate-500">
+                        Von: {creatorMap.get(t.created_by || '')?.name ?? '—'} · {creatorMap.get(t.created_by || '')?.email ?? ''}
+                      </p>
                       {t.message && <p className="text-sm text-slate-700 line-clamp-2">{t.message}</p>}
                       <p className="text-xs text-slate-500">
                         Rolle: {t.role ?? '—'} · Erstellt: {new Date(t.created_at).toLocaleString()} · Letzte Nachricht: {new Date(t.last_message_at).toLocaleString()}
