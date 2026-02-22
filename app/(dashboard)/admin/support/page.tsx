@@ -106,34 +106,43 @@ export default async function AdminSupportPage({ searchParams }: { searchParams?
   const visibleTickets = filteredTickets.length ? filteredTickets : sortedTickets;
 
   return (
-    <div className="min-h-screen bg-transparent text-white space-y-6 px-4 sm:px-6 lg:px-10 py-6">
-      <div>
-        <p className="text-xs uppercase tracking-[0.2em] text-pink-200">Admin</p>
-        <h1 className="text-3xl font-semibold text-white">Support</h1>
-        <p className="text-sm text-white/70">Neueste Support-Tickets und schnelle Übersicht.</p>
+    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-slate-900 px-4 sm:px-6 lg:px-10 py-8">
+      <div className="rounded-2xl bg-white/10 border border-white/15 p-6 shadow-lg text-white mb-6">
+        <p className="text-[11px] uppercase tracking-[0.24em] text-white/70">Admin · Support</p>
+        <div className="flex flex-wrap items-end gap-3">
+          <h1 className="text-3xl font-semibold">Ticket-Management</h1>
+          <span className="px-3 py-1.5 rounded-full bg-white/15 text-sm">{statusLabel}</span>
+        </div>
+        <p className="text-sm text-white/80 mt-1">Alle Support-Anfragen, schnelle Filterung und direkter Zugriff auf Threads.</p>
       </div>
 
       {/* KPIs */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <KpiCard label="Offene Tickets" value={openCount} />
         <KpiCard label="Ø Erledigungsdauer" value={avgResolutionDays != null ? `${avgResolutionDays.toFixed(1)} Tage` : '—'} />
         <KpiCard label="Tickets diesen Monat" value={monthCount} />
         <KpiCard label="Tickets dieses Jahr" value={yearCount} />
       </div>
 
-      <div className="rounded-2xl bg-white border border-slate-200 p-6 shadow-xl text-slate-900">
-        <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
-          <h2 className="text-lg font-semibold">{statusLabel}</h2>
+      <div className="rounded-2xl bg-white border border-slate-200 p-6 shadow-xl text-slate-900 space-y-4">
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <div className="space-y-1">
+            <h2 className="text-lg font-semibold">{statusLabel}</h2>
+            <p className="text-xs text-slate-500">{visibleTickets.length} Tickets · {(tickets || []).length} gesamt</p>
+          </div>
           <div className="flex items-center gap-2 text-sm">
             <label className="text-xs uppercase tracking-[0.14em] text-slate-500">Status</label>
             <SupportFilterSelect current={statusFilter} />
           </div>
           <div className="flex gap-2 text-xs">
             <span className="px-2 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-              offen: {(tickets || []).filter((t) => t.status === 'open').length}
+              Offen: {(tickets || []).filter((t) => t.status === 'open').length}
             </span>
             <span className="px-2 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
-              in Bearbeitung: {(tickets || []).filter((t) => t.status === 'in_progress').length}
+              In Bearbeitung: {(tickets || []).filter((t) => t.status === 'in_progress').length}
+            </span>
+            <span className="px-2 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+              Geschlossen: {(tickets || []).filter((t) => t.status === 'closed').length}
             </span>
           </div>
         </div>
@@ -161,7 +170,7 @@ export default async function AdminSupportPage({ searchParams }: { searchParams?
               ];
 
               return (
-                <details key={t.id} className="py-3 group">
+                <details key={t.id} className="py-4 group">
                   <summary className="flex items-start justify-between cursor-pointer">
                     <div className="space-y-1">
                       <p className="text-base font-semibold text-slate-900 group-open:text-pink-700">{t.subject}</p>
@@ -181,7 +190,7 @@ export default async function AdminSupportPage({ searchParams }: { searchParams?
                     </div>
                   </summary>
 
-                  <div className="mt-3 space-y-2">
+                  <div className="mt-3 space-y-2 bg-slate-50 rounded-xl p-3 border border-slate-100">
                     {thread.map((m) => {
                       const name =
                         m.author_role === 'admin'
@@ -192,7 +201,7 @@ export default async function AdminSupportPage({ searchParams }: { searchParams?
                           ? 'border-rose-200 bg-rose-50'
                           : m.author_role === 'teacher'
                             ? 'border-indigo-200 bg-indigo-50'
-                            : 'border-slate-200 bg-slate-50';
+                            : 'border-slate-200 bg-white';
                       return (
                         <div key={m.id + String(m.created_at)} className={`rounded-xl px-3 py-2 border ${cls}`}>
                           <div className="text-[11px] uppercase tracking-[0.14em] text-slate-500 mb-1">{name}</div>
