@@ -33,7 +33,7 @@ export default async function SupportDetail({ params }: { params: { id: string }
   }
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white space-y-6 px-4 sm:px-6 lg:px-10 py-6">
+    <div className="min-h-screen bg-transparent text-white space-y-6 px-4 sm:px-6 lg:px-10 py-6">
       <div className="flex items-center justify-between">
         <div>
           <p className="text-xs uppercase tracking-[0.2em] text-pink-200">Support</p>

@@ -47,7 +47,7 @@ export default function StudentSupportPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white px-4 sm:px-6 lg:px-10 py-6 space-y-6">
+    <div className="min-h-screen bg-transparent text-white px-4 sm:px-6 lg:px-10 py-6 space-y-6">
       {/* Tabs wie im Dashboard */}
       <div className="flex flex-wrap gap-2 text-sm font-semibold">
         {[
@@ -68,7 +68,7 @@ export default function StudentSupportPage() {
       </div>
 
       {/* Hero */}
-      <div className="rounded-2xl bg-gradient-to-r from-pink-500 via-rose-500 to-purple-600 text-white p-6 shadow-xl flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div className="rounded-2xl bg-transparent text-white p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4 border border-white/10">
         <div>
           <p className="text-[11px] uppercase tracking-[0.2em] text-white/80">Support Center</p>
           <h1 className="text-2xl font-semibold">Wie können wir helfen?</h1>

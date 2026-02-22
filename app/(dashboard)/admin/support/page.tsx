@@ -28,7 +28,7 @@ export default async function AdminSupportPage() {
     .limit(50);
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white space-y-6 px-4 sm:px-6 lg:px-10 py-6">
+    <div className="min-h-screen bg-transparent text-white space-y-6 px-4 sm:px-6 lg:px-10 py-6">
       <div>
         <p className="text-xs uppercase tracking-[0.2em] text-pink-200">Admin</p>
         <h1 className="text-3xl font-semibold text-white">Support</h1>
