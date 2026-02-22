@@ -45,10 +45,7 @@ export default async function AdminSupportPage({ searchParams }: { searchParams?
     .select(`
       id, subject, status, priority, role, created_at, last_message_at, message, created_by,
       support_messages (
-        id, author_role, author_id, body, created_at,
-        profiles:author_id ( full_name ),
-        students:author_id ( full_name ),
-        teachers:author_id ( full_name )
+        id, author_role, author_id, body, created_at
       )
     `)
     .order('last_message_at', { ascending: false })
