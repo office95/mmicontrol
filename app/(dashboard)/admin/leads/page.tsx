@@ -173,6 +173,13 @@ export default function LeadsPage() {
         </div>
       </div>
 
+      {/* KPIs */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <Kpi label="Offene Leads" value={leads.filter((l) => (l.status || 'offen') === 'offen').length} />
+        <Kpi label="Leads gesamt" value={leads.length} />
+        <Kpi label="Ø Bearbeitungsdauer" value={avgLeadDays != null ? `${avgLeadDays.toFixed(1)} Tage` : '—'} />
+      </div>
+
       <div className="flex flex-wrap items-center gap-3">
         <input
           className="input max-w-sm h-9 py-1 text-sm"
@@ -180,14 +187,6 @@ export default function LeadsPage() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
-
-      {/* KPIs */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
-        <Kpi label="Offene Leads" value={leads.filter((l) => (l.status || 'offen') === 'offen').length} />
-        <Kpi label="Leads gesamt" value={leads.length} />
-        <Kpi label="Ø Bearbeitungsdauer" value={avgLeadDays != null ? `${avgLeadDays.toFixed(1)} Tage` : '—'} />
-      </div>
-
         <select
           className="input max-w-xs h-9 py-1 text-sm"
           value={qualityFilter}
