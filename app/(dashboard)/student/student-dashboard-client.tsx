@@ -101,10 +101,16 @@ export default function StudentDashboardClient({
 
   // sanftes Auto-Scroll der Empfehlungen (nur wenn Tab aktiv)
   useEffect(() => {
-    fetch('/api/support/unread').then(async (r) => {
-      const d = await r.json();
-      setUnread(d.count || 0);
-    });
+    const loadUnread = async () => {
+      try {
+        const r = await fetch('/api/support/unread');
+        const d = await r.json().catch(() => ({}));
+        setUnread(d.count || 0);
+      } catch (e) {
+        setUnread(0);
+      }
+    };
+    loadUnread();
   }, []);
 
   useEffect(() => {
