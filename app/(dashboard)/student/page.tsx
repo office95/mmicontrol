@@ -116,6 +116,7 @@ export default async function StudentPage({ searchParams }: { searchParams: Reco
     status: string;
     amount: number | null;
     course_id?: string | null;
+    course_date_id?: string | null;
     course_title: string | null;
     course_start: string | null;
     partner_name: string | null;
