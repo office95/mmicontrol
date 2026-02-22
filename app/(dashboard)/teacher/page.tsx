@@ -774,6 +774,21 @@ export default async function TeacherPage() {
 
   return (
     <div className="space-y-8">
+      <div className="flex items-center justify-between mb-3 text-white/80 text-sm">
+        <span>Support benötigt? Wir sind für dich da.</span>
+        <a
+          href="/teacher/support"
+          className="inline-flex items-center gap-2 rounded-full bg-white text-ink px-4 py-2 text-sm font-semibold shadow-lg hover:bg-pink-50"
+        >
+          Support
+          {supportCount ? (
+            <span className="inline-flex h-5 px-2 items-center justify-center rounded-full bg-rose-500 text-white text-xs font-bold">
+              {supportCount}
+            </span>
+          ) : null}
+        </a>
+      </div>
+
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 bg-white/10 border border-white/15 rounded-xl p-6 shadow-lg relative overflow-hidden">
         <div className="space-y-1">
           <p className="text-[12px] uppercase tracking-[0.28em] text-pink-200 mb-1">Willkommen</p>
@@ -790,17 +805,6 @@ export default async function TeacherPage() {
           <div className="rounded-2xl bg-gradient-to-r from-pink-500 via-rose-500 to-purple-600 text-white px-6 py-5 shadow-2xl ring-2 ring-white/30 min-w-[240px] text-center transform hover:scale-[1.02] transition">
             <CountdownFlip days={daysRemaining} courseTitle={nextCourse?.title ?? 'Noch kein Kurs'} />
           </div>
-          <a
-            href="/teacher/support"
-            className="absolute top-3 right-3 inline-flex items-center gap-2 rounded-full bg-white text-ink px-3 py-1 text-sm font-semibold shadow-lg hover:bg-pink-50"
-          >
-            Support
-            {supportCount ? (
-              <span className="inline-flex h-5 px-2 items-center justify-center rounded-full bg-rose-500 text-white text-xs font-bold">
-                {supportCount}
-              </span>
-            ) : null}
-          </a>
         </div>
       </div>
 
