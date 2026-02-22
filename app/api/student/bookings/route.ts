@@ -21,11 +21,22 @@ export async function GET(req: Request) {
 
   const email = user.email.toLowerCase();
 
+  // Student-ID via email ermitteln (für korrekte student_id-Filter)
+  let studentId: string | null = null;
+  const { data: stu } = await service
+    .from('students')
+    .select('id, email')
+    .eq('email', email)
+    .maybeSingle();
+  studentId = stu?.id ?? null;
+
   const q = service.from('bookings').select(SELECT);
   if (id) {
     q.eq('id', id).maybeSingle();
   } else {
-    q.or(`student_email.eq.${email},student_id.eq.${user.id}`);
+    const orParts = [`student_email.eq.${email}`];
+    if (studentId) orParts.push(`student_id.eq.${studentId}`);
+    q.or(orParts.join(','));
     q.order('booking_date', { ascending: false });
   }
 
