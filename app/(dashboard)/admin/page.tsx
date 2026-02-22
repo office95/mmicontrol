@@ -199,8 +199,8 @@ export default async function AdminPage() {
         <PendingApprovals users={pending ?? []} />
       </div>
 
-      <div className="space-y-4">
-        <h2 className="text-lg font-semibold text-slate-900">Gesamtumsätze</h2>
+      <div className="rounded-2xl bg-slate-900 text-white border border-white/10 shadow-xl p-6 space-y-4">
+        <h2 className="text-lg font-semibold">Gesamtumsätze</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <RevenueCard
             label="Umsatz aktueller Monat"
@@ -215,8 +215,8 @@ export default async function AdminPage() {
         </div>
       </div>
 
-      <div className="space-y-4">
-        <h2 className="text-lg font-semibold text-white">Partner KPIs</h2>
+      <div className="rounded-2xl bg-slate-900 text-white border border-white/10 shadow-xl p-6 space-y-4">
+        <h2 className="text-lg font-semibold">Partner KPIs</h2>
         <div className="grid gap-4 grid-cols-1 xl:grid-cols-2">
           {perPartner.map((p) => (
             <div key={p.id} className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur p-5 shadow-lg space-y-3">
