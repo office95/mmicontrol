@@ -52,9 +52,9 @@ export default function StudentSupportPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-white px-4 sm:px-6 lg:px-10 py-6 space-y-6">
-      {/* Hero (wie Performance-Übersicht) */}
-      <div className="rounded-2xl bg-gradient-to-r from-slate-900 via-indigo-900 to-purple-900 text-white p-6 shadow-2xl ring-2 ring-white/10 flex flex-col gap-2 border border-white/10">
+    <div className="min-h-screen bg-transparent text-white px-4 sm:px-6 lg:px-10 py-6 space-y-6">
+      {/* Hero (grau wie Buchungen) */}
+      <div className="rounded-2xl bg-gradient-to-r from-slate-800 via-slate-700 to-slate-800 text-white p-6 shadow-xl border border-white/10">
         <p className="text-[11px] uppercase tracking-[0.24em] text-white/70">Support · Student</p>
         <h1 className="text-3xl font-semibold">Wie können wir dir helfen?</h1>
         <p className="text-sm text-white/80">Erstelle ein Ticket oder sieh dir die bisherigen im Verlauf an.</p>
