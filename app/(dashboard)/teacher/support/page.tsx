@@ -21,6 +21,7 @@ export default function TeacherSupportPage() {
     } else {
       setError(null);
       setTickets(data || []);
+      setUnread(0);
     }
     setLoading(false);
   };

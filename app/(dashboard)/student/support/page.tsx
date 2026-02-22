@@ -21,6 +21,8 @@ export default function StudentSupportPage() {
     } else {
       setError(null);
       setTickets(data || []);
+      // Beim Öffnen als gelesen betrachten -> Badge zurücksetzen
+      setUnread(0);
     }
     setLoading(false);
   };
