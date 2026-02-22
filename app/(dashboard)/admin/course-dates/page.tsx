@@ -84,6 +84,8 @@ export default function CourseDatesPage() {
     [items]
   );
 
+  const latestReschedule = (courseDateId: string) => reschedules[courseDateId]?.[0];
+
   const openFor = (t: CourseDateListRow) => {
     setEditItem({
       id: t.id,
@@ -175,126 +177,133 @@ export default function CourseDatesPage() {
         {!loading && !sorted.length && <p className="text-sm text-slate-500">Keine Kurstermine vorhanden.</p>}
 
         {activeTab === 'list' && (
-          <div className="divide-y divide-slate-200">
-            {sorted.map((t) => (
-              <div key={t.id} className="py-3 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-                <div className="space-y-1">
-                  <button
-                    onClick={() => openFor(t)}
-                    className="text-left text-sm font-semibold text-ink hover:underline"
-                  >
-                    {t.course?.title ?? 'Unbekannter Kurs'}
-                  </button>
-                  <p className="text-xs text-slate-600">
-                    <span className="font-semibold text-ink/70 mr-1">Start:</span>
-                    {t.start_date ? new Date(t.start_date).toLocaleDateString() : '—'}
-                    {t.time_from ? ` · ${t.time_from}` : ''}
-                    {t.time_to ? ` - ${t.time_to}` : ''}
-                  </p>
-                  <p className="text-xs text-slate-600">{t.partner?.name ?? 'Kein Anbieter'}</p>
-                  <p className="text-xs text-ink font-semibold">
-                    Gebuchte Teilnehmer: {t.bookings_count ?? 0}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2 text-xs">
-                  <span className={`px-3 py-1 rounded-full border border-slate-200 ${statusColor[t.status] ?? 'bg-slate-100 text-slate-700'}`}>
-                    {t.status}
-                  </span>
-                  {reschedules[t.id]?.length ? (
-                    <span className="px-3 py-1 rounded-full border border-indigo-200 text-indigo-700 bg-indigo-50">
-                      Verschoben v{reschedules[t.id][0].version}
-                    </span>
-                  ) : null}
-                  <button
-                    className="px-3 py-1 rounded-lg border border-emerald-300 text-emerald-700 hover:bg-emerald-50 disabled:opacity-50"
-                    disabled={!t.course_id}
-                    onClick={() => t.course_id && setAttendanceCourse({ id: t.course_id, title: t.course?.title ?? 'Kurs' })}
-                  >
-                    Anwesenheitsliste
-                  </button>
-                  <button
-                    className="px-3 py-1 rounded-lg border border-pink-300 text-pink-700 hover:bg-pink-50 disabled:opacity-50"
-                    disabled={!t.course_id}
-                    onClick={async () => {
-                      if (!t.course_id) return;
-                      setFeedbackTitle(`Kurs-Feedback · ${t.course?.title ?? 'Kurs'}`);
-                      setFeedbackOpen(true);
-                      setFeedbackLoading(true);
-                      setFeedbackError(null);
-                      const res = await fetch(`/api/admin/feedback?course_id=${t.course_id}`);
-                      const data = await res.json();
-                      if (!res.ok) {
-                        setFeedbackError(data.error || 'Fehler beim Laden');
-                        setFeedbackItems([]);
-                      } else {
-                        setFeedbackItems(data);
-                      }
-                      setFeedbackLoading(false);
-                    }}
-                  >
-                    Kurs-Feedback
-                  </button>
-                  <button
-                    className="px-3 py-1 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100"
-                    onClick={() => {
-                      setEditItem({
-                        id: t.id,
-                        code: t.code,
-                        course_id: t.course_id,
-                        partner_id: t.partner_id,
-                        start_date: t.start_date,
-                        end_date: t.end_date,
-                        time_from: t.time_from,
-                        time_to: t.time_to,
-                        status: t.status,
-                      });
-                      setOpenModal(true);
-                    }}
-                  >
-                    Bearbeiten
-                  </button>
-                  <button
-                    className="px-3 py-1 rounded-lg border border-indigo-300 text-indigo-700 hover:bg-indigo-50"
-                    onClick={() => openReschedule(t)}
-                  >
-                    Verschieben
-                  </button>
-                  <button
-                    className="px-3 py-1 rounded-lg border border-red-300 text-red-600 hover:bg-red-50"
-                    onClick={async () => {
-                      if (!confirm('Diesen Kurstermin löschen?')) return;
-                      const res = await fetch(`/api/admin/course-dates?id=${t.id}`, { method: 'DELETE' });
-                      if (res.ok) {
-                        load();
-                      } else {
-                        const d = await res.json().catch(() => ({}));
-                        alert(d.error || 'Löschen fehlgeschlagen');
-                      }
-                    }}
-                  >
-                    Löschen
-                  </button>
-              </div>
-              {reschedules[t.id]?.length ? (
-                <div className="mt-2 text-xs text-slate-600 space-y-1">
-                  <p className="font-semibold text-ink/80">Verschiebungen</p>
-                  {reschedules[t.id].map((r) => (
-                    <div key={r.id} className="flex flex-wrap gap-2 text-slate-600">
-                      <span className="font-semibold text-indigo-700">v{r.version}</span>
-                      <span>
-                        {r.old_start_date ? new Date(r.old_start_date).toLocaleDateString() : '—'} → {r.new_start_date ? new Date(r.new_start_date).toLocaleDateString() : '—'}
-                      </span>
-                      {r.reason && <span className="text-slate-500">Grund: {r.reason}</span>}
+          <div className="space-y-3">
+            {sorted.map((t) => {
+              const latest = latestReschedule(t.id);
+              const hasHist = !!reschedules[t.id]?.length;
+              return (
+                <div key={t.id} className="rounded-2xl border border-white/10 bg-white/85 shadow-sm p-4 space-y-3">
+                  <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <button
+                          onClick={() => openFor(t)}
+                          className="text-left text-sm font-semibold text-ink hover:underline"
+                        >
+                          {t.course?.title ?? 'Unbekannter Kurs'}
+                        </button>
+                        <span className={`px-2 py-0.5 rounded-full text-[11px] border ${statusColor[t.status] ?? 'bg-slate-100 text-slate-700 border-slate-200'}`}>
+                          {t.status}
+                        </span>
+                        {latest && (
+                          <span className="px-2 py-0.5 rounded-full text-[11px] border border-indigo-200 text-indigo-700 bg-indigo-50">
+                            Verschoben v{latest.version}
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-xs text-slate-700 flex flex-wrap gap-3">
+                        <span className="font-semibold text-ink/70">Start:</span>
+                        <span>{t.start_date ? new Date(t.start_date).toLocaleDateString() : '—'}{t.time_from ? ` · ${t.time_from}` : ''}{t.time_to ? ` - ${t.time_to}` : ''}</span>
+                        <span className="text-slate-500">Anbieter: {t.partner?.name ?? 'Kein Anbieter'}</span>
+                        <span className="text-slate-500">Teilnehmer: {t.bookings_count ?? 0}</span>
+                        {latest?.reason && <span className="text-indigo-700">Letzter Grund: {latest.reason}</span>}
+                      </div>
                     </div>
-                  ))}
-                </div>
-              ) : null}
-            </div>
-          ))}
-        </div>
-      )}
+                    <div className="flex flex-wrap items-center gap-2 text-xs">
+                      <button
+                        className="px-3 py-1 rounded-lg border border-emerald-300 text-emerald-700 hover:bg-emerald-50 disabled:opacity-50"
+                        disabled={!t.course_id}
+                        onClick={() => t.course_id && setAttendanceCourse({ id: t.course_id, title: t.course?.title ?? 'Kurs' })}
+                      >
+                        Anwesenheitsliste
+                      </button>
+                      <button
+                        className="px-3 py-1 rounded-lg border border-pink-300 text-pink-700 hover:bg-pink-50 disabled:opacity-50"
+                        disabled={!t.course_id}
+                        onClick={async () => {
+                          if (!t.course_id) return;
+                          setFeedbackTitle(`Kurs-Feedback · ${t.course?.title ?? 'Kurs'}`);
+                          setFeedbackOpen(true);
+                          setFeedbackLoading(true);
+                          setFeedbackError(null);
+                          const res = await fetch(`/api/admin/feedback?course_id=${t.course_id}`);
+                          const data = await res.json();
+                          if (!res.ok) {
+                            setFeedbackError(data.error || 'Fehler beim Laden');
+                            setFeedbackItems([]);
+                          } else {
+                            setFeedbackItems(data);
+                          }
+                          setFeedbackLoading(false);
+                        }}
+                      >
+                        Kurs-Feedback
+                      </button>
+                      <button
+                        className="px-3 py-1 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100"
+                        onClick={() => {
+                          setEditItem({
+                            id: t.id,
+                            code: t.code,
+                            course_id: t.course_id,
+                            partner_id: t.partner_id,
+                            start_date: t.start_date,
+                            end_date: t.end_date,
+                            time_from: t.time_from,
+                            time_to: t.time_to,
+                            status: t.status,
+                          });
+                          setOpenModal(true);
+                        }}
+                      >
+                        Bearbeiten
+                      </button>
+                      <button
+                        className="px-3 py-1 rounded-lg border border-indigo-300 text-indigo-700 hover:bg-indigo-50"
+                        onClick={() => openReschedule(t)}
+                      >
+                        Verschieben
+                      </button>
+                      <button
+                        className="px-3 py-1 rounded-lg border border-red-300 text-red-600 hover:bg-red-50"
+                        onClick={async () => {
+                          if (!confirm('Diesen Kurstermin löschen?')) return;
+                          const res = await fetch(`/api/admin/course-dates?id=${t.id}`, { method: 'DELETE' });
+                          if (res.ok) {
+                            load();
+                          } else {
+                            const d = await res.json().catch(() => ({}));
+                            alert(d.error || 'Löschen fehlgeschlagen');
+                          }
+                        }}
+                      >
+                        Löschen
+                      </button>
+                    </div>
+                  </div>
 
-        {activeTab === 'timeline' && (() => {
+                  {hasHist && (
+                    <details className="text-[11px] text-slate-600 bg-white/70 border border-slate-200 rounded-xl p-3">
+                      <summary className="cursor-pointer text-ink font-semibold text-xs flex items-center gap-2">
+                        Verschiebungen
+                        {latest?.version && <span className="text-slate-500 font-normal">(zuletzt v{latest.version})</span>}
+                      </summary>
+                      <div className="mt-2 space-y-1">
+                        {reschedules[t.id].map((r) => (
+                          <div key={r.id} className="flex flex-wrap gap-2">
+                            <span className="font-semibold text-indigo-700">v{r.version}</span>
+                            <span>{r.old_start_date ? new Date(r.old_start_date).toLocaleDateString() : '—'} → {r.new_start_date ? new Date(r.new_start_date).toLocaleDateString() : '—'}</span>
+                            {r.reason && <span className="text-slate-500">Grund: {r.reason}</span>}
+                          </div>
+                        ))}
+                      </div>
+                    </details>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}        {activeTab === 'timeline' && (() => {
           const today = new Date();
           const dayMs = 86_400_000;
           const toDate = (d: string | null) => (d ? new Date(d) : null);
