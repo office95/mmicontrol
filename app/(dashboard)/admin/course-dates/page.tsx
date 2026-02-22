@@ -206,8 +206,14 @@ export default function CourseDatesPage() {
                         <span>{t.start_date ? new Date(t.start_date).toLocaleDateString() : '—'}{t.time_from ? ` · ${t.time_from}` : ''}{t.time_to ? ` - ${t.time_to}` : ''}</span>
                         <span className="text-slate-500">Anbieter: {t.partner?.name ?? 'Kein Anbieter'}</span>
                         <span className="text-slate-500">Teilnehmer: {t.bookings_count ?? 0}</span>
-                        {latest?.reason && <span className="text-indigo-700">Letzter Grund: {latest.reason}</span>}
                       </div>
+                      {latest && (
+                        <div className="text-xs text-indigo-900 bg-indigo-50 border border-indigo-100 rounded-lg px-3 py-2 flex flex-wrap gap-2 items-center">
+                          <span className="font-semibold">Termin verschoben</span>
+                          <span className="text-slate-600">Grund: {latest.reason || 'nicht angegeben'}</span>
+                          <span className="text-slate-500">Letzte Version v{latest.version}</span>
+                        </div>
+                      )}
                     </div>
                     <div className="flex flex-wrap items-center gap-2 text-xs">
                       <button
