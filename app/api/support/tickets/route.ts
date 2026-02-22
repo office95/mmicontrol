@@ -11,6 +11,10 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const id = searchParams.get('id');
   const supabase = createSupabaseServerClient();
+  const service = createClient(
+    process.env.SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
 
   if (id) {
     const { data: ticket, error } = await supabase
@@ -19,6 +23,16 @@ export async function GET(req: Request) {
       .eq('id', id)
       .single();
     if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+
+    let creator: { full_name: string | null; email: string | null } | null = null;
+    if (ticket?.created_by) {
+      const { data: c } = await service
+        .from('profiles')
+        .select('full_name, email')
+        .eq('id', ticket.created_by)
+        .maybeSingle();
+      creator = c ?? null;
+    }
 
     // Autor-Namen auflösen
     const authorIds = Array.from(new Set((ticket?.support_messages || []).map((m: any) => m.author_id).filter(Boolean)));
@@ -34,15 +48,31 @@ export async function GET(req: Request) {
       author_name: m.author_role === 'admin' ? 'Music Mission Team' : nameMap.get(m.author_id) || 'Unbekannt',
     }));
 
-    return NextResponse.json({ ...ticket, support_messages: msgs });
+    return NextResponse.json({ ...ticket, support_messages: msgs, creator });
   }
 
   const { data, error } = await supabase
     .from('support_tickets')
-    .select('id, subject, status, priority, role, created_at, last_message_at, created_by, creator:profiles!support_tickets_created_by_fkey(full_name, email)')
+    .select('id, subject, status, priority, role, created_at, last_message_at, created_by')
     .order('last_message_at', { ascending: false });
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
-  return NextResponse.json(data || []);
+
+  const creators = Array.from(new Set((data || []).map((t) => t.created_by).filter(Boolean))) as string[];
+  const creatorMap = new Map<string, { full_name: string | null; email: string | null }>();
+  if (creators.length) {
+    const { data: profiles } = await service
+      .from('profiles')
+      .select('id, full_name, email')
+      .in('id', creators);
+    profiles?.forEach((p) => creatorMap.set(p.id, { full_name: p.full_name, email: (p as any).email ?? null }));
+  }
+
+  const enriched = (data || []).map((t) => ({
+    ...t,
+    creator: creatorMap.get(t.created_by) || null,
+  }));
+
+  return NextResponse.json(enriched || []);
 }
 
 export async function POST(req: Request) {
