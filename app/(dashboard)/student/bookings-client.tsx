@@ -62,7 +62,7 @@ export default function BookingsClient({ bookings }: { bookings: Booking[] }) {
                   {b.partner_name && <span className="text-xs text-slate-500">· {b.partner_name}</span>}
                 </div>
                 <div className="flex flex-wrap gap-3 text-xs text-slate-600">
-                  <span>Start: {b.course_start ? new Date(b.course_start).toLocaleDateString() : '—'}</span>
+                  <span>Start: {b.reschedule?.latest?.new_start_date ? new Date(b.reschedule.latest.new_start_date).toLocaleDateString() : (b.course_start ? new Date(b.course_start).toLocaleDateString() : '—')}</span>
                   <span>· Status: {b.status}</span>
                   {b.amount != null && <span>· Betrag: {Number(b.amount).toFixed(2)} €</span>}
                   <span>· Buchungsdatum: {b.booking_date ? new Date(b.booking_date).toLocaleDateString() : '—'}</span>
@@ -79,6 +79,20 @@ export default function BookingsClient({ bookings }: { bookings: Booking[] }) {
                     <span className="text-slate-600">Grund: {b.reschedule.latest.reason || 'nicht angegeben'}</span>
                   </div>
                 )}
+                {b.reschedule?.history?.length ? (
+                  <details className="mt-1 text-[12px] text-slate-600 border border-slate-200 rounded-lg bg-white/80 p-2">
+                    <summary className="cursor-pointer text-ink font-semibold flex items-center gap-2">Verschiebungshistorie</summary>
+                    <div className="mt-2 space-y-1">
+                      {b.reschedule.history.map((r: any) => (
+                        <div key={`hist-card-${b.id}-${r.version}`} className="flex flex-wrap gap-2">
+                          <span className="font-semibold text-indigo-700">v{r.version}</span>
+                          <span>{r.old_start_date ? new Date(r.old_start_date).toLocaleDateString() : '—'} → {r.new_start_date ? new Date(r.new_start_date).toLocaleDateString() : '—'}</span>
+                          {r.reason && <span className="text-slate-500">Grund: {r.reason}</span>}
+                        </div>
+                      ))}
+                    </div>
+                  </details>
+                ) : null}
               </div>
               <div className="flex items-center gap-2 md:justify-end">
                 <span className="rounded-full bg-slate-100 text-xs text-slate-700 px-3 py-1 border border-slate-200">
