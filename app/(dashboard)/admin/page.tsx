@@ -162,35 +162,43 @@ export default async function AdminPage() {
         <StatCard label="Gesamt Kurse" value={courses?.length ?? 0} />
       </div>
 
-      <div className="rounded-2xl bg-white border border-slate-200 p-6 space-y-4 text-slate-900 shadow-xl">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-slate-900">Neue Support-Tickets</h2>
-          <Link href="/admin/support" className="text-sm text-pink-600 hover:text-pink-700">Alle anzeigen</Link>
-        </div>
-        {!support?.length && <p className="text-slate-600 text-sm">Keine offenen Tickets.</p>}
-        {support?.length ? (
-          <div className="divide-y divide-slate-200">
-            {support.map((t) => (
-              <div key={t.id} className="py-3 flex items-center justify-between">
-                <div>
-                  <p className="text-slate-900 font-semibold">{t.subject}</p>
-                  <p className="text-xs text-slate-600">
-                    {t.role ?? '—'} · {new Date(t.created_at as string).toLocaleString()}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2 text-xs">
-                  <span className={`px-2 py-1 rounded-full border ${t.priority === 'high' ? 'border-rose-300 text-rose-700 bg-rose-50' : 'border-slate-300 text-slate-700 bg-slate-100'}`}>
-                    {t.priority === 'high' ? 'High' : 'Normal'}
-                  </span>
-                  <span className="px-2 py-1 rounded-full border border-emerald-200 text-emerald-700 bg-emerald-50">
-                    {t.status}
-                  </span>
-                </div>
+      {(support && support.length > 0) && (() => {
+        const openTickets = support.filter((t) => t.status === 'open');
+        if (!openTickets.length) return null;
+        const newest = openTickets[0];
+        return (
+          <div className="rounded-2xl bg-white border border-slate-200 p-6 space-y-4 text-slate-900 shadow-xl">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-slate-900">
+                {openTickets.length} neues Ticket{openTickets.length > 1 ? 's' : ''} · #{newest.id?.slice(0, 8)?.toUpperCase() || '—'}
+              </h2>
+              <div className="flex gap-2">
+                <Link href={`/admin/support/${newest.id}`} className="inline-flex items-center rounded-lg bg-pink-600 text-white px-4 py-2 text-sm font-semibold hover:bg-pink-500">
+                  Ticket öffnen
+                </Link>
+                <Link href="/admin/support" className="inline-flex items-center rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100">
+                  Alle Tickets
+                </Link>
               </div>
-            ))}
+            </div>
+            <div className="space-y-2">
+              <p className="text-base font-semibold text-slate-900">{newest.subject}</p>
+              {newest.message && <p className="text-sm text-slate-700 line-clamp-3">{newest.message}</p>}
+              <p className="text-xs text-slate-500">
+                Rolle: {newest.role ?? '—'} · Erstellt: {new Date(newest.created_at as string).toLocaleString()} · Letzte Nachricht: {new Date(newest.last_message_at as string).toLocaleString()}
+              </p>
+              <div className="flex gap-2 text-xs">
+                <span className={`px-2 py-1 rounded-full border ${newest.priority === 'high' ? 'border-rose-300 text-rose-700 bg-rose-50' : 'border-slate-300 text-slate-700 bg-slate-100'}`}>
+                  {newest.priority === 'high' ? 'High' : 'Normal'}
+                </span>
+                <span className="px-2 py-1 rounded-full border border-emerald-300 text-emerald-700 bg-emerald-50">
+                  {newest.status}
+                </span>
+              </div>
+            </div>
           </div>
-        ) : null}
-      </div>
+        );
+      })()}
 
       <div className="card shadow-xl p-6 space-y-4">
         <div className="flex items-center justify-between">
