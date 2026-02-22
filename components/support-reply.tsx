@@ -11,17 +11,13 @@ export default function SupportReply({ ticketId, currentStatus, currentPriority 
 
   const send = async () => {
     if (!message.trim()) return;
-    if (status === 'closed') {
-      setError('Ticket ist geschlossen.');
-      return;
-    }
     setSaving(true);
     setError(null);
     try {
       const res = await fetch('/api/support/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ticket_id: ticketId, message }),
+        body: JSON.stringify({ ticket_id: ticketId, message, status }),
       });
       if (!res.ok) {
         const d = await res.json().catch(() => ({}));
@@ -34,12 +30,6 @@ export default function SupportReply({ ticketId, currentStatus, currentPriority 
         body: JSON.stringify({ id: ticketId, status, priority }),
       });
 
-      // Wenn abgeschlossen, Messaging beenden
-      if (status === 'closed') {
-        setMessage('');
-        window.location.reload();
-        return;
-      }
       setMessage('');
       window.location.reload();
     } catch (e: any) {
@@ -49,7 +39,7 @@ export default function SupportReply({ ticketId, currentStatus, currentPriority 
     }
   };
 
-  const locked = status === 'closed';
+  const locked = currentStatus === 'closed';
 
   return (
     <div className="space-y-3 bg-white border border-slate-200 rounded-2xl p-4 text-slate-900 shadow-sm">
@@ -101,14 +91,14 @@ export default function SupportReply({ ticketId, currentStatus, currentPriority 
         >
           Leeren
         </button>
-        <button
-          className="rounded-lg bg-pink-600 text-white px-4 py-2 hover:bg-pink-500 disabled:opacity-60"
-          onClick={send}
-          disabled={saving || !message.trim() || locked}
-        >
-          {saving ? 'Senden…' : 'Antwort senden'}
-        </button>
-      </div>
+          <button
+            className="rounded-lg bg-pink-600 text-white px-4 py-2 hover:bg-pink-500 disabled:opacity-60"
+            onClick={send}
+            disabled={saving || !message.trim() || locked}
+          >
+            {saving ? 'Senden…' : 'Antwort senden'}
+          </button>
+        </div>
       {locked && <p className="text-xs text-slate-500">Ticket ist geschlossen und kann nicht mehr beantwortet werden.</p>}
     </div>
   );
