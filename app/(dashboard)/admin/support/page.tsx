@@ -208,6 +208,7 @@ export default async function AdminSupportPage({ searchParams }: { searchParams?
                   <summary className="flex items-start justify-between cursor-pointer">
                     <div className="space-y-1">
                       <p className="text-base font-semibold text-slate-900 group-open:text-pink-700">{t.subject}</p>
+                      <p className="text-xs font-mono text-slate-500">Ticket-Nr.: #{t.id?.slice(0,8)?.toUpperCase()}</p>
                       {t.message && <p className="text-sm text-slate-700 line-clamp-2">{t.message}</p>}
                       <p className="text-xs text-slate-500">
                         Rolle: {t.role ?? '—'} · Erstellt: {new Date(t.created_at).toLocaleString()} · Letzte Nachricht: {new Date(t.last_message_at).toLocaleString()}
