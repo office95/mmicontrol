@@ -35,6 +35,8 @@ export async function GET(req: Request) {
     q.eq('id', id).maybeSingle();
   } else {
     const orParts = [`student_email.eq.${email}`];
+    // student_id kann auth.uid (user.id) oder students.id sein
+    orParts.push(`student_id.eq.${user.id}`);
     if (studentId) orParts.push(`student_id.eq.${studentId}`);
     q.or(orParts.join(','));
     q.order('booking_date', { ascending: false });
