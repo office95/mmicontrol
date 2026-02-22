@@ -87,36 +87,22 @@ export default function LeadsPage() {
       )
     ).filter((y) => y >= currentYear - 10);
     years.sort((a, b) => b - a);
-    return years;
+    return years.length ? years : [currentYear];
   }, [leads, analysisCountry, currentYear]);
 
   useEffect(() => {
-    if (availableYears.length === 0) {
-      setAnalysisYear(null);
-    } else if (analysisYear === null || !availableYears.includes(analysisYear)) {
+    if (analysisYear === null || !availableYears.includes(analysisYear)) {
       setAnalysisYear(availableYears[0]);
     }
   }, [analysisCountry, availableYears, analysisYear]);
 
   const analysis = useMemo(() => {
-    if (!analysisYear) {
-      return {
-        sourceCounts: {},
-        totalSources: 0,
-        interestCounts: {},
-        totalInterests: 0,
-        federalCounts: {},
-        avgDays: 0,
-      };
-    }
-
     const selected = norm(analysisCountry);
-    const yearLeads = leads.filter(
-      (l) =>
-        l.requested_at &&
-        new Date(l.requested_at).getFullYear() === analysisYear &&
-        norm(l.country) === selected
-    );
+    const yearLeads = leads.filter((l) => {
+      if (!l.requested_at || norm(l.country) !== selected) return false;
+      const yr = new Date(l.requested_at).getFullYear();
+      return analysisYear ? yr === analysisYear : true;
+    });
 
     const sourceCounts: Record<string, number> = {};
     yearLeads.forEach((l) => (l.source || []).forEach((s: string) => (sourceCounts[s] = (sourceCounts[s] || 0) + 1)));
