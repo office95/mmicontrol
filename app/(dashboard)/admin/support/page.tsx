@@ -106,7 +106,7 @@ export default async function AdminSupportPage({ searchParams }: { searchParams?
   const visibleTickets = filteredTickets.length ? filteredTickets : sortedTickets;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-slate-900 px-4 sm:px-6 lg:px-10 py-8">
+    <div className="min-h-screen bg-transparent text-slate-900 px-4 sm:px-6 lg:px-10 py-8">
       <div className="rounded-2xl bg-white/10 border border-white/15 p-6 shadow-lg text-white mb-6">
         <p className="text-[11px] uppercase tracking-[0.24em] text-white/70">Admin · Support</p>
         <div className="flex flex-wrap items-end gap-3">
