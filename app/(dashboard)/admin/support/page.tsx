@@ -18,7 +18,7 @@ type Ticket = {
   support_messages?: any[];
 };
 
-export default async function AdminSupportPage({ searchParams }: { searchParams?: { status?: string | string[] } }) {
+export default async function AdminSupportPage({ searchParams }: { searchParams?: { status?: string | string[]; q?: string | string[] } }) {
   const supabase = createClient(
     process.env.SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -100,6 +100,7 @@ export default async function AdminSupportPage({ searchParams }: { searchParams?
   const avgResolutionDays = avgResolutionMs ? avgResolutionMs / (1000 * 60 * 60 * 24) : null;
 
   const statusParam = Array.isArray(searchParams?.status) ? searchParams?.status[0] : searchParams?.status;
+  const qParam = Array.isArray(searchParams?.q) ? searchParams?.q[0] : searchParams?.q;
   const allowed: Array<'all' | 'open' | 'in_progress' | 'closed'> = ['all', 'open', 'in_progress', 'closed'];
   const statusFilter = (allowed.includes((statusParam as any) || '') ? statusParam : 'all') as 'all' | 'open' | 'in_progress' | 'closed';
   const statusLabel =
@@ -111,9 +112,13 @@ export default async function AdminSupportPage({ searchParams }: { searchParams?
           ? 'Geschlossen'
           : 'Alle Tickets';
   const sortedTickets = (tickets || []).sort((a, b) => new Date(b.last_message_at || b.created_at).getTime() - new Date(a.last_message_at || a.created_at).getTime());
-  const filteredTickets = sortedTickets.filter((t) =>
-    statusFilter === 'all' ? true : (t.status || 'open') === statusFilter
-  );
+  const filteredTickets = sortedTickets.filter((t) => {
+    const statusOk = statusFilter === 'all' ? true : (t.status || 'open') === statusFilter;
+    const queryOk = qParam
+      ? (t.subject?.toLowerCase().includes(qParam.toLowerCase()) || t.id.toLowerCase().includes(qParam.toLowerCase()))
+      : true;
+    return statusOk && queryOk;
+  });
   const visibleTickets = filteredTickets.length ? filteredTickets : sortedTickets;
 
   return (
@@ -145,6 +150,20 @@ export default async function AdminSupportPage({ searchParams }: { searchParams?
             <label className="text-xs uppercase tracking-[0.14em] text-slate-500">Status</label>
             <SupportFilterSelect current={statusFilter} />
           </div>
+          <form className="flex items-center gap-2" method="get" action="/admin/support">
+            <input
+              type="hidden"
+              name="status"
+              value={statusFilter}
+            />
+            <input
+              name="q"
+              defaultValue={qParam || ''}
+              className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
+              placeholder="Suche Betreff oder Ticket-Nr."
+            />
+            <button className="px-3 py-2 rounded-lg bg-slate-900 text-white text-xs font-semibold hover:bg-pink-600" type="submit">Suchen</button>
+          </form>
           <div className="flex gap-2 text-xs">
             <span className="px-2 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
               Offen: {(tickets || []).filter((t) => t.status === 'open').length}
