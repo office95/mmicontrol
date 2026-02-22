@@ -49,19 +49,12 @@ export default function StudentSupportPage() {
   return (
     <div className="min-h-screen bg-transparent text-white px-4 sm:px-6 lg:px-10 py-6 space-y-6">
       {/* Hero analog Haupt-Dashboard */}
-      <div className="rounded-2xl bg-gradient-to-r from-pink-500 via-rose-500 to-purple-600 text-white p-6 shadow-2xl ring-2 ring-white/20 relative overflow-hidden">
+      <div className="rounded-2xl bg-white/10 border border-white/15 p-6 shadow-lg relative overflow-hidden">
         <div className="absolute -right-10 -top-10 h-32 w-32 bg-white/20 rounded-full blur-3xl" />
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 relative z-10">
-          <div>
-            <p className="text-[11px] uppercase tracking-[0.28em] text-white/80">Support · Student</p>
-            <h1 className="text-2xl font-semibold">Hallo, willkommen im Support</h1>
-            <p className="text-sm text-white/80">Stelle Fragen, melde Probleme oder verfolge deine Tickets.</p>
-          </div>
-          <div className="rounded-2xl bg-white/10 px-6 py-4 text-center shadow-lg border border-white/20 min-w-[200px]">
-            <p className="text-[11px] uppercase tracking-[0.24em] text-white/80 mb-1">Countdown</p>
-            <p className="text-3xl font-extrabold leading-tight drop-shadow-lg">— Tage</p>
-            <p className="text-[11px] uppercase tracking-[0.24em] text-white/70 mt-1">bis Kursbeginn</p>
-          </div>
+        <div className="flex flex-col gap-2 relative z-10">
+          <p className="text-[11px] uppercase tracking-[0.28em] text-white/70">Support · Student</p>
+          <h1 className="text-2xl font-semibold text-white">Wie können wir dir helfen?</h1>
+          <p className="text-sm text-white/80">Erstelle ein Ticket oder sieh dir die bisherigen im Verlauf an.</p>
         </div>
       </div>
 
