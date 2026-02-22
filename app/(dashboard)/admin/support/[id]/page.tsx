@@ -11,14 +11,27 @@ export default async function SupportDetail({ params }: { params: { id: string }
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
 
-  const { data: ticket } = await supabase
+  // Ticket laden (robust, ohne sich auf Relations im Cache zu verlassen)
+  let ticket = null;
+  const ticketRes = await supabase
     .from('support_tickets')
-    .select(`
-      id, subject, status, priority, role, created_at, last_message_at, message, created_by,
-      creator:profiles!support_tickets_created_by_fkey ( full_name, email )
-    `)
+    .select('id, subject, status, priority, role, created_at, last_message_at, message, created_by')
     .eq('id', params.id)
     .maybeSingle();
+  ticket = ticketRes.data;
+  if (ticketRes.error) {
+    console.error('ticket load error', ticketRes.error);
+  }
+  // Creator-Daten nachladen
+  let creator: { full_name: string | null; email: string | null } | null = null;
+  if (ticket?.created_by) {
+    const { data: c } = await supabase
+      .from('profiles')
+      .select('full_name, email')
+      .eq('id', ticket.created_by)
+      .maybeSingle();
+    creator = c ?? null;
+  }
 
   const { data: messages } = await supabase
     .from('support_messages')
@@ -67,7 +80,7 @@ export default async function SupportDetail({ params }: { params: { id: string }
           <h1 className="text-3xl font-semibold text-white">{ticket.subject}</h1>
           <p className="text-sm text-white/70">Status: {ticket.status} · Priorität: {ticket.priority} · Rolle: {ticket.role}</p>
           <p className="text-sm text-white/80 mt-1">
-            Von: {((ticket as any).creator?.full_name as string) || '—'} · {((ticket as any).creator?.email as string) || '—'}
+            Von: {(creator?.full_name as string) || '—'} · {(creator?.email as string) || '—'}
           </p>
         </div>
         <Link href="/admin/support" className="text-sm text-pink-200 hover:text-pink-100">Zurück zur Übersicht</Link>
