@@ -46,7 +46,7 @@ export default function CourseListClient({ courses }: { courses: CourseCard[] })
                 <div className="flex flex-wrap items-center gap-3">
                   <h3 className="text-xl font-semibold text-ink drop-shadow-sm">{c.title}</h3>
                   <div className="flex flex-wrap gap-3 text-[13px] font-medium text-slate-800">
-                    <span>Start: <strong className="text-ink">{formatDate(c.start_date)}</strong></span>
+                    <span>Start: <strong className="text-ink">{formatDate(c.reschedule?.latest?.new_start_date ?? c.start_date)}</strong></span>
                     <span>· Dauer: <strong className="text-ink">{c.duration_hours != null ? `${c.duration_hours} h` : '—'}</strong></span>
                     <span>· TN: <strong className="text-ink">{c.participants.length}</strong></span>
                     {c.reschedule?.latest && (
