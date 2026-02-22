@@ -65,6 +65,16 @@ export default async function AdminSupportPage({ searchParams }: { searchParams?
     tickets = rich.data || [];
   }
 
+  // Wenn keine Tickets geladen wurden, mit einfacher Abfrage erneut versuchen
+  if (!tickets || tickets.length === 0) {
+    const { data: fallback } = await supabase
+      .from('support_tickets')
+      .select('id, subject, status, priority, role, created_at, last_message_at, message, created_by')
+      .order('created_at', { ascending: false })
+      .limit(200);
+    tickets = fallback || [];
+  }
+
   // Offene Tickets als "gesehen" markieren: auf in_progress setzen, sobald Admin Übersicht öffnet
   if (tickets && tickets.length) {
     const openIds = tickets.filter((t) => t.status === 'open').map((t) => t.id);
