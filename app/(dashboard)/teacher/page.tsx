@@ -118,26 +118,42 @@ export default async function TeacherPage() {
 
     const { data: dates } = await service
       .from('course_dates')
-      .select('course_id, start_date')
+      .select('id, course_id, start_date, end_date')
       .match(dateFilter as any);
 
-    const dateMap = new Map<string, string | null>();
+    const dateMap = new Map<string, { start_date: string | null; course_date_id: string | null }>();
     const today = new Date();
     dates?.forEach((d) => {
       if (!d.start_date) return;
       const existing = dateMap.get(d.course_id);
       const currentDate = new Date(d.start_date);
-      const existingDate = existing ? new Date(existing) : null;
+      const existingDate = existing?.start_date ? new Date(existing.start_date) : null;
       const isFuture = currentDate >= today;
       const isExistingFuture = existingDate ? existingDate >= today : false;
       if (!existing) {
-        dateMap.set(d.course_id, d.start_date);
+        dateMap.set(d.course_id, { start_date: d.start_date, course_date_id: d.id });
       } else if (isFuture && (!isExistingFuture || currentDate < existingDate!)) {
-        dateMap.set(d.course_id, d.start_date);
+        dateMap.set(d.course_id, { start_date: d.start_date, course_date_id: d.id });
       } else if (!isFuture && !isExistingFuture && currentDate < existingDate!) {
-        dateMap.set(d.course_id, d.start_date);
+        dateMap.set(d.course_id, { start_date: d.start_date, course_date_id: d.id });
       }
     });
+
+    // Reschedules für diese Termine
+    const courseDateIds = (dates || []).map((d) => d.id).filter(Boolean) as string[];
+    const rescheduleMap = new Map<string, { latest: any | null; history: any[] }>();
+    if (courseDateIds.length) {
+      const { data: resRows } = await service
+        .from('course_reschedules')
+        .select('course_date_id, version, reason, new_start_date, old_start_date, created_at')
+        .in('course_date_id', courseDateIds)
+        .order('version', { ascending: false });
+      (resRows || []).forEach((r) => {
+        const existing = rescheduleMap.get(r.course_date_id)?.history || [];
+        const history = [r, ...existing].slice(0, 3);
+        rescheduleMap.set(r.course_date_id, { latest: history[0], history });
+      });
+    }
 
     // Teilnehmer via enrollments (optional)
     let participantMap = new Map<string, { name: string; email: string; phone?: string | null; student_id?: string | null }[]>();
@@ -177,7 +193,9 @@ export default async function TeacherPage() {
     courses = courses
       .map((c) => ({
         ...c,
-        start_date: dateMap.get(c.id) ?? null,
+        start_date: dateMap.get(c.id)?.start_date ?? null,
+        course_date_id: dateMap.get(c.id)?.course_date_id ?? null,
+        reschedule: dateMap.get(c.id)?.course_date_id ? rescheduleMap.get(dateMap.get(c.id)!.course_date_id!) ?? { latest: null, history: [] } : { latest: null, history: [] },
         participants: [
           ...(participantMap.get(c.id) || []),
         ],
