@@ -47,6 +47,17 @@ export default function LeadsPage() {
   const currentYear = new Date().getFullYear();
   const [analysisYear, setAnalysisYear] = useState<number | null>(currentYear);
 
+  const avgLeadDays = (() => {
+    const closed = leads.filter((l) => (l.status || 'offen') !== 'offen' && l.requested_at);
+    if (!closed.length) return null;
+    const sum = closed.reduce((acc, l) => {
+      const start = new Date(l.requested_at as string).getTime();
+      const end = (l as any).updated_at ? new Date((l as any).updated_at as string).getTime() : Date.now();
+      return acc + Math.max(0, (end - start) / (1000 * 60 * 60 * 24));
+    }, 0);
+    return sum / closed.length;
+  })();
+
   const load = async () => {
     setLoading(true);
     const res = await fetch('/api/admin/leads');
