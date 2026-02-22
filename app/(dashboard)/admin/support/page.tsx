@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import Link from 'next/link';
 import SupportFilterSelect from '@/components/support-filter-select';
+import SupportSearch from '@/components/support-search';
 
 export const revalidate = 0;
 export const dynamic = 'force-dynamic';
@@ -150,20 +151,9 @@ export default async function AdminSupportPage({ searchParams }: { searchParams?
             <label className="text-xs uppercase tracking-[0.14em] text-slate-500">Status</label>
             <SupportFilterSelect current={statusFilter} />
           </div>
-          <form className="flex items-center gap-2" method="get" action="/admin/support">
-            <input
-              type="hidden"
-              name="status"
-              value={statusFilter}
-            />
-            <input
-              name="q"
-              defaultValue={qParam || ''}
-              className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
-              placeholder="Suche Betreff oder Ticket-Nr."
-            />
-            <button className="px-3 py-2 rounded-lg bg-slate-900 text-white text-xs font-semibold hover:bg-pink-600" type="submit">Suchen</button>
-          </form>
+          <div className="flex items-center gap-2">
+            <SupportSearch status={statusFilter} />
+          </div>
           <div className="flex gap-2 text-xs">
             <span className="px-2 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
               Offen: {(tickets || []).filter((t) => t.status === 'open').length}
@@ -206,11 +196,11 @@ export default async function AdminSupportPage({ searchParams }: { searchParams?
               return (
                 <details key={t.id} className="py-4 group">
                   <summary className="flex items-start justify-between cursor-pointer">
-                    <div className="space-y-1">
-                      <p className="text-base font-semibold text-slate-900 group-open:text-pink-700">{t.subject}</p>
-                      <p className="text-xs font-mono text-slate-500">Ticket-Nr.: #{t.id?.slice(0,8)?.toUpperCase()}</p>
-                      {t.message && <p className="text-sm text-slate-700 line-clamp-2">{t.message}</p>}
-                      <p className="text-xs text-slate-500">
+                  <div className="space-y-1">
+                    <p className="text-base font-semibold text-slate-900 group-open:text-pink-700">{t.subject}</p>
+                    <p className="text-xs font-mono text-slate-500 text-[13px] font-semibold">Ticket #{t.id?.slice(0,8)?.toUpperCase()}</p>
+                    {t.message && <p className="text-sm text-slate-700 line-clamp-2">{t.message}</p>}
+                    <p className="text-xs text-slate-500">
                         Rolle: {t.role ?? '—'} · Erstellt: {new Date(t.created_at).toLocaleString()} · Letzte Nachricht: {new Date(t.last_message_at).toLocaleString()}
                       </p>
                     </div>
