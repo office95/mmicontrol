@@ -29,6 +29,13 @@ export default function SupportReply({ ticketId, currentStatus, currentPriority 
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: ticketId, status, priority }),
       });
+
+      // Wenn abgeschlossen, Messaging beenden
+      if (status === 'closed') {
+        setMessage('');
+        window.location.reload();
+        return;
+      }
       setMessage('');
       window.location.reload();
     } catch (e: any) {

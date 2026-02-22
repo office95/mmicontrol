@@ -83,22 +83,25 @@ export default async function AdminSupportPage({ searchParams }: { searchParams?
       <div className="rounded-2xl bg-white border border-slate-200 p-6 shadow-xl text-slate-900">
         <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
           <h2 className="text-lg font-semibold">Offene Tickets</h2>
-          <div className="flex items-center gap-2 text-sm">
-            {[
-              ['all', 'Alle'],
-              ['open', 'Offen'],
-              ['in_progress', 'In Bearbeitung'],
-              ['closed', 'Erledigt'],
-            ].map(([value, label]) => (
-              <a
-                key={value}
-                href={value === 'all' ? '/admin/support' : `/admin/support?status=${value}`}
-                className={`px-3 py-1.5 rounded-full border text-xs font-semibold transition-colors ${statusFilter === value ? 'bg-pink-100 border-pink-300 text-pink-800' : 'bg-white border-slate-200 text-slate-600 hover:border-pink-300 hover:text-pink-700'}`}
-              >
-                {label}
-              </a>
-            ))}
-          </div>
+          <form className="flex items-center gap-2 text-sm" method="get" action="/admin/support">
+            <label className="text-xs uppercase tracking-[0.14em] text-slate-500">Status</label>
+            <select
+              name="status"
+              defaultValue={statusFilter}
+              className="px-3 py-2 rounded-lg border border-slate-300 bg-white text-slate-800 text-xs font-semibold"
+            >
+              <option value="all">Alle</option>
+              <option value="open">Offen</option>
+              <option value="in_progress">In Bearbeitung</option>
+              <option value="closed">Erledigt</option>
+            </select>
+            <button
+              type="submit"
+              className="px-3 py-2 rounded-lg bg-slate-900 text-white text-xs font-semibold hover:bg-pink-600"
+            >
+              Anwenden
+            </button>
+          </form>
           <div className="flex gap-2 text-xs">
             <span className="px-2 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
               offen: {(tickets || []).filter((t) => t.status === 'open').length}
