@@ -41,6 +41,14 @@ export default function CourseDatesPage() {
   const [feedbackError, setFeedbackError] = useState<string | null>(null);
   const [feedbackItems, setFeedbackItems] = useState<any[]>([]);
   const [feedbackTitle, setFeedbackTitle] = useState<string>('Kurs-Feedback');
+  const [reschedules, setReschedules] = useState<Record<string, any[]>>({});
+  const [resModal, setResModal] = useState<{ open: boolean; item: CourseDateListRow | null }>({ open: false, item: null });
+  const [resForm, setResForm] = useState({ start_date: '', end_date: '', time_from: '', time_to: '', reason: '', update_bookings: true });
+  const [resSaving, setResSaving] = useState(false);
+  const [reschedules, setReschedules] = useState<Record<string, any[]>>({});
+  const [resModal, setResModal] = useState<{ open: boolean; item: CourseDateListRow | null }>({ open: false, item: null });
+  const [resForm, setResForm] = useState({ start_date: '', end_date: '', time_from: '', time_to: '', reason: '', update_bookings: true });
+  const [resSaving, setResSaving] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -56,8 +64,22 @@ export default function CourseDatesPage() {
     setLoading(false);
   };
 
+  const loadReschedules = async () => {
+    const res = await fetch('/api/admin/course-dates/reschedules');
+    const data = await res.json();
+    if (res.ok) {
+      const grouped: Record<string, any[]> = {};
+      (data || []).forEach((r: any) => {
+        if (!grouped[r.course_date_id]) grouped[r.course_date_id] = [];
+        grouped[r.course_date_id].push(r);
+      });
+      setReschedules(grouped);
+    }
+  };
+
   useEffect(() => {
     load();
+    loadReschedules();
   }, []);
 
   const sorted = useMemo(
@@ -79,6 +101,39 @@ export default function CourseDatesPage() {
       status: t.status,
     });
     setOpenModal(true);
+  };
+
+  const openReschedule = (t: CourseDateListRow) => {
+    setResForm({
+      start_date: t.start_date || '',
+      end_date: t.end_date || '',
+      time_from: t.time_from || '',
+      time_to: t.time_to || '',
+      reason: '',
+      update_bookings: true,
+    });
+    setResModal({ open: true, item: t });
+  };
+
+  const submitReschedule = async () => {
+    if (!resModal.item) return;
+    setResSaving(true);
+    const res = await fetch('/api/admin/course-dates/reschedules', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        course_date_id: resModal.item.id,
+        ...resForm,
+      }),
+    });
+    const data = await res.json();
+    setResSaving(false);
+    if (!res.ok) {
+      alert(data.error || 'Verschiebung fehlgeschlagen');
+      return;
+    }
+    setResModal({ open: false, item: null });
+    await Promise.all([load(), loadReschedules()]);
   };
 
   return (
@@ -149,6 +204,11 @@ export default function CourseDatesPage() {
                   <span className={`px-3 py-1 rounded-full border border-slate-200 ${statusColor[t.status] ?? 'bg-slate-100 text-slate-700'}`}>
                     {t.status}
                   </span>
+                  {reschedules[t.id]?.length ? (
+                    <span className="px-3 py-1 rounded-full border border-indigo-200 text-indigo-700 bg-indigo-50">
+                      Verschoben v{reschedules[t.id][0].version}
+                    </span>
+                  ) : null}
                   <button
                     className="px-3 py-1 rounded-lg border border-emerald-300 text-emerald-700 hover:bg-emerald-50 disabled:opacity-50"
                     disabled={!t.course_id}
@@ -198,6 +258,12 @@ export default function CourseDatesPage() {
                     Bearbeiten
                   </button>
                   <button
+                    className="px-3 py-1 rounded-lg border border-indigo-300 text-indigo-700 hover:bg-indigo-50"
+                    onClick={() => openReschedule(t)}
+                  >
+                    Verschieben
+                  </button>
+                  <button
                     className="px-3 py-1 rounded-lg border border-red-300 text-red-600 hover:bg-red-50"
                     onClick={async () => {
                       if (!confirm('Diesen Kurstermin löschen?')) return;
@@ -212,11 +278,25 @@ export default function CourseDatesPage() {
                   >
                     Löschen
                   </button>
-                </div>
               </div>
-            ))}
-          </div>
-        )}
+              {reschedules[t.id]?.length ? (
+                <div className="mt-2 text-xs text-slate-600 space-y-1">
+                  <p className="font-semibold text-ink/80">Verschiebungen</p>
+                  {reschedules[t.id].map((r) => (
+                    <div key={r.id} className="flex flex-wrap gap-2 text-slate-600">
+                      <span className="font-semibold text-indigo-700">v{r.version}</span>
+                      <span>
+                        {r.old_start_date ? new Date(r.old_start_date).toLocaleDateString() : '—'} → {r.new_start_date ? new Date(r.new_start_date).toLocaleDateString() : '—'}
+                      </span>
+                      {r.reason && <span className="text-slate-500">Grund: {r.reason}</span>}
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          ))}
+        </div>
+      )}
 
         {activeTab === 'timeline' && (() => {
           const today = new Date();
