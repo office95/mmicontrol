@@ -195,11 +195,7 @@ export default function CourseDatesPage() {
                         <span className={`px-2 py-0.5 rounded-full text-[11px] border ${statusColor[t.status] ?? 'bg-slate-100 text-slate-700 border-slate-200'}`}>
                           {t.status}
                         </span>
-                        {reschedules[t.id]?.length ? (
-                          <span className="px-2 py-0.5 rounded-full text-[11px] border border-indigo-200 text-indigo-700 bg-indigo-50">
-                            Verschoben v{reschedules[t.id][0].version}
-                          </span>
-                        ) : null}
+
                       </div>
                       <div className="text-xs text-slate-700 flex flex-wrap gap-3">
                         <span className="font-semibold text-ink/70">Start:</span>
