@@ -39,7 +39,7 @@ export default function SupportReply({ ticketId, currentStatus, currentPriority 
   };
 
   return (
-    <div className="space-y-3 bg-white/5 border border-white/10 rounded-2xl p-4 text-white">
+    <div className="space-y-3 bg-transparent border border-white/15 rounded-2xl p-4 text-white">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
         <div className="md:col-span-2">
           <label className="text-xs uppercase tracking-[0.12em] text-white/70">Antwort</label>

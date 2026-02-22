@@ -79,7 +79,7 @@ export default function StudentSupportPage() {
         </div>
       </div>
 
-      <div className="rounded-2xl bg-white/5 p-6 shadow-xl border border-white/10 backdrop-blur space-y-3">
+      <div className="rounded-2xl bg-transparent p-6 border border-white/15 space-y-3">
         <p className="text-sm text-white/80">Neues Ticket</p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
           <input className="input bg-white/10 border border-white/20 text-white placeholder-white/50" placeholder="Betreff" value={subject} onChange={(e) => setSubject(e.target.value)} />
@@ -103,7 +103,7 @@ export default function StudentSupportPage() {
         />
       </div>
 
-      <div className="rounded-2xl bg-white/5 p-6 shadow-xl border border-white/10 backdrop-blur space-y-4">
+      <div className="rounded-2xl bg-transparent p-6 border border-white/15 space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold text-white">Meine Tickets</h2>
           {loading && <p className="text-sm text-white/70">Lade…</p>}

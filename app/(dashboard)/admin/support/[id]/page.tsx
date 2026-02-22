@@ -43,7 +43,7 @@ export default async function SupportDetail({ params }: { params: { id: string }
         <Link href="/admin/support" className="text-sm text-pink-200 hover:text-pink-100">Zurück zur Übersicht</Link>
       </div>
 
-      <div className="rounded-2xl bg-white/5 p-6 shadow-xl border border-white/10 backdrop-blur space-y-4">
+      <div className="rounded-2xl bg-transparent p-6 border border-white/15 space-y-4">
         <div className="text-xs text-white/70">Erstellt: {new Date(ticket.created_at).toLocaleString()} · Letzte Nachricht: {new Date(ticket.last_message_at).toLocaleString()}</div>
         <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-2">
           {messages?.map((m) => (

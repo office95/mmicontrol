@@ -35,7 +35,7 @@ export default async function AdminSupportPage() {
         <p className="text-sm text-white/70">Neueste Support-Tickets und schnelle Übersicht.</p>
       </div>
 
-      <div className="rounded-2xl bg-white/5 p-6 shadow-xl border border-white/10 backdrop-blur">
+      <div className="rounded-2xl bg-transparent p-6 border border-white/15">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-white">Offene Tickets</h2>
           <div className="flex gap-2 text-xs">
