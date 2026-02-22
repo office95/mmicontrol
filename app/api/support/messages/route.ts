@@ -18,6 +18,11 @@ export async function POST(req: Request) {
   if (!ticket_id || !message) return NextResponse.json({ error: 'ticket_id und message erforderlich' }, { status: 400 });
 
   const role = (session.user.user_metadata?.role as string) || 'student';
+  const { data: profile } = await service
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .maybeSingle();
 
   // prüfen, ob Nutzer Zugriff auf Ticket hat (RLS schützt zusätzlich)
   const { data: ticket, error: tErr } = await service
@@ -26,7 +31,10 @@ export async function POST(req: Request) {
     .eq('id', ticket_id)
     .single();
   if (tErr) return NextResponse.json({ error: tErr.message }, { status: 400 });
-  const isAdmin = role === 'admin' || (session.user.app_metadata?.role as string) === 'admin';
+  const isAdmin =
+    role === 'admin' ||
+    profile?.role === 'admin' ||
+    (session.user.app_metadata?.role as string) === 'admin';
   if (!isAdmin && ticket.created_by !== user.id) {
     return NextResponse.json({ error: 'forbidden' }, { status: 403 });
   }

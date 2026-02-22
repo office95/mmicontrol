@@ -47,7 +47,7 @@ export default function StudentSupportPage() {
   };
 
   return (
-    <div className="min-h-screen bg-transparent text-slate-900 px-4 sm:px-6 lg:px-10 py-6 space-y-6">
+    <div className="min-h-screen bg-transparent text-white px-4 sm:px-6 lg:px-10 py-6 space-y-6">
       {/* Tabs wie im Dashboard (Support letzter Tab) */}
       <div className="flex flex-wrap gap-2 text-sm font-semibold">
         {[
@@ -60,7 +60,7 @@ export default function StudentSupportPage() {
           <a
             key={label}
             href={href}
-            className={`px-3 py-2 rounded-lg border ${href === '/student/support' ? 'border-pink-400 bg-pink-50 text-pink-800' : 'border-slate-300 bg-white text-slate-700 hover:border-pink-300 hover:text-pink-700'}`}
+            className={`px-3 py-2 rounded-lg border ${href === '/student/support' ? 'border-pink-400 bg-pink-500/20 text-white' : 'border-white/20 bg-white/10 text-white/80 hover:border-pink-300 hover:text-white'}`}
           >
             {label}
           </a>
@@ -68,18 +68,18 @@ export default function StudentSupportPage() {
       </div>
 
       {/* Hero */}
-      <div className="rounded-2xl bg-white p-6 shadow-lg flex flex-col md:flex-row md:items-center md:justify-between gap-4 border border-slate-200">
+      <div className="rounded-2xl bg-gradient-to-r from-pink-500 via-rose-500 to-purple-600 text-white p-6 shadow-xl flex flex-col md:flex-row md:items-center md:justify-between gap-4 border border-white/20">
         <div>
-          <p className="text-[11px] uppercase tracking-[0.2em] text-pink-600">Support Center</p>
-          <h1 className="text-2xl font-semibold text-slate-900">Wie können wir helfen?</h1>
-          <p className="text-sm text-slate-700">Erstelle ein Ticket oder sieh dir den bisherigen Verlauf an.</p>
+          <p className="text-[11px] uppercase tracking-[0.2em] text-white/80">Support Center</p>
+          <h1 className="text-2xl font-semibold text-white">Wie können wir helfen?</h1>
+          <p className="text-sm text-white/80">Erstelle ein Ticket oder sieh dir den bisherigen Verlauf an.</p>
         </div>
-        <div className="rounded-xl bg-white px-4 py-3 text-sm text-slate-800 border border-slate-200 shadow-sm">
+        <div className="rounded-xl bg-white/15 px-4 py-3 text-sm text-white/90 border border-white/30">
           Antworten: Mo–Fr 09:00–17:00 Uhr. Priorität „Hoch“ wird bevorzugt.
         </div>
       </div>
 
-      <div className="rounded-2xl bg-white p-6 border border-slate-200 shadow-sm space-y-3">
+      <div className="rounded-2xl bg-white p-6 border border-slate-200 shadow-sm space-y-3 text-slate-900">
         <p className="text-sm text-slate-700">Neues Ticket</p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
           <input className="input bg-white border border-slate-300 text-slate-900" placeholder="Betreff" value={subject} onChange={(e) => setSubject(e.target.value)} />
@@ -103,7 +103,7 @@ export default function StudentSupportPage() {
         />
       </div>
 
-      <div className="rounded-2xl bg-white p-6 border border-slate-200 shadow-sm space-y-4">
+      <div className="rounded-2xl bg-white p-6 border border-slate-200 shadow-sm space-y-4 text-slate-900">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold text-slate-900">Meine Tickets</h2>
           {loading && <p className="text-sm text-slate-500">Lade…</p>}

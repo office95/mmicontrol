@@ -61,7 +61,7 @@ export default function TeacherSupportPage() {
           <a
             key={label}
             href={href}
-            className={`px-3 py-2 rounded-lg border ${href === '/teacher/support' ? 'border-pink-400 bg-pink-50 text-pink-800' : 'border-slate-300 bg-white text-slate-700 hover:border-pink-300 hover:text-pink-700'}`}
+            className={`px-3 py-2 rounded-lg border ${href === '/teacher/support' ? 'border-pink-400 bg-pink-500/20 text-white' : 'border-white/20 bg-white/10 text-white/80 hover:border-pink-300 hover:text-white'}`}
           >
             {label}
           </a>
@@ -69,13 +69,13 @@ export default function TeacherSupportPage() {
       </div>
 
       {/* Hero */}
-      <div className="rounded-2xl bg-white p-6 shadow-lg flex flex-col md:flex-row md:items-center md:justify-between gap-4 border border-slate-200">
+      <div className="rounded-2xl bg-gradient-to-r from-pink-500 via-rose-500 to-purple-600 text-white p-6 shadow-xl flex flex-col md:flex-row md:items-center md:justify-between gap-4 border border-white/20">
         <div>
-          <p className="text-[11px] uppercase tracking-[0.2em] text-pink-600">Support Center</p>
-          <h1 className="text-2xl font-semibold">Schnelle Hilfe für Dozenten</h1>
-          <p className="text-sm text-slate-700">Stelle Fragen oder melde Probleme – wir antworten werktags zeitnah.</p>
+          <p className="text-[11px] uppercase tracking-[0.2em] text-white/80">Support Center</p>
+          <h1 className="text-2xl font-semibold text-white">Schnelle Hilfe für Dozenten</h1>
+          <p className="text-sm text-white/80">Stelle Fragen oder melde Probleme – wir antworten werktags zeitnah.</p>
         </div>
-        <div className="rounded-xl bg-white px-4 py-3 text-sm text-slate-800 border border-slate-200 shadow-sm">
+        <div className="rounded-xl bg-white/15 px-4 py-3 text-sm text-white/90 border border-white/30">
           Priorität Hoch wird bevorzugt behandelt. Letzte Updates siehst du unten.
         </div>
       </div>
