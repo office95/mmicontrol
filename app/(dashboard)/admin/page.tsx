@@ -162,27 +162,27 @@ export default async function AdminPage() {
         <StatCard label="Gesamt Kurse" value={courses?.length ?? 0} />
       </div>
 
-      <div className="rounded-2xl bg-transparent border border-white/15 p-6 space-y-4">
+      <div className="rounded-2xl bg-white border border-slate-200 p-6 space-y-4 text-slate-900 shadow-xl">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-white">Neue Support-Tickets</h2>
-          <Link href="/admin/support" className="text-sm text-pink-200 hover:text-pink-100">Alle anzeigen</Link>
+          <h2 className="text-lg font-semibold text-slate-900">Neue Support-Tickets</h2>
+          <Link href="/admin/support" className="text-sm text-pink-600 hover:text-pink-700">Alle anzeigen</Link>
         </div>
-        {!support?.length && <p className="text-white/70 text-sm">Keine offenen Tickets.</p>}
+        {!support?.length && <p className="text-slate-600 text-sm">Keine offenen Tickets.</p>}
         {support?.length ? (
-          <div className="divide-y divide-white/10">
+          <div className="divide-y divide-slate-200">
             {support.map((t) => (
               <div key={t.id} className="py-3 flex items-center justify-between">
                 <div>
-                  <p className="text-white font-semibold">{t.subject}</p>
-                  <p className="text-xs text-white/60">
+                  <p className="text-slate-900 font-semibold">{t.subject}</p>
+                  <p className="text-xs text-slate-600">
                     {t.role ?? '—'} · {new Date(t.created_at as string).toLocaleString()}
                   </p>
                 </div>
                 <div className="flex items-center gap-2 text-xs">
-                  <span className={`px-2 py-1 rounded-full border ${t.priority === 'high' ? 'border-rose-200 text-rose-100 bg-rose-500/20' : 'border-white/20 text-white/80 bg-white/10'}`}>
+                  <span className={`px-2 py-1 rounded-full border ${t.priority === 'high' ? 'border-rose-300 text-rose-700 bg-rose-50' : 'border-slate-300 text-slate-700 bg-slate-100'}`}>
                     {t.priority === 'high' ? 'High' : 'Normal'}
                   </span>
-                  <span className="px-2 py-1 rounded-full border border-emerald-200 text-emerald-100 bg-emerald-500/20">
+                  <span className="px-2 py-1 rounded-full border border-emerald-200 text-emerald-700 bg-emerald-50">
                     {t.status}
                   </span>
                 </div>
