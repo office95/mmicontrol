@@ -165,7 +165,7 @@ export default async function AdminPage() {
       {(support && support.length > 0) && (() => {
         const openTickets = support.filter((t) => t.status === 'open');
         if (!openTickets.length) return null;
-        const newest = openTickets[0];
+        const newest = openTickets[0] as any;
         return (
           <div className="rounded-2xl bg-white border border-slate-200 p-6 space-y-4 text-slate-900 shadow-xl">
             <div className="flex items-center justify-between">
@@ -183,7 +183,7 @@ export default async function AdminPage() {
             </div>
             <div className="space-y-2">
               <p className="text-base font-semibold text-slate-900">{newest.subject}</p>
-              {newest.message && <p className="text-sm text-slate-700 line-clamp-3">{newest.message}</p>}
+              {(newest as any).message && <p className="text-sm text-slate-700 line-clamp-3">{(newest as any).message}</p>}
               <p className="text-xs text-slate-500">
                 Rolle: {newest.role ?? '—'} · Erstellt: {new Date(newest.created_at as string).toLocaleString()} · Letzte Nachricht: {new Date(newest.last_message_at as string).toLocaleString()}
               </p>
