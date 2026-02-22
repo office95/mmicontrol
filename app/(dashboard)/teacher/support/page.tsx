@@ -132,6 +132,7 @@ export default function TeacherSupportPage() {
 
 function TicketThread({ ticketId }: { ticketId: string }) {
   const [messages, setMessages] = useState<any[]>([]);
+  const [status, setStatus] = useState<string>('open');
   const [loading, setLoading] = useState(true);
   const [reply, setReply] = useState('');
 
@@ -141,6 +142,7 @@ function TicketThread({ ticketId }: { ticketId: string }) {
     const data = await res.json();
     if (res.ok) {
       setMessages((data as any).support_messages || (data as any).messages || []);
+      setStatus((data as any).status || 'open');
     }
     setLoading(false);
   };
@@ -151,6 +153,7 @@ function TicketThread({ ticketId }: { ticketId: string }) {
 
   const send = async () => {
     if (!reply.trim()) return;
+    if (status === 'closed') return;
     const res = await fetch('/api/support/messages', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -186,16 +189,20 @@ function TicketThread({ ticketId }: { ticketId: string }) {
           </div>
         ))}
       </div>
-      <div className="flex gap-2 items-start">
-        <textarea className="input flex-1 bg-white border border-slate-300 text-slate-900" value={reply} onChange={(e) => setReply(e.target.value)} placeholder="Antwort schreiben…" />
-        <button
-          className="rounded-lg bg-pink-600 text-white px-3 py-2 hover:bg-pink-500 disabled:opacity-60"
-          onClick={send}
-          disabled={!reply.trim()}
-        >
-          Senden
-        </button>
-      </div>
+      {status === 'closed' ? (
+        <p className="text-xs text-slate-500">Ticket ist geschlossen und kann nicht mehr beantwortet werden.</p>
+      ) : (
+        <div className="flex gap-2 items-start">
+          <textarea className="input flex-1 bg-white border border-slate-300 text-slate-900" value={reply} onChange={(e) => setReply(e.target.value)} placeholder="Antwort schreiben…" />
+          <button
+            className="rounded-lg bg-pink-600 text-white px-3 py-2 hover:bg-pink-500 disabled:opacity-60"
+            onClick={send}
+            disabled={!reply.trim()}
+          >
+            Senden
+          </button>
+        </div>
+      )}
     </div>
   );
 }

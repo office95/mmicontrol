@@ -11,6 +11,10 @@ export default function SupportReply({ ticketId, currentStatus, currentPriority 
 
   const send = async () => {
     if (!message.trim()) return;
+    if (status === 'closed') {
+      setError('Ticket ist geschlossen.');
+      return;
+    }
     setSaving(true);
     setError(null);
     try {
@@ -45,6 +49,8 @@ export default function SupportReply({ ticketId, currentStatus, currentPriority 
     }
   };
 
+  const locked = status === 'closed';
+
   return (
     <div className="space-y-3 bg-white border border-slate-200 rounded-2xl p-4 text-slate-900 shadow-sm">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
@@ -55,12 +61,18 @@ export default function SupportReply({ ticketId, currentStatus, currentPriority 
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             placeholder="Antwort schreiben..."
+            disabled={locked}
           />
         </div>
         <div className="space-y-3">
           <div>
             <label className="text-xs uppercase tracking-[0.12em] text-slate-500">Status</label>
-            <select className="input bg-white border border-slate-300 text-slate-900" value={status} onChange={(e) => setStatus(e.target.value)}>
+            <select
+              className="input bg-white border border-slate-300 text-slate-900"
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+              disabled={locked}
+            >
               <option value="open">offen</option>
               <option value="in_progress">in Bearbeitung</option>
               <option value="closed">geschlossen</option>
@@ -68,7 +80,12 @@ export default function SupportReply({ ticketId, currentStatus, currentPriority 
           </div>
           <div>
             <label className="text-xs uppercase tracking-[0.12em] text-slate-500">Priorität</label>
-            <select className="input bg-white border border-slate-300 text-slate-900" value={priority} onChange={(e) => setPriority(e.target.value)}>
+            <select
+              className="input bg-white border border-slate-300 text-slate-900"
+              value={priority}
+              onChange={(e) => setPriority(e.target.value)}
+              disabled={locked}
+            >
               <option value="normal">normal</option>
               <option value="high">hoch</option>
             </select>
@@ -80,18 +97,19 @@ export default function SupportReply({ ticketId, currentStatus, currentPriority 
         <button
           className="rounded-lg border border-slate-300 px-4 py-2 text-slate-700 hover:bg-slate-100"
           onClick={() => setMessage('')}
-          disabled={saving}
+          disabled={saving || locked}
         >
           Leeren
         </button>
         <button
           className="rounded-lg bg-pink-600 text-white px-4 py-2 hover:bg-pink-500 disabled:opacity-60"
           onClick={send}
-          disabled={saving || !message.trim()}
+          disabled={saving || !message.trim() || locked}
         >
           {saving ? 'Senden…' : 'Antwort senden'}
         </button>
       </div>
+      {locked && <p className="text-xs text-slate-500">Ticket ist geschlossen und kann nicht mehr beantwortet werden.</p>}
     </div>
   );
 }
