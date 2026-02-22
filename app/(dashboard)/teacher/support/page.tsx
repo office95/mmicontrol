@@ -9,6 +9,7 @@ export default function TeacherSupportPage() {
   const [subject, setSubject] = useState('');
   const [priority, setPriority] = useState<'normal' | 'high'>('normal');
   const [message, setMessage] = useState('');
+  const [unread, setUnread] = useState(0);
 
   const load = async () => {
     setLoading(true);
@@ -26,6 +27,10 @@ export default function TeacherSupportPage() {
 
   useEffect(() => {
     load();
+    fetch('/api/support/unread').then(async (r) => {
+      const d = await r.json();
+      setUnread(d.count || 0);
+    });
   }, []);
 
   const create = async () => {
@@ -68,9 +73,14 @@ export default function TeacherSupportPage() {
           <a
             key={label}
             href={href}
-            className={`px-3 py-2 rounded-lg border ${href === '/teacher/support' ? 'border-pink-400 bg-pink-500/20 text-white' : 'border-white/20 bg-white/10 text-white/80 hover:border-pink-300 hover:text-white'}`}
+            className={`relative px-3 py-2 rounded-lg border ${href === '/teacher/support' ? 'border-pink-400 bg-pink-500/20 text-white' : 'border-white/20 bg-white/10 text-white/80 hover:border-pink-300 hover:text-white'}`}
           >
             {label}
+            {href === '/teacher/support' && unread > 0 && (
+              <span className="absolute -right-2 -top-2 h-5 min-w-[20px] px-1 rounded-full bg-rose-500 text-white text-[11px] font-semibold flex items-center justify-center">
+                {unread}
+              </span>
+            )}
           </a>
         ))}
       </div>
