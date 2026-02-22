@@ -28,47 +28,47 @@ export default async function AdminSupportPage() {
     .limit(50);
 
   return (
-    <div className="space-y-6">
+    <div className="min-h-screen bg-slate-50 text-slate-900 space-y-6 px-4 sm:px-6 lg:px-10 py-6">
       <div>
-        <p className="text-xs uppercase tracking-[0.2em] text-pink-200">Admin</p>
-        <h1 className="text-3xl font-semibold text-white">Support</h1>
-        <p className="text-sm text-slate-200">Neueste Support-Tickets und schnelle Übersicht.</p>
+        <p className="text-xs uppercase tracking-[0.2em] text-pink-600">Admin</p>
+        <h1 className="text-3xl font-semibold">Support</h1>
+        <p className="text-sm text-slate-600">Neueste Support-Tickets und schnelle Übersicht.</p>
       </div>
 
-      <div className="card p-6 shadow-xl text-white">
+      <div className="rounded-2xl bg-white p-6 shadow-xl border border-slate-200">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">Offene Tickets</h2>
+          <h2 className="text-lg font-semibold text-slate-900">Offene Tickets</h2>
           <div className="flex gap-2 text-xs">
-            <span className="px-2 py-1 rounded-full bg-emerald-500/20 text-emerald-100 border border-emerald-200/40">
+            <span className="px-2 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
               offen: {(tickets || []).filter((t) => t.status === 'open').length}
             </span>
-            <span className="px-2 py-1 rounded-full bg-amber-500/20 text-amber-100 border border-amber-200/40">
+            <span className="px-2 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
               in Bearbeitung: {(tickets || []).filter((t) => t.status === 'in_progress').length}
             </span>
           </div>
         </div>
 
-        {(!tickets || tickets.length === 0) && <p className="text-sm text-white/70">Keine Tickets vorhanden.</p>}
+        {(!tickets || tickets.length === 0) && <p className="text-sm text-slate-600">Keine Tickets vorhanden.</p>}
 
         {tickets && (
-          <div className="divide-y divide-white/10">
+          <div className="divide-y divide-slate-200">
             {tickets.map((t) => (
               <div key={t.id} className="py-3 flex items-start justify-between">
                 <div className="space-y-1">
-                  <p className="text-base font-semibold text-white">{t.subject}</p>
-                  {t.message && <p className="text-sm text-white/80 line-clamp-2">{t.message}</p>}
-                  <p className="text-xs text-white/60">
+                  <p className="text-base font-semibold text-slate-900">{t.subject}</p>
+                  {t.message && <p className="text-sm text-slate-700 line-clamp-2">{t.message}</p>}
+                  <p className="text-xs text-slate-500">
                     Rolle: {t.role ?? '—'} · Erstellt: {new Date(t.created_at).toLocaleString()} · Letzte Nachricht: {new Date(t.last_message_at).toLocaleString()}
                   </p>
                 </div>
                 <div className="flex flex-col items-end gap-2 text-xs">
-                  <span className={`px-2 py-1 rounded-full border ${t.priority === 'high' ? 'border-rose-200 text-rose-100 bg-rose-500/20' : 'border-white/20 text-white/80 bg-white/10'}`}>
+                  <span className={`px-2 py-1 rounded-full border ${t.priority === 'high' ? 'border-rose-200 text-rose-700 bg-rose-50' : 'border-slate-300 text-slate-700 bg-slate-100'}`}>
                     {t.priority === 'high' ? 'High' : 'Normal'}
                   </span>
-                  <span className={`px-2 py-1 rounded-full border ${t.status === 'open' ? 'border-emerald-200 text-emerald-100 bg-emerald-500/20' : t.status === 'in_progress' ? 'border-amber-200 text-amber-100 bg-amber-500/20' : 'border-slate-200 text-slate-100 bg-slate-500/20'}`}>
+                  <span className={`px-2 py-1 rounded-full border ${t.status === 'open' ? 'border-emerald-200 text-emerald-700 bg-emerald-50' : t.status === 'in_progress' ? 'border-amber-200 text-amber-700 bg-amber-50' : 'border-slate-300 text-slate-700 bg-slate-100'}`}>
                     {t.status}
                   </span>
-                  <Link href={`/admin/support/${t.id}`} className="text-pink-200 hover:text-pink-100">Öffnen</Link>
+                  <Link href={`/admin/support/${t.id}`} className="text-pink-600 hover:text-pink-700">Öffnen</Link>
                 </div>
               </div>
             ))}

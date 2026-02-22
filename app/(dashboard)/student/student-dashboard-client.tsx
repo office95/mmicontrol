@@ -142,17 +142,6 @@ export default function StudentDashboardClient({
         >
           Kurs Bewertung
         </button>
-        <a
-          href="/student/support"
-          className="px-3 py-2 rounded-lg border border-white/20 bg-white/10 hover:border-pink-300 hover:text-white flex items-center gap-2"
-        >
-          Support
-          {supportCount ? (
-            <span className="inline-flex h-5 px-2 items-center justify-center rounded-full bg-rose-500 text-white text-xs font-bold">
-              {supportCount}
-            </span>
-          ) : null}
-        </a>
       </div>
 
       {tab === 'bookings' && <BookingsClient bookings={bookings} />}

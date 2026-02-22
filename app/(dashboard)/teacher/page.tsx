@@ -790,6 +790,17 @@ export default async function TeacherPage() {
           <div className="rounded-2xl bg-gradient-to-r from-pink-500 via-rose-500 to-purple-600 text-white px-6 py-5 shadow-2xl ring-2 ring-white/30 min-w-[240px] text-center transform hover:scale-[1.02] transition">
             <CountdownFlip days={daysRemaining} courseTitle={nextCourse?.title ?? 'Noch kein Kurs'} />
           </div>
+          <a
+            href="/teacher/support"
+            className="absolute top-3 right-3 inline-flex items-center gap-2 rounded-full bg-white text-ink px-3 py-1 text-sm font-semibold shadow-lg hover:bg-pink-50"
+          >
+            Support
+            {supportCount ? (
+              <span className="inline-flex h-5 px-2 items-center justify-center rounded-full bg-rose-500 text-white text-xs font-bold">
+                {supportCount}
+              </span>
+            ) : null}
+          </a>
         </div>
       </div>
 

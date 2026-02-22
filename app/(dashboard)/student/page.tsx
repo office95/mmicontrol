@@ -298,6 +298,17 @@ export default async function StudentPage({ searchParams }: { searchParams: Reco
             </p>
             <p className="text-[11px] uppercase tracking-[0.24em] text-white/80 mt-2">bis Kursbeginn</p>
           </div>
+          <a
+            href="/student/support"
+            className="absolute top-3 right-3 inline-flex items-center gap-2 rounded-full bg-white text-ink px-3 py-1 text-sm font-semibold shadow-lg hover:bg-pink-50"
+          >
+            Support
+            {supportCount ? (
+              <span className="inline-flex h-5 px-2 items-center justify-center rounded-full bg-rose-500 text-white text-xs font-bold">
+                {supportCount}
+              </span>
+            ) : null}
+          </a>
         </div>
       </div>
 
