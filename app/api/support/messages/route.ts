@@ -31,6 +31,9 @@ export async function POST(req: Request) {
     .eq('id', ticket_id)
     .single();
   if (tErr) return NextResponse.json({ error: tErr.message }, { status: 400 });
+  if (ticket.status === 'closed') {
+    return NextResponse.json({ error: 'ticket ist geschlossen' }, { status: 403 });
+  }
   const isAdmin =
     role === 'admin' ||
     profile?.role === 'admin' ||
@@ -47,8 +50,8 @@ export async function POST(req: Request) {
   });
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
 
-  // Status updaten: admin -> in_progress, user auf geschlossenem Ticket -> in_progress
-  const nextStatus = isAdmin ? 'in_progress' : ticket.status === 'closed' ? 'in_progress' : ticket.status;
+  // Status updaten: bei Antwort wird Ticket auf „in_progress“ gesetzt (admin & user)
+  const nextStatus = 'in_progress';
   await service
     .from('support_tickets')
     .update({ status: nextStatus, last_message_at: new Date().toISOString() })
