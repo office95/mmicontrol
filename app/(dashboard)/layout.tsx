@@ -102,7 +102,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
     const { count } = await service
       .from('support_tickets')
       .select('id', { count: 'exact', head: true })
-      .eq('status', 'open');
+      .in('status', ['open', 'in_progress']);
     supportOpen = count ?? 0;
   }
 

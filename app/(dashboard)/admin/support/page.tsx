@@ -75,16 +75,6 @@ export default async function AdminSupportPage({ searchParams }: { searchParams?
     tickets = fallback || [];
   }
 
-  // Offene Tickets als "gesehen" markieren: auf in_progress setzen, sobald Admin Übersicht öffnet
-  if (tickets && tickets.length) {
-    const openIds = tickets.filter((t) => t.status === 'open').map((t) => t.id);
-    if (openIds.length) {
-      await supabase.from('support_tickets').update({ status: 'in_progress' }).in('id', openIds);
-      tickets.forEach((t) => {
-        if (t.status === 'open') t.status = 'in_progress';
-      });
-    }
-  }
 
   const now = new Date();
   const currYear = now.getFullYear();
