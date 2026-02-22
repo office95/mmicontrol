@@ -119,7 +119,9 @@ export default function TeacherSupportPage() {
         {!loading && !tickets.length && <p className="text-sm text-slate-600">Keine Tickets vorhanden.</p>}
         {tickets.length > 0 && (
           <div className="divide-y divide-slate-200">
-            {tickets.map((t) => (
+            {tickets
+              .filter((t) => t.status !== 'closed')
+              .map((t) => (
               <details key={t.id} className="py-3">
                 <summary className="flex items-center justify-between cursor-pointer">
                   <div className="space-y-0.5">
