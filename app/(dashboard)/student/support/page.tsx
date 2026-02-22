@@ -122,7 +122,9 @@ export default function StudentSupportPage() {
                 <summary className="flex items-center justify-between cursor-pointer">
                   <div className="space-y-0.5">
                     <p className="font-semibold text-slate-900">{t.subject}</p>
-                    <p className="text-xs text-slate-600">Von: {(t as any).creator?.full_name ?? '—'} · {(t as any).creator?.email ?? ''}</p>
+                    <p className="text-xs text-slate-600">
+                      Von: {(t as any).creator?.full_name ?? `ID: ${(t as any).created_by?.slice(0,8) ?? '—'}`} · {(t as any).creator?.email ?? '—'}
+                    </p>
                     <p className="text-xs text-slate-600">Ticket-Nr.: #{t.id?.slice(0, 8)?.toUpperCase() || '—'}</p>
                     <p className="text-xs text-slate-600">Status: {t.status === 'open' ? 'Offen' : t.status === 'in_progress' ? 'In Bearbeitung' : 'Geschlossen'} · Priorität: {t.priority === 'high' ? 'High' : 'Normal'} · Letzte Nachricht: {new Date(t.last_message_at).toLocaleString()}</p>
                   </div>
