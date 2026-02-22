@@ -10,6 +10,15 @@ export default function StudentSupportPage() {
   const [priority, setPriority] = useState<'normal' | 'high'>('normal');
   const [message, setMessage] = useState('');
   const [unread, setUnread] = useState(0);
+  const [seenTick, setSeenTick] = useState(0);
+
+  const seenKey = (id: string) => `support_seen_${id}`;
+  const isTicketUnread = (t: any) => {
+    if (typeof window === 'undefined') return false;
+    const last = t.last_message_at ? new Date(t.last_message_at).getTime() : 0;
+    const seen = Number(localStorage.getItem(seenKey(t.id)) || 0);
+    return last > seen;
+  };
 
   const load = async () => {
     setLoading(true);
@@ -123,7 +132,15 @@ export default function StudentSupportPage() {
               .filter((t) => t.status !== 'closed') // nur neue/offene Tickets
               .map((t) => (
               <details key={t.id} className="py-3">
-                <summary className="flex items-center justify-between cursor-pointer">
+                <summary
+                  className="flex items-center justify-between cursor-pointer"
+                  onClick={() => {
+                    if (typeof window !== 'undefined') {
+                      localStorage.setItem(seenKey(t.id), Date.now().toString());
+                      setSeenTick((x) => x + 1);
+                    }
+                  }}
+                >
                   <div className="space-y-0.5">
                     <p className="font-semibold text-slate-900">{t.subject}</p>
                     <p className="text-xs text-slate-600">
@@ -132,9 +149,12 @@ export default function StudentSupportPage() {
                     <p className="text-xs text-slate-600">Ticket-Nr.: #{t.id?.slice(0, 8)?.toUpperCase() || '—'}</p>
                     <p className="text-xs text-slate-600">Status: {t.status === 'open' ? 'Offen' : t.status === 'in_progress' ? 'In Bearbeitung' : 'Geschlossen'} · Priorität: {t.priority === 'high' ? 'High' : 'Normal'} · Letzte Nachricht: {new Date(t.last_message_at).toLocaleString()}</p>
                   </div>
-                  <span className={`px-2 py-1 rounded-full border text-xs ${t.status === 'open' ? 'border-emerald-300 text-emerald-700 bg-emerald-50' : t.status === 'in_progress' ? 'border-amber-300 text-amber-700 bg-amber-50' : 'border-slate-300 text-slate-700 bg-slate-100'}`}>
-                    {t.status === 'open' ? 'Offen' : t.status === 'in_progress' ? 'In Bearbeitung' : 'Geschlossen'}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    {isTicketUnread(t) && <span className="px-2 py-1 rounded-full bg-rose-500 text-white text-[11px] font-semibold">Neu</span>}
+                    <span className={`px-2 py-1 rounded-full border text-xs ${t.status === 'open' ? 'border-emerald-300 text-emerald-700 bg-emerald-50' : t.status === 'in_progress' ? 'border-amber-300 text-amber-700 bg-amber-50' : 'border-slate-300 text-slate-700 bg-slate-100'}`}>
+                      {t.status === 'open' ? 'Offen' : t.status === 'in_progress' ? 'In Bearbeitung' : 'Geschlossen'}
+                    </span>
+                  </div>
                 </summary>
                 <TicketThread ticketId={t.id} />
               </details>
