@@ -191,15 +191,20 @@ export default async function TeacherPage() {
     }
 
     courses = courses
-      .map((c) => ({
-        ...c,
-        start_date: dateMap.get(c.id)?.start_date ?? null,
-        course_date_id: dateMap.get(c.id)?.course_date_id ?? null,
-        reschedule: dateMap.get(c.id)?.course_date_id ? rescheduleMap.get(dateMap.get(c.id)!.course_date_id!) ?? { latest: null, history: [] } : { latest: null, history: [] },
-        participants: [
-          ...(participantMap.get(c.id) || []),
-        ],
-      }))
+      .map((c) => {
+        const cd = dateMap.get(c.id);
+        const res = cd?.course_date_id ? rescheduleMap.get(cd.course_date_id) : undefined;
+        const effectiveStart = res?.latest?.new_start_date ?? cd?.start_date ?? c.start_date ?? null;
+        return {
+          ...c,
+          start_date: effectiveStart,
+          course_date_id: cd?.course_date_id ?? null,
+          reschedule: res ?? { latest: null, history: [] },
+          participants: [
+            ...(participantMap.get(c.id) || []),
+          ],
+        };
+      })
       .sort((a, b) => {
         const da = cDate(a.start_date);
         const db = cDate(b.start_date);
