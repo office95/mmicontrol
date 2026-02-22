@@ -47,8 +47,15 @@ export default function TeacherSupportPage() {
   };
 
   return (
-    <div className="min-h-screen bg-transparent text-white px-4 sm:px-6 lg:px-10 py-6 space-y-6">
-      {/* Tabs analog zum Dashboard */}
+    <div className="min-h-screen bg-transparent text-slate-900 px-4 sm:px-6 lg:px-10 py-6 space-y-6">
+      {/* Hero */}
+      <div className="rounded-2xl bg-gradient-to-r from-slate-900 via-indigo-900 to-purple-900 text-white p-6 shadow-2xl ring-2 ring-white/10 flex flex-col gap-2 border border-white/10">
+        <p className="text-[11px] uppercase tracking-[0.24em] text-white/70">Support · Dozent</p>
+        <h1 className="text-3xl font-semibold">Wie können wir dir helfen?</h1>
+        <p className="text-sm text-white/80">Erstelle ein Ticket oder sieh dir die bisherigen im Verlauf an.</p>
+      </div>
+
+      {/* Tabs unter dem Hero */}
       <div className="flex flex-wrap gap-2 text-sm font-semibold">
         {[
           ['Performance', '/teacher'],
@@ -66,16 +73,6 @@ export default function TeacherSupportPage() {
             {label}
           </a>
         ))}
-      </div>
-
-      {/* Hero */}
-      <div className="rounded-2xl bg-white/10 border border-white/15 p-6 shadow-lg relative overflow-hidden">
-        <div className="absolute -right-10 -top-10 h-32 w-32 bg-white/20 rounded-full blur-3xl" />
-        <div className="flex flex-col gap-2 relative z-10">
-          <p className="text-[11px] uppercase tracking-[0.24em] text-white/70">Support Center</p>
-          <h1 className="text-3xl font-semibold text-white">Wie können wir dir helfen?</h1>
-          <p className="text-sm text-white/80">Erstelle ein Ticket oder sieh dir die bisherigen im Verlauf an.</p>
-        </div>
       </div>
 
       <div className="rounded-2xl bg-white p-6 border border-slate-200 shadow-sm space-y-3 text-slate-900">

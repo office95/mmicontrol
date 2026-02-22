@@ -19,7 +19,12 @@ export default async function SupportDetail({ params }: { params: { id: string }
 
   const { data: messages } = await supabase
     .from('support_messages')
-    .select('id, author_role, author_id, body, created_at, profiles(full_name)')
+    .select(`
+      id, author_role, author_id, body, created_at,
+      profiles:author_id ( full_name ),
+      students:author_id ( full_name ),
+      teachers:author_id ( full_name )
+    `)
     .eq('ticket_id', params.id)
     .order('created_at', { ascending: true });
 
@@ -47,7 +52,10 @@ export default async function SupportDetail({ params }: { params: { id: string }
         <div className="text-xs text-slate-600">Erstellt: {new Date(ticket.created_at).toLocaleString()} · Letzte Nachricht: {new Date(ticket.last_message_at).toLocaleString()}</div>
         <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-2">
           {messages?.map((m) => {
-            const name = m.author_role === 'admin' ? 'Music Mission Team' : (m.profiles as any)?.full_name || m.author_role || 'Teilnehmer';
+            const name =
+              m.author_role === 'admin'
+                ? 'Music Mission Team'
+                : (m.profiles as any)?.full_name || (m.students as any)?.full_name || (m.teachers as any)?.full_name || m.author_role || 'Teilnehmer';
             const cls =
               m.author_role === 'admin'
                 ? 'border-rose-200 bg-rose-50'
