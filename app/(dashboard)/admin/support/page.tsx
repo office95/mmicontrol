@@ -13,6 +13,8 @@ type Ticket = {
   created_at: string;
   last_message_at: string;
   message?: string;
+  created_by?: string;
+  support_messages?: any[];
 };
 
 export default async function AdminSupportPage() {
@@ -23,7 +25,15 @@ export default async function AdminSupportPage() {
 
   const { data: tickets } = await supabase
     .from('support_tickets')
-    .select('id, subject, status, priority, role, created_at, last_message_at, message')
+    .select(`
+      id, subject, status, priority, role, created_at, last_message_at, message, created_by,
+      support_messages (
+        id, author_role, author_id, body, created_at,
+        profiles:author_id ( full_name ),
+        students:author_id ( full_name ),
+        teachers:author_id ( full_name )
+      )
+    `)
     .order('last_message_at', { ascending: false })
     .limit(50);
 
@@ -84,26 +94,68 @@ export default async function AdminSupportPage() {
 
         {tickets && (
           <div className="divide-y divide-slate-200">
-            {tickets.map((t) => (
-              <div key={t.id} className="py-3 flex items-start justify-between">
-                <div className="space-y-1">
-                  <p className="text-base font-semibold text-slate-900">{t.subject}</p>
-                  {t.message && <p className="text-sm text-slate-700 line-clamp-2">{t.message}</p>}
-                  <p className="text-xs text-slate-500">
-                    Rolle: {t.role ?? '—'} · Erstellt: {new Date(t.created_at).toLocaleString()} · Letzte Nachricht: {new Date(t.last_message_at).toLocaleString()}
-                  </p>
-                </div>
-                <div className="flex flex-col items-end gap-2 text-xs">
-                  <span className={`px-2 py-1 rounded-full border ${t.priority === 'high' ? 'border-rose-300 text-rose-700 bg-rose-50' : 'border-slate-300 text-slate-700 bg-slate-100'}`}>
-                    {t.priority === 'high' ? 'High' : 'Normal'}
-                  </span>
-                  <span className={`px-2 py-1 rounded-full border ${t.status === 'open' ? 'border-emerald-200 text-emerald-700 bg-emerald-50' : t.status === 'in_progress' ? 'border-amber-200 text-amber-700 bg-amber-50' : 'border-slate-300 text-slate-700 bg-slate-100'}`}>
-                    {t.status}
-                  </span>
-                  <Link href={`/admin/support/${t.id}`} className="text-pink-600 hover:text-pink-700">Öffnen</Link>
-                </div>
-              </div>
-            ))}
+            {tickets.map((t) => {
+              const thread = [
+                ...(t.message
+                  ? [{
+                      id: 'initial',
+                      author_role: t.role || 'student',
+                      author_id: t.created_by,
+                      body: t.message,
+                      created_at: t.created_at,
+                      profiles: null,
+                      students: null,
+                      teachers: null,
+                    }]
+                  : []),
+                ...((t.support_messages as any[]) || []),
+              ];
+
+              return (
+                <details key={t.id} className="py-3 group">
+                  <summary className="flex items-start justify-between cursor-pointer">
+                    <div className="space-y-1">
+                      <p className="text-base font-semibold text-slate-900 group-open:text-pink-700">{t.subject}</p>
+                      {t.message && <p className="text-sm text-slate-700 line-clamp-2">{t.message}</p>}
+                      <p className="text-xs text-slate-500">
+                        Rolle: {t.role ?? '—'} · Erstellt: {new Date(t.created_at).toLocaleString()} · Letzte Nachricht: {new Date(t.last_message_at).toLocaleString()}
+                      </p>
+                    </div>
+                    <div className="flex flex-col items-end gap-2 text-xs ml-4">
+                      <span className={`px-2 py-1 rounded-full border ${t.priority === 'high' ? 'border-rose-300 text-rose-700 bg-rose-50' : 'border-slate-300 text-slate-700 bg-slate-100'}`}>
+                        {t.priority === 'high' ? 'High' : 'Normal'}
+                      </span>
+                      <span className={`px-2 py-1 rounded-full border ${t.status === 'open' ? 'border-emerald-200 text-emerald-700 bg-emerald-50' : t.status === 'in_progress' ? 'border-amber-200 text-amber-700 bg-amber-50' : 'border-slate-300 text-slate-700 bg-slate-100'}`}>
+                        {t.status}
+                      </span>
+                      <Link href={`/admin/support/${t.id}`} className="text-pink-600 hover:text-pink-700">Vollansicht</Link>
+                    </div>
+                  </summary>
+
+                  <div className="mt-3 space-y-2">
+                    {thread.map((m) => {
+                      const name =
+                        m.author_role === 'admin'
+                          ? 'Music Mission Team'
+                          : (m.profiles as any)?.full_name || (m.students as any)?.full_name || (m.teachers as any)?.full_name || m.author_role || 'Teilnehmer';
+                      const cls =
+                        m.author_role === 'admin'
+                          ? 'border-rose-200 bg-rose-50'
+                          : m.author_role === 'teacher'
+                            ? 'border-indigo-200 bg-indigo-50'
+                            : 'border-slate-200 bg-slate-50';
+                      return (
+                        <div key={m.id + String(m.created_at)} className={`rounded-xl px-3 py-2 border ${cls}`}>
+                          <div className="text-[11px] uppercase tracking-[0.14em] text-slate-500 mb-1">{name}</div>
+                          <p className="text-sm text-slate-800 whitespace-pre-wrap">{m.body}</p>
+                          <p className="text-[11px] text-slate-500 mt-1">{new Date(m.created_at).toLocaleString()}</p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </details>
+              );
+            })}
           </div>
         )}
       </div>
