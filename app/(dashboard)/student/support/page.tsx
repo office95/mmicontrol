@@ -85,15 +85,10 @@ export default function StudentSupportPage() {
       </div>
 
       {/* Hero */}
-      <div className="rounded-2xl bg-gradient-to-r from-pink-500 via-rose-500 to-purple-600 text-white p-6 shadow-xl flex flex-col md:flex-row md:items-center md:justify-between gap-4 border border-white/20">
-        <div>
-          <p className="text-[11px] uppercase tracking-[0.2em] text-white/80">Support Center</p>
-          <h1 className="text-2xl font-semibold text-white">Wie können wir helfen?</h1>
-          <p className="text-sm text-white/80">Erstelle ein Ticket oder sieh dir den bisherigen Verlauf an.</p>
-        </div>
-        <div className="rounded-xl bg-white/15 px-4 py-3 text-sm text-white/90 border border-white/30">
-          Antworten: Mo–Fr 09:00–17:00 Uhr. Priorität „Hoch“ wird bevorzugt.
-        </div>
+      <div className="rounded-2xl bg-gradient-to-r from-slate-900 via-indigo-900 to-purple-900 text-white p-6 shadow-2xl ring-2 ring-white/10 flex flex-col gap-2 border border-white/10">
+        <p className="text-[11px] uppercase tracking-[0.24em] text-white/70">Support Center</p>
+        <h1 className="text-3xl font-semibold">Wie können wir dir helfen?</h1>
+        <p className="text-sm text-white/80">Erstelle ein Ticket oder sieh dir die bisherigen im Verlauf an.</p>
       </div>
 
       <div className="rounded-2xl bg-white p-6 border border-slate-200 shadow-sm space-y-3 text-slate-900">
