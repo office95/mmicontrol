@@ -1,3 +1,20 @@
+function buildRescheduleMap(rows: any[]) {
+  const map = new Map<string, { latest: any | null; history: any[] }>();
+  (rows || []).forEach((r) => {
+    const list = map.get(r.course_date_id)?.history || [];
+    const history = [...list, r].sort((a, b) => {
+      const va = Number(a.version || 0);
+      const vb = Number(b.version || 0);
+      if (va !== vb) return vb - va;
+      const ta = new Date(a.created_at || a.new_start_date || 0).getTime();
+      const tb = new Date(b.created_at || b.new_start_date || 0).getTime();
+      return tb - ta;
+    }).slice(0, 3);
+    map.set(r.course_date_id, { latest: history[0], history });
+  });
+  return map;
+}
+
 import { createSupabaseServerClient } from '@/lib/supabase-server';
 import { createClient } from '@supabase/supabase-js';
 import StudentDashboardClient from './student-dashboard-client';
@@ -137,14 +154,8 @@ export default async function StudentPage({ searchParams }: { searchParams: Reco
     const { data: resRows } = await service
       .from('course_reschedules')
       .select('course_date_id, version, reason, new_start_date, old_start_date, created_at')
-      .in('course_date_id', allCdIds)
-      .order('version', { ascending: false });
-    rescheduleMap = new Map<string, { latest: any | null; history: any[] }>();
-    (resRows || []).forEach((r) => {
-      const existing = rescheduleMap.get(r.course_date_id)?.history || [];
-      const history = [r, ...existing].slice(0, 3);
-      rescheduleMap.set(r.course_date_id, { latest: history[0], history });
-    });
+      .in('course_date_id', allCdIds);
+    rescheduleMap = buildRescheduleMap(resRows || []);
   }
 
   // Buchungen mit Reschedule-Daten anreichern (über course_date_id)
