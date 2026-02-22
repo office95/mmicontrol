@@ -17,7 +17,7 @@ type Ticket = {
   support_messages?: any[];
 };
 
-export default async function AdminSupportPage({ searchParams }: { searchParams?: { status?: string } }) {
+export default async function AdminSupportPage({ searchParams }: { searchParams?: { status?: string | string[] } }) {
   const supabase = createClient(
     process.env.SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -61,8 +61,12 @@ export default async function AdminSupportPage({ searchParams }: { searchParams?
     : null;
   const avgResolutionDays = avgResolutionMs ? avgResolutionMs / (1000 * 60 * 60 * 24) : null;
 
-  const statusFilter = (searchParams?.status ?? 'all') as 'all' | 'open' | 'in_progress' | 'closed';
-  const visibleTickets = (tickets || []).filter((t) => statusFilter === 'all' ? true : t.status === statusFilter);
+  const statusParam = Array.isArray(searchParams?.status) ? searchParams?.status[0] : searchParams?.status;
+  const allowed: Array<'all' | 'open' | 'in_progress' | 'closed'> = ['all', 'open', 'in_progress', 'closed'];
+  const statusFilter = (allowed.includes((statusParam as any) || '') ? statusParam : 'all') as 'all' | 'open' | 'in_progress' | 'closed';
+  const visibleTickets = (tickets || []).filter((t) =>
+    statusFilter === 'all' ? true : (t.status || 'open') === statusFilter
+  );
 
   return (
     <div className="min-h-screen bg-transparent text-white space-y-6 px-4 sm:px-6 lg:px-10 py-6">
