@@ -4,7 +4,7 @@ const OPTIONS: Array<{ value: 'all' | 'open' | 'in_progress' | 'closed'; label: 
   { value: 'all', label: 'Alle' },
   { value: 'open', label: 'Offen' },
   { value: 'in_progress', label: 'In Bearbeitung' },
-  { value: 'closed', label: 'Erledigt' },
+  { value: 'closed', label: 'Geschlossen' },
 ];
 
 export default function SupportFilterSelect({ current }: { current: 'all' | 'open' | 'in_progress' | 'closed' }) {

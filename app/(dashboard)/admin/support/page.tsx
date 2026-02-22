@@ -91,6 +91,14 @@ export default async function AdminSupportPage({ searchParams }: { searchParams?
   const statusParam = Array.isArray(searchParams?.status) ? searchParams?.status[0] : searchParams?.status;
   const allowed: Array<'all' | 'open' | 'in_progress' | 'closed'> = ['all', 'open', 'in_progress', 'closed'];
   const statusFilter = (allowed.includes((statusParam as any) || '') ? statusParam : 'all') as 'all' | 'open' | 'in_progress' | 'closed';
+  const statusLabel =
+    statusFilter === 'open'
+      ? 'Offen'
+      : statusFilter === 'in_progress'
+        ? 'In Bearbeitung'
+        : statusFilter === 'closed'
+          ? 'Geschlossen'
+          : 'Alle Tickets';
   const sortedTickets = (tickets || []).sort((a, b) => new Date(b.last_message_at || b.created_at).getTime() - new Date(a.last_message_at || a.created_at).getTime());
   const filteredTickets = sortedTickets.filter((t) =>
     statusFilter === 'all' ? true : (t.status || 'open') === statusFilter
@@ -115,7 +123,7 @@ export default async function AdminSupportPage({ searchParams }: { searchParams?
 
       <div className="rounded-2xl bg-white border border-slate-200 p-6 shadow-xl text-slate-900">
         <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
-          <h2 className="text-lg font-semibold">Offene Tickets</h2>
+          <h2 className="text-lg font-semibold">{statusLabel}</h2>
           <div className="flex items-center gap-2 text-sm">
             <label className="text-xs uppercase tracking-[0.14em] text-slate-500">Status</label>
             <SupportFilterSelect current={statusFilter} />
@@ -167,7 +175,7 @@ export default async function AdminSupportPage({ searchParams }: { searchParams?
                         {t.priority === 'high' ? 'High' : 'Normal'}
                       </span>
                       <span className={`px-2 py-1 rounded-full border ${t.status === 'open' ? 'border-emerald-200 text-emerald-700 bg-emerald-50' : t.status === 'in_progress' ? 'border-amber-200 text-amber-700 bg-amber-50' : 'border-slate-300 text-slate-700 bg-slate-100'}`}>
-                        {t.status}
+                        {t.status === 'open' ? 'Offen' : t.status === 'in_progress' ? 'In Bearbeitung' : 'Geschlossen'}
                       </span>
                       <Link href={`/admin/support/${t.id}`} className="text-pink-600 hover:text-pink-700">Vollansicht</Link>
                     </div>
