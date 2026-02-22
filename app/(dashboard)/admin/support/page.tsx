@@ -66,9 +66,10 @@ export default async function AdminSupportPage({ searchParams }: { searchParams?
   const allowed: Array<'all' | 'open' | 'in_progress' | 'closed'> = ['all', 'open', 'in_progress', 'closed'];
   const statusFilter = (allowed.includes((statusParam as any) || '') ? statusParam : 'all') as 'all' | 'open' | 'in_progress' | 'closed';
   const sortedTickets = (tickets || []).sort((a, b) => new Date(b.last_message_at || b.created_at).getTime() - new Date(a.last_message_at || a.created_at).getTime());
-  const visibleTickets = sortedTickets.filter((t) =>
+  const filteredTickets = sortedTickets.filter((t) =>
     statusFilter === 'all' ? true : (t.status || 'open') === statusFilter
   );
+  const visibleTickets = filteredTickets.length ? filteredTickets : sortedTickets;
 
   return (
     <div className="min-h-screen bg-transparent text-white space-y-6 px-4 sm:px-6 lg:px-10 py-6">
