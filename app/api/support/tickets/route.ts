@@ -16,6 +16,20 @@ export async function GET(req: Request) {
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
 
+  const resolveCreator = async (creatorId: string | null | undefined, profileHint?: { full_name?: string | null; email?: string | null } | null) => {
+    if (!creatorId) return null;
+    let name = profileHint?.full_name ?? null;
+    let email = profileHint?.email ?? null;
+    if (!email || !name) {
+      const { data: user } = await service.auth.admin.getUserById(creatorId).catch(() => ({ data: null }));
+      if (user?.user) {
+        email = email ?? user.user.email ?? null;
+        name = name ?? (user.user.user_metadata as any)?.full_name ?? user.user.email ?? null;
+      }
+    }
+    return { full_name: name, email };
+  };
+
   if (id) {
     const { data: ticket, error } = await supabase
       .from('support_tickets')
@@ -31,7 +45,7 @@ export async function GET(req: Request) {
         .select('full_name, email')
         .eq('id', ticket.created_by)
         .maybeSingle();
-      creator = c ?? null;
+      creator = (await resolveCreator(ticket.created_by, c ?? undefined)) as any;
     }
 
     // Autor-Namen auflösen
@@ -58,13 +72,20 @@ export async function GET(req: Request) {
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
 
   const creators = Array.from(new Set((data || []).map((t) => t.created_by).filter(Boolean))) as string[];
+  const creatorHints = creators.length
+    ? (
+        await service
+          .from('profiles')
+          .select('id, full_name, email')
+          .in('id', creators)
+      ).data || []
+    : [];
+
   const creatorMap = new Map<string, { full_name: string | null; email: string | null }>();
-  if (creators.length) {
-    const { data: profiles } = await service
-      .from('profiles')
-      .select('id, full_name, email')
-      .in('id', creators);
-    profiles?.forEach((p) => creatorMap.set(p.id, { full_name: p.full_name, email: (p as any).email ?? null }));
+  for (const cid of creators) {
+    const hint = creatorHints.find((p) => p.id === cid);
+    const resolved = await resolveCreator(cid, hint as any);
+    if (resolved) creatorMap.set(cid, resolved as any);
   }
 
   const enriched = (data || []).map((t) => ({
