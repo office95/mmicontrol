@@ -24,6 +24,27 @@ alter table if exists public.bookings add column if not exists due_date date;
 create or replace view public.v_admin as
 select id from public.profiles where role='admin';
 
+-- Sicherstellen: keine automatische Standard-Rolle bei Neuregistrierung
+do $$
+begin
+  if exists (
+    select 1
+    from information_schema.columns
+    where table_schema = 'public'
+      and table_name = 'profiles'
+      and column_name = 'role'
+      and column_default is not null
+  ) then
+    execute 'alter table public.profiles alter column role drop default';
+  end if;
+end$$;
+
+-- Rollen für nicht freigeschaltete Nutzer entfernen (falls fälschlich auf student gesetzt)
+update public.profiles
+set role = null
+where coalesce(approved, false) = false
+  and role = 'student';
+
 -- 1) profiles
 drop policy if exists profiles_admin_all on profiles;
 drop policy if exists profiles_self_read on profiles;
