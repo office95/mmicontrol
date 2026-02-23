@@ -106,7 +106,7 @@ export async function POST(req: Request) {
     }
 
     if (recipients.size) {
-      const title = cd?.course?.title || 'Kurs';
+      const title = Array.isArray(cd?.course) ? cd?.course[0]?.title : cd?.course?.title || 'Kurs';
       const text = [
         `Kurstermin wurde verschoben: ${title}`,
         `Neuer Start: ${start_date}`,
