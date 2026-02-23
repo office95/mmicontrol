@@ -93,6 +93,7 @@ export default function StudentDashboardClient({
   feedbacks: Record<string, any>;
 }) {
   const [tab, setTab] = useState<'bookings' | 'materials' | 'profile' | 'feedback'>(showProfileInitially ? 'profile' : 'bookings');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [unread, setUnread] = useState(0);
   const courseTitle = (cid: string | null) => courses.find((c) => c.id === cid)?.title ?? 'Kurs';
   const scrollRef = useRef<HTMLDivElement | null>(null);
@@ -142,7 +143,8 @@ export default function StudentDashboardClient({
 
   return (
     <div className="space-y-6">
-      <div className="flex gap-2 text-sm font-semibold text-white/80 mt-1 mb-6">
+      {/* Tabs: Desktop = Buttons; Tablet = scrollbare Leiste; Mobile = Dropdown */}
+      <div className="hidden lg:flex gap-2 text-sm font-semibold text-white/80 mt-1 mb-6">
         <button
           className={`px-3 py-2 rounded-lg border ${tab === 'bookings' ? 'border-pink-400 bg-pink-500/15 text-white' : 'border-white/20 bg-white/10'}`}
           onClick={() => setTab('bookings')}
@@ -178,6 +180,88 @@ export default function StudentDashboardClient({
             </span>
           )}
         </a>
+      </div>
+
+      {/* Tablet: horizontal scrollbare Leiste */}
+      <div className="lg:hidden flex gap-2 overflow-x-auto no-scrollbar text-sm font-semibold text-white/80 mt-1 mb-4 px-1">
+        {['bookings','materials','profile','feedback'].map((key) => (
+          <button
+            key={key}
+            className={`flex-shrink-0 px-3 py-2 rounded-lg border ${tab === key ? 'border-pink-400 bg-pink-500/15 text-white' : 'border-white/20 bg-white/10'}`}
+            onClick={() => setTab(key as any)}
+          >
+            {key === 'bookings' && 'Meine Buchungen'}
+            {key === 'materials' && 'Kursunterlagen'}
+            {key === 'profile' && 'Profil'}
+            {key === 'feedback' && 'Kurs Bewertung'}
+          </button>
+        ))}
+        <a
+          href="/student/support"
+          className="relative flex-shrink-0 px-3 py-2 rounded-lg border border-white/20 bg-white/10 hover:border-pink-300 hover:text-white flex items-center gap-2"
+        >
+          Support
+          {unread > 0 && (
+            <span className="inline-flex h-5 px-2 items-center justify-center rounded-full bg-rose-500 text-white text-xs font-bold">
+              {unread}
+            </span>
+          )}
+        </a>
+      </div>
+
+      {/* Mobile extra kompakt: Dropdown/Hamburger */}
+      <div className="lg:hidden flex items-center justify-between bg-white/10 border border-white/15 rounded-xl px-3 py-2 text-sm text-white">
+        <div className="font-semibold">Menü</div>
+        <div className="relative">
+          <button
+            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-white/20 bg-white/10"
+            onClick={() => setMobileMenuOpen((v) => !v)}
+          >
+            {tab === 'bookings' && 'Meine Buchungen'}
+            {tab === 'materials' && 'Kursunterlagen'}
+            {tab === 'profile' && 'Profil'}
+            {tab === 'feedback' && 'Kurs Bewertung'}
+            <span className="text-xs opacity-70">▼</span>
+            {unread > 0 && (
+              <span className="ml-1 inline-flex h-5 px-2 items-center justify-center rounded-full bg-rose-500 text-white text-xs font-bold">
+                {unread}
+              </span>
+            )}
+          </button>
+          {mobileMenuOpen && (
+            <div className="absolute right-0 mt-2 w-52 rounded-lg bg-slate-900 border border-white/10 shadow-lg z-20">
+              {[
+                { key: 'bookings', label: 'Meine Buchungen' },
+                { key: 'materials', label: 'Kursunterlagen' },
+                { key: 'profile', label: 'Profil' },
+                { key: 'feedback', label: 'Kurs Bewertung' },
+              ].map((item) => (
+                <button
+                  key={item.key}
+                  className="w-full text-left px-4 py-2 text-sm text-white hover:bg-white/10"
+                  onClick={() => {
+                    setTab(item.key as any);
+                    setMobileMenuOpen(false);
+                  }}
+                >
+                  {item.label}
+                </button>
+              ))}
+              <a
+                href="/student/support"
+                className="block px-4 py-2 text-sm text-white hover:bg-white/10 relative"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Support
+                {unread > 0 && (
+                  <span className="ml-2 inline-flex h-5 px-2 items-center justify-center rounded-full bg-rose-500 text-white text-xs font-bold">
+                    {unread}
+                  </span>
+                )}
+              </a>
+            </div>
+          )}
+        </div>
       </div>
 
       {tab === 'bookings' && <BookingsClient bookings={bookings} />}
