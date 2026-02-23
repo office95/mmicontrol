@@ -600,14 +600,11 @@ export default function AdminQuizzesPage() {
                       onChange={(e) => setEditQuiz({ ...editQuiz, module_id: e.target.value || null })}
                     >
                       <option value="">(kein Modul)</option>
-                      {modules
-                        .filter((m) => !editQuiz.course_id || m.course_id === editQuiz.course_id)
-                        .sort((a, b) => (a.module_number || 0) - (b.module_number || 0))
-                        .map((m) => (
-                          <option key={m.id} value={m.id}>
-                            {m.module_number ? `Modul ${m.module_number}` : 'Modul'} — {m.title || m.id}
-                          </option>
-                        ))}
+                      {Array.from({ length: 20 }, (_, i) => i + 1).map((n) => (
+                        <option key={n} value={`mod-${n}`}>
+                          {`Modul ${n}`}
+                        </option>
+                      ))}
                     </select>
                   </div>
                   <label className="flex items-center gap-2 text-xs text-slate-200">
