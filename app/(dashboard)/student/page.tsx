@@ -276,32 +276,46 @@ export default async function StudentPage({ searchParams }: { searchParams: Reco
     time_per_question: number;
   }[] = [];
   if (courseIds.length) {
-    // zuerst veröffentlichte Quizze
-    const { data: quizRows } = await service
+    // Für jede course_id genau ein Quiz bestimmen: published zuerst, sonst neuestes Draft
+    const { data: published } = await service
       .from('quizzes')
-      .select('id, title, description, course_id, level_count, time_per_question, is_published')
+      .select('id, title, description, course_id, level_count, time_per_question, is_published, created_at')
       .in('course_id', courseIds)
-      .eq('is_published', true);
+      .eq('is_published', true)
+      .order('created_at', { ascending: false });
 
-    let rows = quizRows || [];
+    const pubMap = new Map<string, any>();
+    (published || []).forEach((q) => {
+      if (!q.course_id) return;
+      if (!pubMap.has(q.course_id)) pubMap.set(q.course_id, q);
+    });
 
-    // Fallback: wenn kein veröffentlichtes Quiz gefunden, auch unveröffentlichte derselben Kurse laden
-    if (!rows.length) {
-      const { data: draftRows } = await service
+    const missing = courseIds.filter((cid) => !pubMap.has(cid));
+    let draftMap = new Map<string, any>();
+    if (missing.length) {
+      const { data: drafts } = await service
         .from('quizzes')
-        .select('id, title, description, course_id, level_count, time_per_question, is_published')
-        .in('course_id', courseIds);
-      rows = draftRows || [];
+        .select('id, title, description, course_id, level_count, time_per_question, is_published, created_at')
+        .in('course_id', missing)
+        .order('created_at', { ascending: false });
+      draftMap = new Map<string, any>();
+      (drafts || []).forEach((q) => {
+        if (!q.course_id) return;
+        if (!draftMap.has(q.course_id)) draftMap.set(q.course_id, q);
+      });
     }
 
-    quizzes = rows.map((q) => ({
-      id: q.id,
-      title: q.title,
-      description: q.description ?? null,
-      course_id: q.course_id ?? null,
-      level_count: q.level_count ?? 0,
-      time_per_question: q.time_per_question ?? 30,
-    }));
+    quizzes = courseIds
+      .map((cid) => pubMap.get(cid) || draftMap.get(cid))
+      .filter(Boolean)
+      .map((q: any) => ({
+        id: q.id,
+        title: q.title,
+        description: q.description ?? null,
+        course_id: q.course_id ?? null,
+        level_count: q.level_count ?? 0,
+        time_per_question: q.time_per_question ?? 30,
+      }));
   }
 
   // Benefits (Rabatte) für Studierende: aktive, gültige, target passt

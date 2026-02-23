@@ -256,14 +256,18 @@ export default function StudentDashboardClient({
                   </select>
                 )}
                 <a
-                  href={courseQuiz ? `/quizzes?course_id=${courseQuiz.course_id}&quiz_id=${courseQuiz.id}` : '/quizzes'}
-                  className="inline-flex items-center justify-center rounded-full bg-pink-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg hover:bg-pink-500 transition"
+                  href={courseQuiz ? `/quizzes?course_id=${courseQuiz.course_id}&quiz_id=${courseQuiz.id}` : '#'}
+                  className={`inline-flex items-center justify-center rounded-full px-5 py-2.5 text-sm font-semibold shadow-lg transition ${courseQuiz ? 'bg-pink-600 text-white hover:bg-pink-500' : 'bg-slate-700 text-slate-300 cursor-not-allowed'}`}
+                  aria-disabled={!courseQuiz}
+                  onClick={(e) => { if (!courseQuiz) e.preventDefault(); }}
                 >
-                  Zum Quiz
+                  {courseQuiz ? 'Zum Quiz' : 'Kein Quiz hinterlegt'}
                 </a>
                 <a
-                  href={courseQuiz ? `/quizzes?course_id=${courseQuiz.course_id}&quiz_id=${courseQuiz.id}` : '/quizzes'}
-                  className="inline-flex items-center justify-center rounded-full border border-white/30 px-5 py-2.5 text-sm font-semibold text-white hover:bg-white/10 transition"
+                  href={courseQuiz ? `/quizzes?course_id=${courseQuiz.course_id}&quiz_id=${courseQuiz.id}` : '#'}
+                  className={`inline-flex items-center justify-center rounded-full border px-5 py-2.5 text-sm font-semibold transition ${courseQuiz ? 'border-white/30 text-white hover:bg-white/10' : 'border-white/10 text-slate-400 cursor-not-allowed'}`}
+                  aria-disabled={!courseQuiz}
+                  onClick={(e) => { if (!courseQuiz) e.preventDefault(); }}
                 >
                   Bestenliste
                 </a>
