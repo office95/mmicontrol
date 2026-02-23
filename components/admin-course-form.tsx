@@ -540,33 +540,6 @@ export default function AdminCourseForm({
         </div>
       </div>
 
-      <div className="rounded-xl border border-slate-200 p-4 space-y-3 bg-white">
-        <p className="text-sm font-semibold text-slate-800">Module (optional)</p>
-        <p className="text-xs text-slate-500">Vordefinierte Module 1–20 auswählen. Bei Bedarf mehrere wählen.</p>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-          {Array.from({ length: 20 }, (_, i) => i + 1).map((n) => {
-            const selected = selectedModules.includes(n);
-            return (
-              <button
-                key={n}
-                type="button"
-                onClick={() =>
-                  setSelectedModules((prev) =>
-                    prev.includes(n) ? prev.filter((m) => m !== n) : [...prev, n].sort((a, b) => a - b)
-                  )
-                }
-                className={`rounded-lg border px-3 py-2 text-sm font-semibold ${
-                  selected
-                    ? 'border-pink-500 bg-pink-50 text-pink-700'
-                    : 'border-slate-200 bg-slate-50 text-slate-700'
-                }`}
-              >
-                Modul {n}
-              </button>
-            );
-          })}
-        </div>
-      </div>
 
       {error && <p className="text-sm text-red-600">{error}</p>}
       {success && <p className="text-sm text-green-600">{success}</p>}
