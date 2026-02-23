@@ -139,8 +139,9 @@ export default async function DashboardLayout({ children }: { children: ReactNod
       {/* Top Header full width, dark to match sidebar */}
       <header className="fixed top-0 left-0 right-0 z-30 border-b border-white/10 bg-slate-950/95 backdrop-blur">
         <div className="w-full px-[2vh] md:px-6 py-3 flex items-center justify-between gap-4">
+          {/* Logo + Titel: auf Handy Logo ohne Text */}
           <div className="flex items-center gap-3">
-            <div className="h-16 w-16 text-slate-900 grid place-items-center font-semibold">
+            <div className="h-14 w-14 sm:h-16 sm:w-16 text-slate-900 grid place-items-center font-semibold">
               {logoUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
@@ -152,21 +153,27 @@ export default async function DashboardLayout({ children }: { children: ReactNod
                 <span className="text-sm font-semibold text-white/80">LOGO</span>
               )}
             </div>
-            <div>
+            <div className="hidden md:block">
               <p className="text-[11px] uppercase tracking-[0.22em] text-pink-200">Music Mission Control</p>
               <p className="text-lg font-semibold text-white">Music Mission Institute</p>
             </div>
           </div>
-          <div className="flex items-center gap-4 text-xs text-white uppercase tracking-[0.18em]">
-            <span className="text-[12px] font-semibold text-white/80">
+          <div className="flex items-center gap-3 sm:gap-4 text-xs text-white uppercase tracking-[0.18em]">
+            <span className="hidden sm:inline text-[12px] font-semibold text-white/80">
               {profile?.full_name ?? ''}
             </span>
-            <span>{roleLabel ? `Rolle: ${roleLabel}` : ''}</span>
-            <form action="/auth/signout" method="post">
+            <span className="hidden sm:inline">{roleLabel ? `Rolle: ${roleLabel}` : ''}</span>
+            <form action="/auth/signout" method="post" className="order-last">
               <button className="rounded-full border border-white/40 px-3 py-1 text-[11px] font-semibold text-white hover:bg-white/10">
                 Logout
               </button>
             </form>
+            {/* Hamburger fürs Handy rechts neben Logout */}
+            <div className="md:hidden">
+              <button className="rounded-full border border-white/40 px-3 py-1 text-[14px] font-semibold text-white hover:bg-white/10">
+                ☰
+              </button>
+            </div>
           </div>
         </div>
       </header>
