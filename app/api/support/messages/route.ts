@@ -18,12 +18,12 @@ export async function POST(req: Request) {
   const { ticket_id, message } = body || {};
   if (!ticket_id || !message) return NextResponse.json({ error: 'ticket_id und message erforderlich' }, { status: 400 });
 
-  const role = (session.user.user_metadata?.role as string) || 'student';
   const { data: profile } = await service
     .from('profiles')
     .select('role')
     .eq('id', user.id)
     .maybeSingle();
+  const role = (session.user.user_metadata?.role as string) || profile?.role || 'unassigned';
 
   // prüfen, ob Nutzer Zugriff auf Ticket hat (RLS schützt zusätzlich)
   const { data: ticket, error: tErr } = await service

@@ -107,7 +107,13 @@ export async function POST(req: Request) {
   if (!subject || !message)
     return NextResponse.json({ error: 'subject und message erforderlich' }, { status: 400 });
 
-  const role = (session.user.user_metadata?.role as string) || 'student';
+  // Rolle nicht defaulten auf student, sondern Profil lesen; sonst bleiben Neuregistrierte „rollenlos“
+  const { data: profile } = await service
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .maybeSingle();
+  const role = (session.user.user_metadata?.role as string) || profile?.role || 'unassigned';
 
   const { data: ticket, error } = await service
     .from('support_tickets')
