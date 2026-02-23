@@ -18,6 +18,7 @@ interface Course {
   vat_amount?: number | null;
   course_link?: string | null;
   cover_url?: string | null;
+  partner_id?: string | null;
 }
 
 export default function AdminCourseList({
@@ -148,6 +149,12 @@ export default function AdminCourseList({
               >
                 Bearbeiten
               </button>
+              <a
+                className="text-xs px-3 py-1 rounded-lg border border-pink-300 text-pink-700 hover:bg-pink-50"
+                href={`/admin/course-surveys/${c.id}`}
+              >
+                Kursfragebogen
+              </a>
               <button
                 className={`text-xs px-3 py-1 rounded-lg border ${
                   c.status === 'inactive'
