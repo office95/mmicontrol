@@ -46,7 +46,15 @@ export async function POST(req: Request, ctx: { params: { id: string } }) {
   const body = await req.json().catch(() => ({}));
   const { alias, answers = [] } = body || {};
 
-  const safeAlias = (alias as string | undefined)?.trim().slice(0, 40) || randomAlias();
+  // Bundesland als Alias, falls vorhanden
+  const { data: student } = await supa
+    .from('students')
+    .select('state')
+    .eq('email', (user.email || '').toLowerCase())
+    .maybeSingle();
+
+  const stateAlias = student?.state ? String(student.state).trim().slice(0, 40) : null;
+  const safeAlias = stateAlias || (alias as string | undefined)?.trim().slice(0, 40) || randomAlias();
 
   // Lade Fragen + richtige Antworten für Scoring
   const { data: quiz } = await supa
