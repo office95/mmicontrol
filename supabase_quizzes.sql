@@ -10,6 +10,7 @@ create table if not exists public.quizzes (
   id uuid primary key default gen_random_uuid(),
   title text not null,
   description text,
+  cover_url text,
   course_id uuid references public.courses(id) on delete cascade,
   module_id uuid references public.modules(id) on delete set null,
   level_count int not null default 5,
@@ -75,3 +76,6 @@ create index if not exists quiz_attempts_user_idx on public.quiz_attempts(user_i
 create index if not exists quiz_attempts_quiz_idx on public.quiz_attempts(quiz_id);
 create index if not exists quiz_qs_quiz_idx on public.quiz_questions(quiz_id);
 create index if not exists quiz_ans_q_idx on public.quiz_answer_options(question_id);
+
+-- Nachträgliche Spalte, falls Migration auf bestehende DB
+alter table if exists public.quizzes add column if not exists cover_url text;

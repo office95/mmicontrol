@@ -70,6 +70,7 @@ export async function POST(req: Request) {
         id: quiz.id,
         title: quiz.title,
         description: quiz.description ?? null,
+        cover_url: quiz.cover_url ?? null,
         course_id: quiz.course_id,
         module_id: quiz.module_id ?? null,
         level_count: quiz.level_count ?? 5,
@@ -139,4 +140,15 @@ export async function PATCH(req: Request) {
     .single();
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
   return NextResponse.json(data);
+}
+
+export async function DELETE(req: Request) {
+  if (!(await isAdmin())) return NextResponse.json({ error: 'forbidden' }, { status: 403 });
+  const { searchParams } = new URL(req.url);
+  const id = searchParams.get('id');
+  if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 });
+  const supa = service();
+  const { error } = await supa.from('quizzes').delete().eq('id', id);
+  if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+  return NextResponse.json({ ok: true });
 }

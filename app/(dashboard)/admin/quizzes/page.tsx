@@ -285,6 +285,14 @@ export default function AdminQuizzesPage() {
               <h3 className="text-lg font-semibold text-white">{q.title}</h3>
               <p className="text-sm text-slate-300 line-clamp-2">{q.description}</p>
               <p className="text-xs text-slate-400">Zeit/Frage: {q.time_per_question}s · Level: {q.level_count}</p>
+              {q.cover_url && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={q.cover_url}
+                  alt="Quiz Cover"
+                  className="mt-2 h-24 w-40 object-cover rounded-lg border border-white/10"
+                />
+              )}
             </div>
             <div className="flex items-center gap-3 text-sm">
               <span className={`px-3 py-1 rounded-full border ${q.is_published ? 'border-lime-400 text-lime-200' : 'border-white/20 text-slate-200'}`}>
@@ -295,6 +303,22 @@ export default function AdminQuizzesPage() {
                 className="rounded-full border border-white/30 px-3 py-1 text-white hover:bg-white/10"
               >
                 {q.is_published ? 'Verstecken' : 'Veröffentlichen'}
+              </button>
+              <button
+                onClick={() => openEditor(q.id)}
+                className="rounded-full border border-white/30 px-3 py-1 text-white hover:bg-white/10"
+              >
+                Bearbeiten
+              </button>
+              <button
+                onClick={async () => {
+                  if (!confirm('Quiz wirklich löschen?')) return;
+                  await fetch(`/api/admin/quizzes?id=${q.id}`, { method: 'DELETE' });
+                  load();
+                }}
+                className="rounded-full border border-rose-400 px-3 py-1 text-rose-200 hover:bg-rose-500/10"
+              >
+                Löschen
               </button>
               <button
                 onClick={() => openEditor(q.id)}
@@ -334,6 +358,12 @@ export default function AdminQuizzesPage() {
                   placeholder="Beschreibung"
                   value={editQuiz.description || ''}
                   onChange={(e) => setEditQuiz({ ...editQuiz, description: e.target.value })}
+                />
+                <input
+                  className="w-full rounded-lg border border-white/20 bg-black/30 px-3 py-2 text-sm text-white"
+                  placeholder="Cover URL (optional)"
+                  value={editQuiz.cover_url || ''}
+                  onChange={(e) => setEditQuiz({ ...editQuiz, cover_url: e.target.value })}
                 />
                 <div className="flex flex-wrap gap-3 text-sm">
                   <div>
