@@ -46,6 +46,7 @@ type PaymentRow = {
   amount: number;
   method?: string | null;
   note?: string | null;
+  bank_fee?: number | null;
 };
 
 export default function BookingsPage() {
@@ -62,6 +63,7 @@ export default function BookingsPage() {
   const [payAmount, setPayAmount] = useState('');
   const [payMethod, setPayMethod] = useState('');
   const [payNote, setPayNote] = useState('');
+  const [payBankFee, setPayBankFee] = useState('');
   const [savingPayment, setSavingPayment] = useState(false);
   const [statusSaving, setStatusSaving] = useState(false);
   const [basicsSaving, setBasicsSaving] = useState(false);
@@ -505,7 +507,7 @@ export default function BookingsPage() {
                       Bezahlt: {(selected.paid_total ?? 0).toFixed(2)} € · Offen: {(selected.open_amount ?? selected.saldo ?? 0).toFixed(2)} €
                     </span>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-3 text-sm">
+                  <div className="grid grid-cols-1 md:grid-cols-5 gap-3 text-sm">
                     <div>
                       <label className="text-xs uppercase tracking-[0.12em] text-slate-500">Datum</label>
                       <input type="date" className="input" value={payDate} onChange={(e) => setPayDate(e.target.value)} />
@@ -513,6 +515,10 @@ export default function BookingsPage() {
                     <div>
                       <label className="text-xs uppercase tracking-[0.12em] text-slate-500">Betrag</label>
                       <input type="number" className="input" value={payAmount} onChange={(e) => setPayAmount(e.target.value)} placeholder="0,00" />
+                    </div>
+                    <div>
+                      <label className="text-xs uppercase tracking-[0.12em] text-slate-500">Bankgebühr (intern)</label>
+                      <input type="number" className="input" value={payBankFee} onChange={(e) => setPayBankFee(e.target.value)} placeholder="0,00" />
                     </div>
                     <div>
                       <label className="text-xs uppercase tracking-[0.12em] text-slate-500">Zahlungsmethode</label>
@@ -567,6 +573,7 @@ export default function BookingsPage() {
                             amount: Number(payAmount || 0),
                             method: payMethod || null,
                             note: payNote || null,
+                            bank_fee: payBankFee ? Number(payBankFee) : null,
                           }),
                         });
                         setSavingPayment(false);
@@ -582,6 +589,7 @@ export default function BookingsPage() {
                           setPayAmount('');
                           setPayMethod('');
                           setPayNote('');
+                          setPayBankFee('');
                           loadOne(selected.id);
                           load(); // Liste aktualisieren
                         } else {

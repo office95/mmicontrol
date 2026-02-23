@@ -15,7 +15,7 @@ async function recomputeBooking(bookingId: string) {
   if (!booking) return;
   const { data: payments } = await service
     .from('payments')
-    .select('amount')
+    .select('amount, bank_fee')
     .eq('booking_id', bookingId);
   const paid = (payments ?? []).reduce((s, p) => s + Number(p.amount || 0), 0);
   const amount = Number(booking.amount || 0);
@@ -39,7 +39,7 @@ async function recomputeBooking(bookingId: string) {
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const bookingId = searchParams.get('booking_id');
-  let q = service.from('payments').select('id, booking_id, payment_date, amount, method, note, created_at');
+  let q = service.from('payments').select('id, booking_id, payment_date, amount, method, note, bank_fee, created_at');
   if (bookingId) q = q.eq('booking_id', bookingId);
   q = q.order('payment_date', { ascending: false });
   const { data, error } = await q;
@@ -49,7 +49,7 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   const body = await req.json();
-  const { booking_id, payment_date, amount, method, note } = body;
+  const { booking_id, payment_date, amount, method, note, bank_fee } = body;
   if (!booking_id) return NextResponse.json({ error: 'booking_id fehlt' }, { status: 400 });
   if (!amount) return NextResponse.json({ error: 'amount fehlt' }, { status: 400 });
 
@@ -59,6 +59,7 @@ export async function POST(req: Request) {
     amount: Number(amount),
     method: method || null,
     note: note || null,
+    bank_fee: bank_fee != null ? Number(bank_fee) : null,
   };
   const { data, error } = await service.from('payments').insert(payload).select().single();
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
