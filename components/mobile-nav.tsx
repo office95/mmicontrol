@@ -11,10 +11,10 @@ export default function MobileNav({ links }: { links: NavLink[] }) {
     <div className="md:hidden relative">
       <button
         aria-label="Menü öffnen"
-        className="inline-flex items-center gap-2 px-3 py-2 rounded-full border border-white/40 text-white text-sm font-semibold hover:bg-white/10"
+        className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/40 text-white text-sm font-semibold hover:bg-white/10"
         onClick={() => setOpen((v) => !v)}
       >
-        ☰
+        <span className="text-lg leading-none">☰</span>
       </button>
       {open && (
         <div className="absolute right-0 mt-2 w-64 rounded-xl bg-slate-900 border border-white/10 shadow-2xl z-40 overflow-hidden">
