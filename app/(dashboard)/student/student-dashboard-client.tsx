@@ -172,7 +172,53 @@ export default function StudentDashboardClient({
   return (
     <div className="min-h-screen flex flex-col space-y-6">
       <div className="flex-1 space-y-6">
-      
+      {/* Tabs innerhalb des Student-Dashboards */}
+      <nav className="sticky top-0 z-30 -mx-4 px-4 pt-3 pb-4 bg-slate-950/85 border-b border-white/10 backdrop-blur-lg shadow-lg">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-sm font-semibold text-white/85">
+          {(
+            [
+              { key: 'bookings', label: 'Dashboard', tab: 'bookings' },
+              { key: 'materials', label: 'Kursunterlagen', tab: 'materials' },
+              { key: 'feedback', label: 'Kurs Bewertung', tab: 'feedback' },
+              { key: 'support', label: 'Support', tab: 'support' },
+              { key: 'profile', label: 'Profil', tab: 'profile' },
+            ] as const
+          ).map((item) => {
+            const active = tab === item.tab;
+            const href = item.tab === 'support' ? '/student/support' : `/student?tab=${item.tab}`;
+            return (
+              <a
+                key={item.key}
+                href={href}
+                onClick={(e) => {
+                  e.preventDefault();
+                  if (item.tab === 'support') {
+                    window.location.href = '/student/support';
+                  } else {
+                    setTab(item.tab as any);
+                    const url = new URL(window.location.href);
+                    url.searchParams.set('tab', item.tab);
+                    window.history.replaceState({}, '', url.toString());
+                  }
+                }}
+                className={`px-3 py-2 rounded-full border transition ${
+                  active
+                    ? 'border-pink-400 bg-pink-500/15 text-white shadow-pink-500/20 shadow-sm'
+                    : 'border-white/15 bg-white/5 hover:border-pink-300 hover:text-white'
+                }`}
+              >
+                {item.label}
+                {item.key === 'support' && unread > 0 && (
+                  <span className="ml-2 inline-flex h-5 px-2 items-center justify-center rounded-full bg-rose-500 text-white text-xs font-bold">
+                    {unread}
+                  </span>
+                )}
+              </a>
+            );
+          })}
+        </div>
+      </nav>
+
       {tab === 'bookings' && <BookingsClient bookings={bookings} />}
 
       {tab === 'bookings' && (
