@@ -210,10 +210,26 @@ export default async function DashboardLayout({ children }: { children: ReactNod
         {(isTeacher || isStudent) && (
           <div className="w-full max-w-6xl mx-auto mb-4">
             <div className="flex flex-wrap gap-2 rounded-2xl border border-white/10 bg-white/5 px-3 py-3 shadow-lg">
-              {links
-                .filter((l) => l.roles.includes(roleLabel as string))
-                .sort((a, b) => a.label.localeCompare(b.label, 'de'))
-                .map((l) => (
+              {(() => {
+                const filtered = links.filter((l) => l.roles.includes(roleLabel as string));
+                let ordered = filtered;
+                if (isStudent) {
+                  // Custom Reihenfolge und Ausblendung für Studenten
+                  const order: string[] = [
+                    '/student',                // Dashboard (Mein Überblick)
+                    '/student?tab=materials',  // Kursunterlagen
+                    '/student?tab=feedback',   // Kurs Bewertung
+                    '/student/support',        // Support
+                    '/student?tab=profile',    // Profil
+                  ];
+                  ordered = order
+                    .map((href) => filtered.find((l) => l.href === href))
+                    .filter(Boolean) as typeof filtered;
+                } else {
+                  ordered = filtered.sort((a, b) => a.label.localeCompare(b.label, 'de'));
+                }
+
+                return ordered.map((l) => (
                   <a
                     key={l.href}
                     href={l.href}
@@ -221,7 +237,8 @@ export default async function DashboardLayout({ children }: { children: ReactNod
                   >
                     {l.label}
                   </a>
-                ))}
+                ));
+              })()}
             </div>
           </div>
         )}
