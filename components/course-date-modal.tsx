@@ -32,6 +32,7 @@ export type CourseDateRow = {
   code?: string | null;
   course_id: string | null;
   partner_id: string | null;
+  price_tier_id?: string | null;
   start_date: string | null;
   end_date: string | null;
   time_from: string | null;
