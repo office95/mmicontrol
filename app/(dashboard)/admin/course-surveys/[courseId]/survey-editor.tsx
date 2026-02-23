@@ -21,6 +21,7 @@ type Question = {
   extra_text_label?: string | null;
   extra_text_required?: boolean | null;
   position?: number;
+  _optionDraft?: string; // UI-only
 };
 
 type Survey = {
@@ -43,7 +44,7 @@ export default function SurveyEditor({ courseId, initialSurvey, initialQuestions
   const addQuestion = () => {
     setQuestions((qs) => [
       ...qs,
-      { qtype: 'text', prompt: 'Neue Frage', required: true, options: null, position: qs.length + 1 },
+      { qtype: 'text', prompt: 'Neue Frage', required: true, options: { choices: [] }, position: qs.length + 1 },
     ]);
   };
 
@@ -53,6 +54,24 @@ export default function SurveyEditor({ courseId, initialSurvey, initialQuestions
 
   const removeQuestion = (idx: number) => {
     setQuestions((qs) => qs.filter((_, i) => i !== idx).map((q, i) => ({ ...q, position: i + 1 })));
+  };
+
+  const addOption = (qIdx: number) => {
+    setQuestions((qs) => qs.map((q, i) => {
+      if (i !== qIdx) return q;
+      const draft = (q._optionDraft ?? '').trim();
+      if (!draft) return q;
+      const choices = Array.from(new Set([...(q.options?.choices || []), draft]));
+      return { ...q, options: { choices }, _optionDraft: '' };
+    }));
+  };
+
+  const removeOption = (qIdx: number, optIdx: number) => {
+    setQuestions((qs) => qs.map((q, i) => {
+      if (i !== qIdx) return q;
+      const choices = (q.options?.choices || []).filter((_opt: string, ci: number) => ci !== optIdx);
+      return { ...q, options: { choices } };
+    }));
   };
 
   const save = async () => {
@@ -149,13 +168,46 @@ export default function SurveyEditor({ courseId, initialSurvey, initialQuestions
           onChange={(e) => updateQuestion(idx, { prompt: e.target.value })}
         />
         {(q.qtype === 'select' || q.qtype === 'multiselect' || q.qtype === 'single') && (
-          <div className="space-y-1">
-            <label className="text-xs text-white/70">Optionen (Kommagetrennt)</label>
-            <input
-              className="input"
-              value={(q.options?.choices || []).join(', ')}
-              onChange={(e) => updateQuestion(idx, { options: { choices: e.target.value.split(',').map((s) => s.trim()).filter(Boolean) } })}
-            />
+          <div className="space-y-2">
+            <label className="text-xs text-white/70">Optionen</label>
+            <div className="flex flex-wrap gap-2">
+              {(q.options?.choices || []).map((c: string, ci: number) => (
+                <span key={ci} className="inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/20 px-3 py-1 text-sm text-white">
+                  {c}
+                  <button
+                    type="button"
+                    className="text-white/70 hover:text-rose-200"
+                    onClick={() => removeOption(idx, ci)}
+                    aria-label="Option entfernen"
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+              {!(q.options?.choices || []).length && <span className="text-xs text-white/50">Noch keine Optionen</span>}
+            </div>
+            <div className="flex gap-2">
+              <input
+                className="input flex-1"
+                placeholder="Neue Option"
+                value={q._optionDraft ?? ''}
+                onChange={(e) => updateQuestion(idx, { _optionDraft: e.target.value })}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addOption(idx);
+                  }
+                }}
+              />
+              <button
+                type="button"
+                className="px-3 py-2 rounded-lg bg-white/10 text-white text-sm border border-white/20 hover:bg-white/15 disabled:opacity-40"
+                onClick={() => addOption(idx)}
+                disabled={!(q._optionDraft ?? '').trim()}
+              >
+                Hinzufügen
+              </button>
+            </div>
           </div>
         )}
         {q.qtype === 'scale' && (
