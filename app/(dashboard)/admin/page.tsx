@@ -27,6 +27,9 @@ export default async function AdminPage() {
   const today = new Date();
   const currentYear = today.getFullYear();
   const currentMonth = today.getMonth();
+  const prevMonthDate = new Date(currentYear, currentMonth - 1, 1);
+  const prevMonthYear = prevMonthDate.getFullYear();
+  const prevMonthMonth = prevMonthDate.getMonth();
 
   const { data: bookings } = await supabase
     .from('bookings')
@@ -45,7 +48,7 @@ export default async function AdminPage() {
   });
   const monthPrevList = (bookings || []).filter((b) => {
     const d = b.booking_date ? new Date(b.booking_date) : null;
-    return d && d.getFullYear() === currentYear - 1 && d.getMonth() === currentMonth;
+    return d && d.getFullYear() === prevMonthYear && d.getMonth() === prevMonthMonth;
   });
   const yearNowList = (bookings || []).filter((b) => {
     const d = b.booking_date ? new Date(b.booking_date) : null;
@@ -105,7 +108,7 @@ export default async function AdminPage() {
     });
     const monthPrev = list.filter((b) => {
       const d = b.booking_date ? new Date(b.booking_date) : null;
-      return d && d.getFullYear() === currentYear - 1 && d.getMonth() === currentMonth;
+      return d && d.getFullYear() === prevMonthYear && d.getMonth() === prevMonthMonth;
     });
     const yearNow = list.filter((b) => {
       const d = b.booking_date ? new Date(b.booking_date) : null;
