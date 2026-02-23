@@ -51,10 +51,10 @@ export default function BookingsClient({ bookings }: { bookings: Booking[] }) {
 
   return (
     <>
-      <div className="card p-5 space-y-3 bg-white text-ink border border-slate-200 shadow">
+      <div className="card p-4 sm:p-5 space-y-3 bg-white text-ink border border-slate-200 shadow">
         {!bookings.length && <p className="text-slate-600 text-sm">Keine Buchungen vorhanden.</p>}
         {bookings.map((b) => (
-          <div key={b.id} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div key={b.id} className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-4 shadow-sm">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
               <div className="flex-1 space-y-1">
                 <div className="flex flex-wrap items-center gap-2 text-sm font-semibold text-ink">
@@ -94,14 +94,14 @@ export default function BookingsClient({ bookings }: { bookings: Booking[] }) {
                   </details>
                 ) : null}
               </div>
-              <div className="flex items-center gap-2 md:justify-end">
+              <div className="flex items-center gap-2 md:justify-end flex-wrap">
                 <span className="rounded-full bg-slate-100 text-xs text-slate-700 px-3 py-1 border border-slate-200">
                   {b.booking_code ?? '—'}
                 </span>
                 <button
                   type="button"
                   onClick={() => { setSelected(b); setTab('overview'); }}
-                  className="inline-flex items-center rounded-full bg-pink-600 text-white px-4 py-2 text-sm font-semibold shadow hover:bg-pink-500 border border-pink-700"
+                  className="inline-flex items-center rounded-full bg-pink-600 text-white px-4 py-2 text-sm font-semibold shadow hover:bg-pink-500 border border-pink-700 w-full sm:w-auto justify-center"
                 >
                   Details
                 </button>
@@ -113,7 +113,7 @@ export default function BookingsClient({ bookings }: { bookings: Booking[] }) {
 
       {selected && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
-          <div className="w-full max-w-3xl rounded-2xl bg-white text-ink shadow-2xl p-6 relative">
+          <div className="w-full max-w-3xl rounded-2xl bg-white text-ink shadow-2xl p-4 sm:p-6 relative">
             <button
               className="absolute top-3 right-3 text-slate-500 hover:text-ink"
               onClick={() => setSelected(null)}

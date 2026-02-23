@@ -316,27 +316,27 @@ export default async function StudentPage({ searchParams }: { searchParams: Reco
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 bg-white/10 border border-white/15 rounded-xl p-6 shadow-lg relative overflow-hidden">
-        <div className="space-y-1">
-          <p className="text-[12px] uppercase tracking-[0.28em] text-pink-200 mb-1">Willkommen</p>
-          <p className="text-2xl font-semibold text-white">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 bg-white/10 border border-white/15 rounded-xl p-4 sm:p-6 shadow-lg relative overflow-hidden">
+        <div className="space-y-1 text-center lg:text-left">
+          <p className="text-[11px] sm:text-[12px] uppercase tracking-[0.28em] text-pink-200 mb-1">Willkommen</p>
+          <p className="text-xl sm:text-2xl font-semibold text-white leading-snug">
             Hallo {student?.name ?? (user?.user_metadata as any)?.full_name ?? 'Teilnehmer'}, schön dass du da bist.
           </p>
-          <div className="text-sm text-white/80 mt-1 space-x-2">
+          <div className="text-sm text-white/80 mt-1 space-x-0 space-y-1 lg:space-y-0 lg:space-x-2 flex flex-col lg:flex-row items-center lg:items-start">
             <span>Deine Übersicht</span>
             {registeredAt && (
               <span className="text-white/60">· registriert am {registeredAt.toLocaleDateString()}</span>
             )}
           </div>
         </div>
-        <div className="relative">
+        <div className="relative self-center lg:self-auto">
           <div className="absolute -right-10 -top-10 h-32 w-32 bg-pink-500/30 rounded-full blur-3xl animate-pulse" />
-          <div className="rounded-2xl bg-gradient-to-r from-pink-500 via-rose-500 to-purple-600 text-white px-6 py-5 shadow-2xl ring-2 ring-white/30 min-w-[240px] text-center transform hover:scale-[1.02] transition">
-            <p className="text-[11px] uppercase tracking-[0.24em] text-white/80 mb-2">Noch</p>
-            <p className="text-3xl font-extrabold leading-tight drop-shadow-lg animate-pulse">
+          <div className="rounded-2xl bg-gradient-to-r from-pink-500 via-rose-500 to-purple-600 text-white px-5 py-4 sm:px-6 sm:py-5 shadow-2xl ring-2 ring-white/30 min-w-[210px] sm:min-w-[240px] text-center transform hover:scale-[1.02] transition">
+            <p className="text-[10px] sm:text-[11px] uppercase tracking-[0.24em] text-white/80 mb-1 sm:mb-2">Noch</p>
+            <p className="text-2xl sm:text-3xl font-extrabold leading-tight drop-shadow-lg animate-pulse">
               {start && days !== null && days >= 0 ? `${days} Tage` : start ? 'läuft / vorbei' : '—'}
             </p>
-            <p className="text-[11px] uppercase tracking-[0.24em] text-white/80 mt-2">bis Kursbeginn</p>
+            <p className="text-[10px] sm:text-[11px] uppercase tracking-[0.24em] text-white/80 mt-1 sm:mt-2">bis Kursbeginn</p>
           </div>
         </div>
       </div>
