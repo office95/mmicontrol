@@ -276,12 +276,25 @@ export default async function StudentPage({ searchParams }: { searchParams: Reco
     time_per_question: number;
   }[] = [];
   if (courseIds.length) {
+    // zuerst veröffentlichte Quizze
     const { data: quizRows } = await service
       .from('quizzes')
       .select('id, title, description, course_id, level_count, time_per_question, is_published')
       .in('course_id', courseIds)
       .eq('is_published', true);
-    quizzes = (quizRows || []).map((q) => ({
+
+    let rows = quizRows || [];
+
+    // Fallback: wenn kein veröffentlichtes Quiz gefunden, auch unveröffentlichte derselben Kurse laden
+    if (!rows.length) {
+      const { data: draftRows } = await service
+        .from('quizzes')
+        .select('id, title, description, course_id, level_count, time_per_question, is_published')
+        .in('course_id', courseIds);
+      rows = draftRows || [];
+    }
+
+    quizzes = rows.map((q) => ({
       id: q.id,
       title: q.title,
       description: q.description ?? null,
