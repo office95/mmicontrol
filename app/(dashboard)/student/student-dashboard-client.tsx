@@ -143,7 +143,7 @@ export default function StudentDashboardClient({
 
   return (
     <div className="space-y-6">
-      {/* Tabs: Desktop = Buttons; Tablet = scrollbare Leiste; Mobile = Dropdown */}
+      {/* Tabs: Desktop = Buttons; Tablet = scrollbare Leiste; Mobile = Dropdown/Hamburger */}
       <div className="hidden lg:flex gap-2 text-sm font-semibold text-white/80 mt-1 mb-6">
         <button
           className={`px-3 py-2 rounded-lg border ${tab === 'bookings' ? 'border-pink-400 bg-pink-500/15 text-white' : 'border-white/20 bg-white/10'}`}
@@ -182,8 +182,8 @@ export default function StudentDashboardClient({
         </a>
       </div>
 
-      {/* Tablet: horizontal scrollbare Leiste */}
-      <div className="lg:hidden flex gap-2 overflow-x-auto no-scrollbar text-sm font-semibold text-white/80 mt-1 mb-4 px-1">
+      {/* Tablet: horizontal scrollbare Leiste (nur ab md, unter lg) */}
+      <div className="hidden md:flex lg:hidden gap-2 overflow-x-auto no-scrollbar text-sm font-semibold text-white/80 mt-1 mb-4 px-1">
         {['bookings','materials','profile','feedback'].map((key) => (
           <button
             key={key}
@@ -209,19 +209,17 @@ export default function StudentDashboardClient({
         </a>
       </div>
 
-      {/* Mobile extra kompakt: Dropdown/Hamburger */}
-      <div className="lg:hidden flex items-center justify-between bg-white/10 border border-white/15 rounded-xl px-3 py-2 text-sm text-white">
+      {/* Mobile extra kompakt: Hamburger */}
+      <div className="md:hidden flex items-center justify-between bg-white/10 border border-white/15 rounded-xl px-3 py-2 text-sm text-white">
         <div className="font-semibold">Menü</div>
         <div className="relative">
           <button
+            aria-label="Tab-Menü"
             className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-white/20 bg-white/10"
             onClick={() => setMobileMenuOpen((v) => !v)}
           >
-            {tab === 'bookings' && 'Meine Buchungen'}
-            {tab === 'materials' && 'Kursunterlagen'}
-            {tab === 'profile' && 'Profil'}
-            {tab === 'feedback' && 'Kurs Bewertung'}
-            <span className="text-xs opacity-70">▼</span>
+            <span className="text-lg leading-none">☰</span>
+            <span className="text-xs opacity-70">{tab === 'bookings' ? 'Meine Buchungen' : tab === 'materials' ? 'Kursunterlagen' : tab === 'profile' ? 'Profil' : 'Kurs Bewertung'}</span>
             {unread > 0 && (
               <span className="ml-1 inline-flex h-5 px-2 items-center justify-center rounded-full bg-rose-500 text-white text-xs font-bold">
                 {unread}
@@ -229,7 +227,7 @@ export default function StudentDashboardClient({
             )}
           </button>
           {mobileMenuOpen && (
-            <div className="absolute right-0 mt-2 w-52 rounded-lg bg-slate-900 border border-white/10 shadow-lg z-20">
+            <div className="absolute right-0 mt-2 w-56 rounded-lg bg-slate-900 border border-white/10 shadow-lg z-30">
               {[
                 { key: 'bookings', label: 'Meine Buchungen' },
                 { key: 'materials', label: 'Kursunterlagen' },
