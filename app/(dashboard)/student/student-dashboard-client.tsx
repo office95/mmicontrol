@@ -172,46 +172,6 @@ export default function StudentDashboardClient({
   return (
     <div className="min-h-screen flex flex-col space-y-6">
       <div className="flex-1 space-y-6">
-      <nav className="sticky top-0 z-30 -mx-4 px-4 pt-3 pb-4 bg-slate-950/85 border-b border-white/10 backdrop-blur-lg shadow-lg">
-        <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-sm font-semibold text-white/85">
-          <button
-            className={`px-3 py-2 rounded-full border transition ${tab === 'bookings' ? 'border-pink-400 bg-pink-500/15 text-white shadow-pink-500/20 shadow-sm' : 'border-white/15 bg-white/5 hover:border-pink-300 hover:text-white'}`}
-            onClick={() => setTab('bookings')}
-          >
-            Meine Buchungen
-          </button>
-          <button
-            className={`px-3 py-2 rounded-full border transition ${tab === 'materials' ? 'border-pink-400 bg-pink-500/15 text-white shadow-pink-500/20 shadow-sm' : 'border-white/15 bg-white/5 hover:border-pink-300 hover:text-white'}`}
-            onClick={() => setTab('materials')}
-          >
-            Kursunterlagen
-          </button>
-          <button
-            className={`px-3 py-2 rounded-full border transition ${tab === 'profile' ? 'border-pink-400 bg-pink-500/15 text-white shadow-pink-500/20 shadow-sm' : 'border-white/15 bg-white/5 hover:border-pink-300 hover:text-white'}`}
-            onClick={() => setTab('profile')}
-          >
-            Profil
-          </button>
-          <button
-            className={`px-3 py-2 rounded-full border transition ${tab === 'feedback' ? 'border-pink-400 bg-pink-500/15 text-white shadow-pink-500/20 shadow-sm' : 'border-white/15 bg-white/5 hover:border-pink-300 hover:text-white'}`}
-            onClick={() => setTab('feedback')}
-          >
-            Kurs Bewertung
-          </button>
-          <a
-            href="/student/support"
-            className="relative px-3 py-2 rounded-full border border-white/15 bg-white/5 hover:border-pink-300 hover:text-white flex items-center gap-2 transition"
-          >
-            Support
-            {unread > 0 && (
-              <span className="inline-flex h-5 px-2 items-center justify-center rounded-full bg-rose-500 text-white text-xs font-bold">
-                {unread}
-              </span>
-            )}
-          </a>
-        </div>
-      </nav>
-
       
       {tab === 'bookings' && <BookingsClient bookings={bookings} />}
 
