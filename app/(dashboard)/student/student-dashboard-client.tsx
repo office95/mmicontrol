@@ -182,75 +182,7 @@ export default function StudentDashboardClient({
         </a>
       </div>
 
-      {/* Tablet: horizontal scrollbare Leiste (nur ab md, unter lg) */}
-      <div className="hidden md:flex lg:hidden gap-2 overflow-x-auto no-scrollbar text-sm font-semibold text-white/80 mt-1 mb-4 px-1">
-        {['bookings','materials','profile','feedback'].map((key) => (
-          <button
-            key={key}
-            className={`flex-shrink-0 px-3 py-2 rounded-lg border ${tab === key ? 'border-pink-400 bg-pink-500/15 text-white' : 'border-white/20 bg-white/10'}`}
-            onClick={() => setTab(key as any)}
-          >
-            {key === 'bookings' && 'Meine Buchungen'}
-            {key === 'materials' && 'Kursunterlagen'}
-            {key === 'profile' && 'Profil'}
-            {key === 'feedback' && 'Kurs Bewertung'}
-          </button>
-        ))}
-      </div>
-
-      {/* Mobile extra kompakt: Hamburger */}
-      <div className="md:hidden flex items-center justify-between bg-white/10 border border-white/15 rounded-xl px-3 py-2 text-sm text-white">
-        <div className="font-semibold">Menü</div>
-        <div className="relative">
-          <button
-            aria-label="Tab-Menü"
-            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-white/20 bg-white/10"
-            onClick={() => setMobileMenuOpen((v) => !v)}
-          >
-            <span className="text-lg leading-none">☰</span>
-            <span className="text-xs opacity-70">{tab === 'bookings' ? 'Meine Buchungen' : tab === 'materials' ? 'Kursunterlagen' : tab === 'profile' ? 'Profil' : 'Kurs Bewertung'}</span>
-            {unread > 0 && (
-              <span className="ml-1 inline-flex h-5 px-2 items-center justify-center rounded-full bg-rose-500 text-white text-xs font-bold">
-                {unread}
-              </span>
-            )}
-          </button>
-          {mobileMenuOpen && (
-            <div className="absolute right-0 mt-2 w-56 rounded-lg bg-slate-900 border border-white/10 shadow-lg z-30">
-              {[
-                { key: 'bookings', label: 'Meine Buchungen' },
-                { key: 'materials', label: 'Kursunterlagen' },
-                { key: 'profile', label: 'Profil' },
-                { key: 'feedback', label: 'Kurs Bewertung' },
-              ].map((item) => (
-                <button
-                  key={item.key}
-                  className="w-full text-left px-4 py-2 text-sm text-white hover:bg-white/10"
-                  onClick={() => {
-                    setTab(item.key as any);
-                    setMobileMenuOpen(false);
-                  }}
-                >
-                  {item.label}
-                </button>
-              ))}
-              <a
-                href="/student/support"
-                className="block px-4 py-2 text-sm text-white hover:bg-white/10 relative"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Support
-                {unread > 0 && (
-                  <span className="ml-2 inline-flex h-5 px-2 items-center justify-center rounded-full bg-rose-500 text-white text-xs font-bold">
-                    {unread}
-                  </span>
-                )}
-              </a>
-            </div>
-          )}
-        </div>
-      </div>
-
+      
       {tab === 'bookings' && <BookingsClient bookings={bookings} />}
       {tab === 'bookings' && (
         <div className="space-y-3">
