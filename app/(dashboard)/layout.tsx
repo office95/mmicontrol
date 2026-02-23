@@ -188,6 +188,13 @@ export default async function DashboardLayout({ children }: { children: ReactNod
                   roleLabel === 'student'
                     ? links.filter((l) => l.roles.includes('student'))
                     : links.filter((l) => l.roles.includes(roleLabel as string) && (permissions[l.slug] ?? false));
+                const sorted = filtered
+                  .slice()
+                  .sort((a, b) => {
+                    if (a.slug === 'admin-dashboard') return -1;
+                    if (b.slug === 'admin-dashboard') return 1;
+                    return a.label.localeCompare(b.label, 'de');
+                  });
                 return filtered.map((l) => ({
                   href: l.href,
                   label: l.label,
@@ -211,7 +218,9 @@ export default async function DashboardLayout({ children }: { children: ReactNod
                         (l) => l.roles.includes(roleLabel as string) && (permissions[l.slug] ?? false)
                       );
                       const top = allowed.filter((l) => l.pin === 'top');
-                      const bottom = allowed.filter((l) => l.pin === 'bottom');
+                      const bottom = allowed
+                        .filter((l) => l.pin === 'bottom')
+                        .sort((a, b) => a.label.localeCompare(b.label, 'de'));
                       const middleRaw = allowed.filter((l) => !l.pin);
 
                       // Kurs-Verwaltungsgruppe (nur Admin) und aus der flachen Liste entfernen
