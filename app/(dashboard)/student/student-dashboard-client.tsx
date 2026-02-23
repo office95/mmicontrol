@@ -186,7 +186,7 @@ export default function StudentDashboardClient({
               <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/40 to-transparent" />
               <div className="relative h-full w-full p-6 flex flex-col justify-end">
                 <p className="text-[11px] uppercase tracking-[0.24em] text-pink-200 mb-2">Music Mission Quiz</p>
-                <h2 className="text-3xl sm:text-4xl font-bold leading-tight">{courseQuiz?.title || 'Music Mission Quiz'}</h2>
+                <h2 className="text-3xl sm:text-4xl font-bold leading-tight">Music Mission Quiz</h2>
                 <p className="text-sm text-white/80 line-clamp-2">{courseQuiz?.description || 'Bildungs-Boost für deine Module – produzieren, mischen, live.'}</p>
               </div>
             </div>
