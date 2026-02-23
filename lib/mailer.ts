@@ -9,7 +9,10 @@ const from = process.env.SMTP_FROM || user;
 let transporter: nodemailer.Transporter | null = null;
 
 function getTransport() {
-  if (!host || !user || !pass) return null;
+  if (!host || !user || !pass) {
+    console.warn('mail skipped: SMTP env not complete');
+    return null;
+  }
   if (transporter) return transporter;
   transporter = nodemailer.createTransport({
     host,
@@ -27,7 +30,7 @@ export async function sendMail(opts: {
   html?: string;
 }) {
   const t = getTransport();
-  if (!t || !from) return { ok: false, skipped: true };
+  if (!t || !from) return { ok: false, skipped: true, reason: 'missing transport or from' };
   try {
     await t.sendMail({ from, ...opts });
     return { ok: true };
