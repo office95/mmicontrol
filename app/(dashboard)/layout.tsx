@@ -208,40 +208,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
       {/* Content area below header */}
       <div className="pt-28 pb-12 px-3 md:px-6">
         {/* Horizontale Menüleiste für Teacher/Student */}
-        {(isTeacher || isStudent) && (
-          <div className="w-full max-w-6xl mx-auto mb-4">
-            <TopNav
-              links={(() => {
-                const filtered = links.filter((l) => l.roles.includes(roleLabel as string));
-                let ordered = filtered;
-                if (isStudent) {
-                  const order: string[] = [
-                    '/student',
-                    '/student?tab=materials',
-                    '/student?tab=feedback',
-                    '/student/support',
-                    '/student?tab=profile',
-                  ];
-                  ordered = order
-                    .map((href) => filtered.find((l) => l.href === href))
-                    .filter(Boolean) as typeof filtered;
-                } else if (isTeacher) {
-                  const order: string[] = [
-                    '/teacher',
-                    '/teacher/materials',
-                    '/quizzes',
-                  ];
-                  ordered = order
-                    .map((href) => filtered.find((l) => l.href === href))
-                    .filter(Boolean) as typeof filtered;
-                } else {
-                  ordered = filtered.sort((a, b) => a.label.localeCompare(b.label, 'de'));
-                }
-                return ordered.map((l) => ({ href: l.href, label: l.label }));
-              })()}
-            />
-          </div>
-        )}
+        {(isTeacher || isStudent) && null /* Menü unter Hero für Student/Teacher entfernt */ }
 
         <div className={`w-full ${isTeacher || isStudent ? 'max-w-6xl' : 'max-w-[85vw]'} mx-auto flex gap-8 ${!isTeacher && !isStudent ? 'md:pl-72' : ''}`}>
           {!isTeacher && !isStudent && (
