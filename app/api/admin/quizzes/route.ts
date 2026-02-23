@@ -21,13 +21,14 @@ export async function GET(req: Request) {
   const supa = service();
   const { searchParams } = new URL(req.url);
   const id = searchParams.get('id');
+  const course_id = searchParams.get('course_id');
 
   if (id) {
-    const { data: quiz, error: qErr } = await supa
-      .from('quizzes')
-      .select('id,title,description,course_id,module_id,is_published,level_count,time_per_question,created_at')
-      .eq('id', id)
-      .maybeSingle();
+  const { data: quiz, error: qErr } = await supa
+    .from('quizzes')
+    .select('id,title,description,cover_url,course_id,module_id,is_published,level_count,time_per_question,created_at')
+    .eq('id', id)
+    .maybeSingle();
     if (qErr) return NextResponse.json({ error: qErr.message }, { status: 400 });
     if (!quiz) return NextResponse.json({ error: 'not found' }, { status: 404 });
 
@@ -47,10 +48,14 @@ export async function GET(req: Request) {
     });
   }
 
-  const { data, error } = await supa
+  const query = supa
     .from('quizzes')
-    .select('id,title,description,course_id,module_id,is_published,level_count,time_per_question,created_at')
+    .select('id,title,description,cover_url,course_id,module_id,is_published,level_count,time_per_question,created_at')
     .order('created_at', { ascending: false });
+
+  if (course_id) query.eq('course_id', course_id);
+
+  const { data, error } = await query;
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
   return NextResponse.json(data);
 }

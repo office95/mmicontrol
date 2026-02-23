@@ -79,3 +79,6 @@ create index if not exists quiz_ans_q_idx on public.quiz_answer_options(question
 
 -- Nachträgliche Spalte, falls Migration auf bestehende DB
 alter table if exists public.quizzes add column if not exists cover_url text;
+
+-- Module Cover ergänzen (falls nicht vorhanden)
+alter table if exists public.modules add column if not exists cover_url text;

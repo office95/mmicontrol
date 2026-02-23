@@ -16,6 +16,7 @@ export default function AdminQuizzesPage() {
   const [courses, setCourses] = useState<{ id: string; title: string }[]>([]);
   const [titleInput, setTitleInput] = useState('Neues Quiz');
   const [courseId, setCourseId] = useState<string | null>(null);
+  const [modules, setModules] = useState<{ id: string; title: string | null; course_id: string | null; cover_url: string | null }[]>([]);
   const [editOpen, setEditOpen] = useState(false);
   const [editQuiz, setEditQuiz] = useState<QuizDetail | null>(null);
   const [editQuestions, setEditQuestions] = useState<any[]>([]);
@@ -27,6 +28,7 @@ export default function AdminQuizzesPage() {
     const [quizRes, courseRes] = await Promise.all([
       fetch('/api/admin/quizzes'),
       fetch('/api/admin/courses?minimal=1'),
+      fetch('/api/admin/modules'),
     ]);
     const data = await quizRes.json();
     if (!quizRes.ok) setError(data.error || 'Fehler beim Laden');
@@ -36,6 +38,8 @@ export default function AdminQuizzesPage() {
       setCourses(c);
       if (c.length && !courseId) setCourseId(c[0].id);
     }
+    const modRes = await fetch('/api/admin/modules');
+    if (modRes.ok) setModules(await modRes.json());
     setLoading(false);
   };
 
@@ -394,6 +398,21 @@ export default function AdminQuizzesPage() {
                       {courses.map((c) => (
                         <option key={c.id} value={c.id}>{c.title || c.id}</option>
                       ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-xs text-slate-300">Modul</label>
+                    <select
+                      className="min-w-[180px] rounded border border-white/20 bg-black/30 px-2 py-2 text-white"
+                      value={editQuiz.module_id || ''}
+                      onChange={(e) => setEditQuiz({ ...editQuiz, module_id: e.target.value || null })}
+                    >
+                      <option value="">(kein Modul)</option>
+                      {modules
+                        .filter((m) => !editQuiz.course_id || m.course_id === editQuiz.course_id)
+                        .map((m) => (
+                          <option key={m.id} value={m.id}>{m.title || m.id}</option>
+                        ))}
                     </select>
                   </div>
                   <label className="flex items-center gap-2 text-xs text-slate-200">
