@@ -606,7 +606,10 @@ export default function BookingsPage() {
                     {payments.map((p) => (
                       <div key={p.id} className="p-3 flex items-center justify-between text-sm">
                         <div className="space-y-0.5">
-                          <p className="font-semibold text-ink">{new Date(p.payment_date).toLocaleDateString()} · {Number(p.amount).toFixed(2)} €</p>
+                          <p className="font-semibold text-ink">
+                            {new Date(p.payment_date).toLocaleDateString()} · {Number(p.amount).toFixed(2)} €
+                            {p.bank_fee != null && Number(p.bank_fee) !== 0 ? ` · Bankgebühr: ${Number(p.bank_fee).toFixed(2)} €` : ''}
+                          </p>
                           <p className="text-xs text-slate-500">{p.method || '—'} {p.note ? `· ${p.note}` : ''}</p>
                         </div>
                         <button
