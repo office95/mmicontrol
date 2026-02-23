@@ -120,7 +120,7 @@ export default function DashboardClient({
 
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
   const quizMap = useMemo(() => {
-    const m = new Map<string, { id: string; title: string; description: string | null }>();
+    const m = new Map<string, { id: string; title: string; description: string | null; course_id: string | null }>();
     quizzes.forEach((q) => {
       if (q.course_id) m.set(q.course_id, q);
     });
