@@ -12,23 +12,22 @@ returns table (
   ytd_delta numeric
 ) language sql security definer as $$
   with b as (
-    select booking_date, coalesce(amount,0) as amt
+    select coalesce(booking_date, created_at::date) as d, coalesce(amount,0) as amt
     from public.bookings
-    where booking_date is not null
-      and coalesce(status,'') not in ('Storno','Inkasso','Archiv')
+    where coalesce(status,'') not in ('Storno','Inkasso','Archiv')
   ),
   cur as (
     select
-      sum(case when date_trunc('month', booking_date)=date_trunc('month', current_date) then amt else 0 end) as mtd,
-      sum(case when date_trunc('quarter', booking_date)=date_trunc('quarter', current_date) then amt else 0 end) as qtd,
-      sum(case when date_trunc('year', booking_date)=date_trunc('year', current_date) then amt else 0 end) as ytd
+      sum(case when date_trunc('month', d)=date_trunc('month', current_date) then amt else 0 end) as mtd,
+      sum(case when date_trunc('quarter', d)=date_trunc('quarter', current_date) then amt else 0 end) as qtd,
+      sum(case when date_trunc('year', d)=date_trunc('year', current_date) then amt else 0 end) as ytd
     from b
   ),
   prev as (
     select
-      sum(case when date_trunc('month', booking_date)=date_trunc('month', current_date - interval '1 year') then amt else 0 end) as mtd,
-      sum(case when date_trunc('quarter', booking_date)=date_trunc('quarter', current_date - interval '1 year') then amt else 0 end) as qtd,
-      sum(case when date_trunc('year', booking_date)=date_trunc('year', current_date - interval '1 year') then amt else 0 end) as ytd
+      sum(case when date_trunc('month', d)=date_trunc('month', current_date - interval '1 year') then amt else 0 end) as mtd,
+      sum(case when date_trunc('quarter', d)=date_trunc('quarter', current_date - interval '1 year') then amt else 0 end) as qtd,
+      sum(case when date_trunc('year', d)=date_trunc('year', current_date - interval '1 year') then amt else 0 end) as ytd
     from b
   )
   select
@@ -51,11 +50,15 @@ returns table (
   qtd_current numeric,
   ytd_current numeric
 ) language sql security definer as $$
+  with c as (
+    select coalesce(cost_date, created_at::date) as d, coalesce(amount_gross,0) as amt
+    from public.costs
+  )
   select
-    coalesce(sum(case when date_trunc('month', cost_date) = date_trunc('month', current_date) then amount_gross else 0 end),0) as mtd_current,
-    coalesce(sum(case when date_trunc('quarter', cost_date) = date_trunc('quarter', current_date) then amount_gross else 0 end),0) as qtd_current,
-    coalesce(sum(case when date_trunc('year', cost_date) = date_trunc('year', current_date) then amount_gross else 0 end),0) as ytd_current
-  from public.costs;
+    coalesce(sum(case when date_trunc('month', d) = date_trunc('month', current_date) then amt else 0 end),0) as mtd_current,
+    coalesce(sum(case when date_trunc('quarter', d) = date_trunc('quarter', current_date) then amt else 0 end),0) as qtd_current,
+    coalesce(sum(case when date_trunc('year', d) = date_trunc('year', current_date) then amt else 0 end),0) as ytd_current
+  from c;
 $$;
 
 -- Gewinn/Verlust (Umsatz - Kosten) je Zeitraum
@@ -97,12 +100,11 @@ returns table (
   avg_rev_per_student numeric
 ) language sql security definer as $$
   with bookings as (
-    select course_id, course_title, coalesce(amount,0) as amt, student_id
+    select course_id, course_title, coalesce(amount,0) as amt, student_id, coalesce(booking_date, created_at::date) as d
     from public.bookings
     where course_id is not null
-      and booking_date is not null
       and coalesce(status,'') not in ('Storno','Inkasso','Archiv')
-      and date_trunc('year', booking_date) = date_trunc('year', current_date)
+      and date_trunc('year', coalesce(booking_date, created_at::date)) = date_trunc('year', current_date)
   )
   select
     course_id,
@@ -127,18 +129,16 @@ returns table (
     select generate_series(date_trunc('month', current_date) - interval '11 months', date_trunc('month', current_date), interval '1 month') as m
   ),
   rev as (
-    select date_trunc('month', booking_date) as m, sum(coalesce(amount,0)) as amt
+    select date_trunc('month', coalesce(booking_date, created_at::date)) as m, sum(coalesce(amount,0)) as amt
     from public.bookings
-    where booking_date is not null
-      and coalesce(status,'') not in ('Storno','Inkasso','Archiv')
-      and booking_date >= date_trunc('month', current_date) - interval '11 months'
+    where coalesce(status,'') not in ('Storno','Inkasso','Archiv')
+      and coalesce(booking_date, created_at::date) >= date_trunc('month', current_date) - interval '11 months'
     group by 1
   ),
   cst as (
-    select date_trunc('month', cost_date) as m, sum(coalesce(amount_gross,0)) as amt
+    select date_trunc('month', coalesce(cost_date, created_at::date)) as m, sum(coalesce(amount_gross,0)) as amt
     from public.costs
-    where cost_date is not null
-      and cost_date >= date_trunc('month', current_date) - interval '11 months'
+    where coalesce(cost_date, created_at::date) >= date_trunc('month', current_date) - interval '11 months'
     group by 1
   )
   select to_char(m.m, 'Mon YY') as label,
@@ -157,7 +157,7 @@ returns table (
   amount numeric
 ) language sql security definer as $$
   with base as (
-    select coalesce(saldo,0) as saldo, coalesce(booking_date, current_date) as d
+    select coalesce(saldo,0) as saldo, coalesce(booking_date, created_at::date, current_date) as d
     from public.bookings
     where saldo > 0
       and coalesce(status,'') not in ('Storno','Inkasso','Archiv')
