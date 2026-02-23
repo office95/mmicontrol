@@ -62,12 +62,20 @@ export async function GET(req: Request, ctx: { params: { id: string } }) {
   const { data, error } = await query;
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
 
-  const toAlias = (val: string | null) => val || 'Player-' + Math.floor(Math.random() * 9000 + 1000);
+  const famous = [
+    'Aretha Franklin', 'Prince', 'Miles Davis', 'Nina Simone', 'David Bowie', 'Whitney Houston',
+    'Jimi Hendrix', 'Ella Fitzgerald', 'Freddie Mercury', 'Bob Marley', 'Billie Holiday',
+    'Ray Charles', 'Janis Joplin', 'Stevie Wonder', 'Tina Turner', 'Louis Armstrong',
+    'Amy Winehouse', 'Kurt Cobain', 'Madonna', 'Michael Jackson'
+  ];
+
+  const toAlias = (val: string | null, idx: number) =>
+    val && val.trim().length > 0 ? val : famous[idx % famous.length];
 
   return NextResponse.json(
     (data || []).map((row: any, index: number) => ({
       rank: index + 1,
-      alias: toAlias(row.alias),
+      alias: toAlias(row.alias, index),
       score: row.score,
       max_score: row.max_score,
       level_reached: row.level_reached,
