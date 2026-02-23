@@ -555,32 +555,32 @@ export default function AdminQuizzesPage() {
                   </div>
                   <div>
                     <label className="text-xs text-slate-300">Kurs</label>
-                    <select
-                      className="min-w-[180px] rounded border border-white/20 bg-black/30 px-2 py-2 text-white"
-                      value={editQuiz.course_id || ''}
-                      onChange={(e) => setEditQuiz({ ...editQuiz, course_id: e.target.value })}
-                    >
+          <select
+            className="min-w-[180px] rounded border border-white/20 bg-black/30 px-2 py-2 text-white"
+            value={editQuiz.course_id || ''}
+            onChange={(e) => setEditQuiz({ ...editQuiz, course_id: e.target.value })}
+          >
                       {courses.map((c) => (
                         <option key={c.id} value={c.id}>{c.title || c.id}</option>
                       ))}
                     </select>
                   </div>
-                  <div>
-                    <label className="text-xs text-slate-300">Modul</label>
-                    <select
-                      className="min-w-[180px] rounded border border-white/20 bg-black/30 px-2 py-2 text-white"
-                      value={editQuiz.module_number ?? ''}
-                      onChange={(e) => {
-                        const n = e.target.value ? Number(e.target.value) : null;
-                        setEditQuiz({ ...editQuiz, module_number: n, module_id: null });
-                      }}
-                    >
-                      <option value="">(kein Modul)</option>
-                      {moduleNumbers.map((n) => (
-                        <option key={n} value={n}>{`Modul ${n}`}</option>
-                      ))}
-                    </select>
-                  </div>
+          <div>
+            <label className="text-xs text-slate-300">Modul</label>
+            <select
+              className="min-w-[180px] rounded border border-white/20 bg-black/30 px-2 py-2 text-white"
+              value={editQuiz.module_number ?? ''}
+              onChange={(e) => {
+                const n = e.target.value ? Number(e.target.value) : null;
+                setEditQuiz({ ...editQuiz, module_number: n, module_id: null });
+              }}
+            >
+              <option value="">(kein Modul)</option>
+              {moduleNumbers.map((n) => (
+                <option key={n} value={n}>{`Modul ${n}`}</option>
+              ))}
+            </select>
+          </div>
                   <label className="flex items-center gap-2 text-xs text-slate-200">
                     <input
                       type="checkbox"
