@@ -49,7 +49,7 @@ export async function GET(_req: Request, ctx: { params: { id: string } }) {
 
   const { data: questions, error: qsErr } = await supa
     .from('quiz_questions')
-    .select('id,quiz_id,module_id,difficulty,qtype,prompt,media_url,explanation,order_index,quiz_answer_options(id,label,order_index)')
+    .select('id,quiz_id,module_id,difficulty,qtype,prompt,media_url,explanation,order_index,quiz_answer_options(id,label,is_correct,order_index)')
     .eq('quiz_id', quizId)
     .order('order_index', { ascending: true })
     .order('created_at', { ascending: true });
@@ -68,7 +68,7 @@ export async function GET(_req: Request, ctx: { params: { id: string } }) {
       order_index: q.order_index,
       options: (q.quiz_answer_options || [])
         .sort((a: any, b: any) => (a.order_index ?? 0) - (b.order_index ?? 0))
-        .map((o: any) => ({ id: o.id, label: o.label })),
+        .map((o: any) => ({ id: o.id, label: o.label, is_correct: o.is_correct })),
     })),
   });
 }

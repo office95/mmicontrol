@@ -20,7 +20,7 @@ export type QuizQuestion = {
   prompt: string;
   media_url?: string | null;
   explanation?: string | null;
-  options: { id: string; label: string }[];
+  options: { id: string; label: string; is_correct?: boolean }[];
 };
 
 export type LeaderboardRow = {
@@ -148,9 +148,13 @@ export default function QuizPlayClient({ quizzes }: { quizzes: QuizMeta[] }) {
 
   const handleSubmit = async () => {
     if (!current || status !== 'playing') return;
-    const correctIds = (current.options || []).filter((o) => (o as any).is_correct).map((o) => o.id);
-    // is_correct flags are removed in API; treat single as correct if one selected matches known? Instead we score client-side assuming one correct per question; we compare to option_ids later server can't; so treat correct if selection length>0 and matches diff? We cannot know; for now compare to first option only placeholder.
-    const isCorrect = picked.length > 0; // we cannot know truth without is_correct; scoreboard uses client honesty
+    const correctIds = (current.options || []).filter((o) => o.is_correct).map((o) => o.id);
+    const isSingle = current.type === 'single' || current.type === 'boolean';
+    const isCorrect = isSingle
+      ? picked.length === 1 && correctIds.length === 1 && picked[0] === correctIds[0]
+      : correctIds.length > 0 &&
+        picked.length === correctIds.length &&
+        picked.every((id) => correctIds.includes(id));
 
     const base = difficultyFactor[current.difficulty] || 100;
     const timeBonus = Math.max(timeLeft - 1, 0) * 5;
