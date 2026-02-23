@@ -15,7 +15,7 @@ create table if not exists public.course_surveys (
 create table if not exists public.course_survey_questions (
   id uuid primary key default gen_random_uuid(),
   survey_id uuid not null references public.course_surveys(id) on delete cascade,
-  qtype text not null check (qtype in ('text','textarea','select','scale')),
+  qtype text not null check (qtype in ('text','textarea','select','scale','multiselect')),
   prompt text not null,
   options jsonb,
   extra_text_label text,

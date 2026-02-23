@@ -96,6 +96,26 @@ export default function SurveyForm({ survey, questions, bookingId }: { survey: S
               ))}
             </select>
           )}
+          {q.qtype === 'multiselect' && (
+            <div className="flex flex-wrap gap-2">
+              {(q.options?.choices || []).map((c: string, idx: number) => {
+                const selected = (values[q.id] || '').split(',').map((s) => s.trim()).filter(Boolean);
+                const toggled = selected.includes(c)
+                  ? selected.filter((s) => s !== c)
+                  : [...selected, c];
+                return (
+                  <button
+                    type="button"
+                    key={idx}
+                    className={`px-3 py-2 rounded-lg border text-sm ${selected.includes(c) ? 'border-pink-400 bg-pink-500/20 text-white' : 'border-white/20 text-white/80'}`}
+                    onClick={() => setVal(q.id, toggled.join(', '))}
+                  >
+                    {c}
+                  </button>
+                );
+              })}
+            </div>
+          )}
           {q.qtype === 'scale' && (
             <div className="flex gap-2">
               {[1,2,3,4,5].map((n) => (
