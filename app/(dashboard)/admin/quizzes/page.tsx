@@ -16,7 +16,7 @@ export default function AdminQuizzesPage() {
   const [courses, setCourses] = useState<{ id: string; title: string }[]>([]);
   const [titleInput, setTitleInput] = useState('Neues Quiz');
   const [courseId, setCourseId] = useState<string | null>(null);
-  const [modules, setModules] = useState<{ id: string; title: string | null; course_id: string | null; cover_url: string | null }[]>([]);
+  const [modules, setModules] = useState<{ id: string; title: string | null; course_id: string | null; cover_url: string | null; module_number: number | null }[]>([]);
   const [editOpen, setEditOpen] = useState(false);
   const [editQuiz, setEditQuiz] = useState<QuizDetail | null>(null);
   const [editQuestions, setEditQuestions] = useState<any[]>([]);
@@ -25,7 +25,7 @@ export default function AdminQuizzesPage() {
 
   const load = async () => {
     setLoading(true);
-    const [quizRes, courseRes] = await Promise.all([
+    const [quizRes, courseRes, modRes] = await Promise.all([
       fetch('/api/admin/quizzes'),
       fetch('/api/admin/courses?minimal=1'),
       fetch('/api/admin/modules'),
@@ -38,7 +38,6 @@ export default function AdminQuizzesPage() {
       setCourses(c);
       if (c.length && !courseId) setCourseId(c[0].id);
     }
-    const modRes = await fetch('/api/admin/modules');
     if (modRes.ok) setModules(await modRes.json());
     setLoading(false);
   };
@@ -410,8 +409,11 @@ export default function AdminQuizzesPage() {
                       <option value="">(kein Modul)</option>
                       {modules
                         .filter((m) => !editQuiz.course_id || m.course_id === editQuiz.course_id)
+                        .sort((a, b) => (a.module_number || 0) - (b.module_number || 0))
                         .map((m) => (
-                          <option key={m.id} value={m.id}>{m.title || m.id}</option>
+                          <option key={m.id} value={m.id}>
+                            {m.module_number ? `Modul ${m.module_number}` : 'Modul'} — {m.title || m.id}
+                          </option>
                         ))}
                     </select>
                   </div>
