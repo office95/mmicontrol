@@ -25,8 +25,6 @@ type Booking = {
   course_start: string | null;
   partner_name: string | null;
   course_id?: string | null;
-  invoice_number?: string | null;
-  due_date?: string | null;
 };
 
 export default function BookingEditPage({ params }: { params: { id: string } }) {
@@ -115,7 +113,16 @@ export default function BookingEditPage({ params }: { params: { id: string } }) 
           <h1 className="text-3xl font-semibold text-white">Buchung bearbeiten</h1>
           <p className="text-sm text-slate-200">{form.booking_code || form.id}</p>
         </div>
-        <ButtonLink href="/admin/bookings">Zurück</ButtonLink>
+        <div className="flex items-center gap-2">
+          <button
+            className="button-primary px-4 h-10"
+            onClick={save}
+            disabled={loading}
+          >
+            {loading ? 'Speichern...' : 'Speichern'}
+          </button>
+          <ButtonLink href="/admin/bookings">Zurück</ButtonLink>
+        </div>
       </div>
 
       <div className="max-w-4xl mx-auto bg-white/95 text-slate-900 rounded-3xl shadow-[0_28px_80px_rgba(15,23,42,0.25)] border border-slate-200/70 p-6 md:p-8 backdrop-blur">
@@ -226,17 +233,6 @@ export default function BookingEditPage({ params }: { params: { id: string } }) 
                 </option>
               ))}
             </select>
-          </Field>
-          <Field label="Rechnungsnummer">
-            <input className="input" value={form.invoice_number ?? ''} onChange={(e) => setField('invoice_number', e.target.value || null)} />
-          </Field>
-          <Field label="Fälligkeit">
-            <input
-              type="date"
-              className="input"
-              value={form.due_date ?? ''}
-              onChange={(e) => setField('due_date', e.target.value || null)}
-            />
           </Field>
         </div>
 

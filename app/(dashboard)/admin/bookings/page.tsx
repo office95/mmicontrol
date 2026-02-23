@@ -64,6 +64,7 @@ export default function BookingsPage() {
   const [payNote, setPayNote] = useState('');
   const [savingPayment, setSavingPayment] = useState(false);
   const [statusSaving, setStatusSaving] = useState(false);
+  const [basicsSaving, setBasicsSaving] = useState(false);
   const [viewTab, setViewTab] = useState<'overview' | 'open'>('overview');
   const [modalTab, setModalTab] = useState<'overview' | 'payments' | 'dunning'>('overview');
   const [metrics, setMetrics] = useState<Metrics | null>(null);
@@ -106,6 +107,29 @@ export default function BookingsPage() {
       setSelected({ ...fallback, ...data });
       setPayments(data.payments || []);
       setModalTab('overview');
+    }
+  };
+
+  const saveBasics = async () => {
+    if (!selected) return;
+    setBasicsSaving(true);
+    const invoiceClean = (selected.invoice_number || '').trim();
+    const res = await fetch('/api/admin/bookings', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id: selected.id,
+        invoice_number: invoiceClean || null,
+        due_date: selected.due_date || null,
+      }),
+    });
+    setBasicsSaving(false);
+    if (!res.ok) {
+      const d = await res.json().catch(() => ({}));
+      alert(d.error || 'Basisdaten konnten nicht gespeichert werden.');
+    } else {
+      loadOne(selected.id);
+      load();
     }
   };
 
@@ -448,6 +472,15 @@ export default function BookingsPage() {
                         <p className="text-[15px] text-slate-800">{value}</p>
                       </div>
                     ))}
+                  </div>
+                  <div className="flex justify-end mt-4">
+                    <button
+                      className="rounded-lg bg-slate-900 text-white px-4 py-2 hover:bg-slate-800"
+                      disabled={basicsSaving}
+                      onClick={saveBasics}
+                    >
+                      {basicsSaving ? 'Speichern...' : 'Änderungen speichern'}
+                    </button>
                   </div>
                 </section>
               )}
