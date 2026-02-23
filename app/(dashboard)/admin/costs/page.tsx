@@ -43,7 +43,8 @@ export default function CostsPage() {
   const [vatRate, setVatRate] = useState('20');
   const [vendor, setVendor] = useState('');
   const [categoryId, setCategoryId] = useState('');
-  const [newCategory, setNewCategory] = useState('');
+  const [newCategoryName, setNewCategoryName] = useState('');
+  const [newCategoryDesc, setNewCategoryDesc] = useState('');
   const [courseId, setCourseId] = useState('');
   const [partnerId, setPartnerId] = useState('');
   const [description, setDescription] = useState('');
@@ -95,7 +96,6 @@ export default function CostsPage() {
     setVatRate('20');
     setVendor('');
     setCategoryId('');
-    setNewCategory('');
     setCourseId('');
     setPartnerId('');
     setDescription('');
@@ -123,24 +123,7 @@ export default function CostsPage() {
 
   const save = async () => {
     setSaving(true);
-    let catId = categoryId;
-    if (!catId && newCategory.trim()) {
-      const res = await fetch('/api/admin/cost-categories', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: newCategory.trim() }),
-      });
-      if (res.ok) {
-        const cat = await res.json();
-        catId = cat.id;
-        setCategories((prev) => [...prev, cat]);
-      } else {
-        const d = await res.json().catch(() => ({}));
-        alert(d.error || 'Kategorie konnte nicht angelegt werden.');
-        setSaving(false);
-        return;
-      }
-    }
+    const catId = categoryId;
 
     if (showPartner && !partnerId) {
       alert('Bitte Partner auswählen (Honorarnote).');
@@ -188,16 +171,43 @@ export default function CostsPage() {
     load();
   };
 
+  const addCategory = async () => {
+    if (!newCategoryName.trim()) return alert('Name für Kategorie eingeben.');
+    const res = await fetch('/api/admin/cost-categories', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: newCategoryName.trim(), description: newCategoryDesc || null }),
+    });
+    if (!res.ok) {
+      const d = await res.json().catch(() => ({}));
+      alert(d.error || 'Kategorie konnte nicht angelegt werden.');
+      return;
+    }
+    const cat = await res.json();
+    setCategories((prev) => [...prev, cat].sort((a, b) => a.name.localeCompare(b.name, 'de')));
+    setNewCategoryName('');
+    setNewCategoryDesc('');
+  };
+
+  const deleteCategory = async (id: string) => {
+    if (!confirm('Kategorie löschen? (Nur möglich, wenn keine Kosten darauf verweisen)')) return;
+    const res = await fetch(`/api/admin/cost-categories?id=${id}`, { method: 'DELETE' });
+    if (!res.ok) {
+      const d = await res.json().catch(() => ({}));
+      alert(d.error || 'Kategorie konnte nicht gelöscht werden.');
+      return;
+    }
+    setCategories((prev) => prev.filter((c) => c.id !== id));
+    if (categoryId === id) setCategoryId('');
+  };
+
   const total = useMemo(
     () => items.reduce((s, r) => s + Number(r.amount_gross || 0), 0),
     [items]
   );
 
-  const effectiveCategoryId = categoryId || (newCategory.trim() ? 'new' : '');
   const showPartner = (() => {
-    const selectedCat =
-      categories.find((c) => c.id === categoryId) ||
-      (newCategory.trim() ? { name: newCategory.trim() } : null);
+    const selectedCat = categories.find((c) => c.id === categoryId);
     return (selectedCat?.name || '').toLowerCase() === 'honorarnote';
   })();
 
@@ -230,6 +240,44 @@ export default function CostsPage() {
       </div>
 
       <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm space-y-3">
+        <div className="rounded-lg border border-slate-200 bg-slate-50/60 p-3">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <p className="text-xs uppercase tracking-[0.12em] text-slate-500">Kategorien verwalten</p>
+              <p className="text-sm text-slate-600">Hier anlegen/löschen, erscheinen sofort im Dropdown.</p>
+            </div>
+            <div className="flex gap-2 items-end">
+              <div className="flex gap-2">
+                <input
+                  className="input"
+                  placeholder="Neue Kategorie"
+                  value={newCategoryName}
+                  onChange={(e) => setNewCategoryName(e.target.value)}
+                />
+                <input
+                  className="input"
+                  placeholder="Beschreibung (optional)"
+                  value={newCategoryDesc}
+                  onChange={(e) => setNewCategoryDesc(e.target.value)}
+                />
+              </div>
+              <button className="rounded-lg bg-slate-900 text-white px-3 py-2 text-sm" onClick={addCategory}>Anlegen</button>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {categories
+              .slice()
+              .sort((a, b) => a.name.localeCompare(b.name, 'de'))
+              .map((c) => (
+                <span key={c.id} className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-slate-200 text-sm text-slate-700">
+                  {c.name}
+                  <button className="text-red-600 text-xs" onClick={() => deleteCategory(c.id)}>✕</button>
+                </span>
+              ))}
+            {categories.length === 0 && <span className="text-sm text-slate-500">Noch keine Kategorien.</span>}
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-5 gap-3 text-sm">
           <div>
             <label className="text-xs uppercase tracking-[0.12em] text-slate-500">Von</label>

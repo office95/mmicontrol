@@ -47,6 +47,13 @@ export async function POST(req: Request) {
   if (!body.cost_date) return NextResponse.json({ error: 'cost_date fehlt' }, { status: 400 });
   if (!body.amount_gross) return NextResponse.json({ error: 'amount_gross fehlt' }, { status: 400 });
 
+  if (body.category_id) {
+    const { data: cat } = await service.from('cost_categories').select('name').eq('id', body.category_id).maybeSingle();
+    if ((cat?.name || '').toLowerCase() === 'honorarnote' && !body.partner_id) {
+      return NextResponse.json({ error: 'Partner erforderlich bei Honorarnote' }, { status: 400 });
+    }
+  }
+
   const { amount_net, vat_amount } = computeAmounts(body.amount_gross, body.vat_rate ?? 0);
 
   const payload = {
@@ -72,6 +79,13 @@ export async function PATCH(req: Request) {
   const body = await req.json();
   const { id } = body;
   if (!id) return NextResponse.json({ error: 'id fehlt' }, { status: 400 });
+
+  if (body.category_id) {
+    const { data: cat } = await service.from('cost_categories').select('name').eq('id', body.category_id).maybeSingle();
+    if ((cat?.name || '').toLowerCase() === 'honorarnote' && !body.partner_id) {
+      return NextResponse.json({ error: 'Partner erforderlich bei Honorarnote' }, { status: 400 });
+    }
+  }
 
   const updates: any = { ...body };
   delete updates.id;
