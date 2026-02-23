@@ -176,6 +176,7 @@ export default function TeacherSupportPage() {
           </div>
         )}
       </div>
+      </div>
     </div>
   );
 }
