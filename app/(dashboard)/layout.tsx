@@ -206,6 +206,26 @@ export default async function DashboardLayout({ children }: { children: ReactNod
 
       {/* Content area below header */}
       <div className="pt-28 pb-12 px-3 md:px-6">
+        {/* Horizontale Menüleiste für Teacher/Student */}
+        {(isTeacher || isStudent) && (
+          <div className="w-full max-w-6xl mx-auto mb-4">
+            <div className="flex flex-wrap gap-2 rounded-2xl border border-white/10 bg-white/5 px-3 py-3 shadow-lg">
+              {links
+                .filter((l) => l.roles.includes(roleLabel as string))
+                .sort((a, b) => a.label.localeCompare(b.label, 'de'))
+                .map((l) => (
+                  <Link
+                    key={l.href}
+                    href={l.href as any}
+                    className="inline-flex items-center rounded-full border border-white/15 bg-white/5 px-3 py-2 text-sm font-semibold text-white hover:border-pink-300 hover:bg-white/10 transition"
+                  >
+                    {l.label}
+                  </Link>
+                ))}
+            </div>
+          </div>
+        )}
+
         <div className={`w-full ${isTeacher || isStudent ? 'max-w-6xl' : 'max-w-[85vw]'} mx-auto flex gap-8 ${!isTeacher && !isStudent ? 'md:pl-72' : ''}`}>
           {!isTeacher && !isStudent && (
             <aside className="hidden md:flex fixed top-28 bottom-6 left-4 w-64 flex-col rounded-2xl border border-white/15 bg-white/10 backdrop-blur-xl text-white shadow-2xl text-[17px]">
