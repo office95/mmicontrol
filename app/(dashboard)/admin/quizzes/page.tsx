@@ -601,7 +601,7 @@ export default function AdminQuizzesPage() {
                     >
                       <option value="">(kein Modul)</option>
                       {modules
-                        .filter((m) => !editQuiz.course_id || m.course_id === editQuiz.course_id)
+                        .slice()
                         .sort((a, b) => (a.module_number || 0) - (b.module_number || 0))
                         .map((m) => (
                           <option key={m.id} value={m.id}>
