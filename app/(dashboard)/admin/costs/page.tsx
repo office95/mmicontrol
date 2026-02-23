@@ -27,6 +27,7 @@ type CostRow = {
 export default function CostsPage() {
   const [items, setItems] = useState<CostRow[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [courses, setCourses] = useState<Course[]>([]);
   const [partners, setPartners] = useState<{ id: string; name: string | null }[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -73,11 +74,13 @@ export default function CostsPage() {
   };
 
   const loadMeta = async () => {
-    const [catRes, partnerRes] = await Promise.all([
+    const [catRes, courseRes, partnerRes] = await Promise.all([
       fetch('/api/admin/cost-categories'),
+      fetch('/api/admin/courses'),
       fetch('/api/admin/partners'),
     ]);
     if (catRes.ok) setCategories(await catRes.json());
+    if (courseRes.ok) setCourses(await courseRes.json());
     if (partnerRes.ok) setPartners(await partnerRes.json());
   };
 
