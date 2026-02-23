@@ -448,6 +448,8 @@ export default function StudentDashboardClient({
           onClose={() => { setShowFeedbackModal(false); setSelectedBooking(null); }}
         />
       )}
+
+      <FooterLinks />
     </div>
   );
 }
@@ -496,6 +498,16 @@ function FeedbackList({
       {!uniqueCourses.length && (
         <p className="text-white/80">Keine Kurse zur Bewertung gefunden.</p>
       )}
+    </div>
+  );
+}
+
+function FooterLinks() {
+  return (
+    <div className="border-t border-white/10 pt-4 text-xs text-white/70 flex flex-wrap gap-4 justify-center">
+      <a href="/legal/agb" className="hover:text-white">AGB</a>
+      <a href="/legal/datenschutz" className="hover:text-white">Datenschutz</a>
+      <a href="/legal/impressum" className="hover:text-white">Impressum</a>
     </div>
   );
 }

@@ -362,6 +362,8 @@ export default function DashboardClient({
           </div>
         </div>
       </div>
+
+      <FooterLinks />
     </div>
   );
 }
@@ -373,6 +375,16 @@ function StarDisplay({ value }: { value: number }) {
       {[1, 2, 3, 4, 5].map((i) => (
         <span key={i} className={i <= full ? 'opacity-100' : 'opacity-30'}>★</span>
       ))}
+    </div>
+  );
+}
+
+function FooterLinks() {
+  return (
+    <div className="border-t border-white/10 pt-4 text-xs text-white/70 flex flex-wrap gap-4 justify-center">
+      <a href="/legal/agb" className="hover:text-white">AGB</a>
+      <a href="/legal/datenschutz" className="hover:text-white">Datenschutz</a>
+      <a href="/legal/impressum" className="hover:text-white">Impressum</a>
     </div>
   );
 }
