@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { sendMail } from '@/lib/mailer';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -23,5 +24,31 @@ export async function POST(req: Request) {
     .eq('id', id);
 
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+
+  // Mail an den Benutzer schicken
+  try {
+    const user = await supabase.auth.admin.getUserById(id);
+    const email = user.data?.user?.email;
+    const name = (user.data?.user?.user_metadata as any)?.full_name || 'Music Mission Nutzer';
+    if (email) {
+      const statusTxt = approved ? 'wurde freigeschaltet.' : 'ist noch nicht freigeschaltet.';
+      await sendMail({
+        to: email,
+        subject: 'Dein Music Mission Dashboard Zugriff',
+        text: [
+          `Hallo ${name},`,
+          '',
+          `deine Rolle wurde auf "${role}" gesetzt und dein Account ${statusTxt}`,
+          'Du kannst dich unter https://musicmissioncontrol.com anmelden.',
+          '',
+          'Liebe Grüße',
+          'Music Mission Team'
+        ].join('\\n'),
+      });
+    }
+  } catch (e) {
+    console.warn('approve mail failed', e);
+  }
+
   return NextResponse.json({ ok: true });
 }
