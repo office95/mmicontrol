@@ -186,9 +186,12 @@ export default function CostsPage() {
           <h1 className="text-2xl font-semibold text-ink">Kosten</h1>
         </div>
         <div className="flex gap-2">
-          <ButtonLink href="#" onClick={(e) => { e.preventDefault(); openNew(); }} >
+          <button
+            className="inline-flex items-center justify-center h-11 px-5 rounded-lg bg-slate-900 text-white font-semibold hover:bg-slate-800 transition"
+            onClick={openNew}
+          >
             Kosten erfassen
-          </ButtonLink>
+          </button>
         </div>
       </div>
 
