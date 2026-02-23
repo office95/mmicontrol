@@ -158,5 +158,5 @@ function Panel({ title, children }: { title: string; children: React.ReactNode }
 
 function formatEuro(val?: number | null) {
   const n = Number(val || 0);
-  return n.toLocaleString('de-DE', { style: 'currency', currency: 'EUR', minimumFractionDigits: 0 });
+  return n.toLocaleString('de-DE', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2 });
 }

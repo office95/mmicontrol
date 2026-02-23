@@ -15,6 +15,7 @@ returns table (
     select booking_date, coalesce(amount,0) as amt
     from public.bookings
     where booking_date is not null
+      and coalesce(status,'') not in ('Storno','Inkasso','Archiv')
   ),
   cur as (
     select
@@ -99,6 +100,8 @@ returns table (
     select course_id, course_title, coalesce(amount,0) as amt, student_id
     from public.bookings
     where course_id is not null
+      and booking_date is not null
+      and coalesce(status,'') not in ('Storno','Inkasso','Archiv')
       and date_trunc('year', booking_date) = date_trunc('year', current_date)
   )
   select
@@ -127,6 +130,7 @@ returns table (
     select date_trunc('month', booking_date) as m, sum(coalesce(amount,0)) as amt
     from public.bookings
     where booking_date is not null
+      and coalesce(status,'') not in ('Storno','Inkasso','Archiv')
       and booking_date >= date_trunc('month', current_date) - interval '11 months'
     group by 1
   ),
@@ -156,6 +160,7 @@ returns table (
     select coalesce(saldo,0) as saldo, coalesce(booking_date, current_date) as d
     from public.bookings
     where saldo > 0
+      and coalesce(status,'') not in ('Storno','Inkasso','Archiv')
   )
   select bucket, sum(saldo) as amount from (
     select case

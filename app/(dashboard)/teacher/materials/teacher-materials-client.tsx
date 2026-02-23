@@ -108,44 +108,43 @@ export default function TeacherMaterialsClient({ courses, materials }: { courses
 
       <div className="grid gap-4 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
         {filtered.map((m) => (
-          <div key={m.id} className="rounded-2xl border border-white/15 bg-white/5 backdrop-blur shadow-xl overflow-hidden relative">
-            <div className="absolute -right-6 -top-8 h-16 w-16 rounded-full bg-pink-500/25 blur-2xl" />
-            {fileUrls[m.id]?.cover ? (
-              <div className="w-full aspect-[16/9] bg-white/10 overflow-hidden">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={fileUrls[m.id]?.cover!} alt={m.title} className="h-full w-full object-cover" />
+          <div
+            key={m.id}
+            className="rounded-2xl bg-white text-ink border border-slate-200 shadow-sm overflow-hidden flex flex-col"
+          >
+            <div className="relative h-32 bg-slate-100">
+              {fileUrls[m.id]?.cover ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={fileUrls[m.id]?.cover || ''} alt={m.title} className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full grid place-items-center text-slate-400 text-xs">Kein Cover</div>
+              )}
+              <div className="absolute top-2 left-2 inline-flex items-center px-2 py-1 rounded-full bg-black/60 text-white text-[11px]">
+                {m.course_title || 'Kurs'}
               </div>
-            ) : (
-              <div className="w-full aspect-[16/9] bg-gradient-to-r from-pink-500/20 via-purple-500/10 to-blue-500/20" />
-            )}
-            <div className="p-4 space-y-2">
-              <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-pink-100">
-                <span className="px-2 py-1 rounded-full border border-white/20 bg-white/10">{m.course_title || 'Kurs'}</span>
-                {m.module_number && (
-                  <span className="px-2 py-1 rounded-full border border-white/20 bg-white/10">Modul {m.module_number}</span>
-                )}
+              {m.module_number != null && (
+                <div className="absolute top-2 right-2 inline-flex items-center px-2 py-1 rounded-full bg-pink-500 text-white text-[11px]">
+                  Modul {m.module_number}
+                </div>
+              )}
+            </div>
+            <div className="p-4 space-y-2 flex-1 flex flex-col">
+              <div className="space-y-1">
+                <p className="text-xs uppercase tracking-[0.16em] text-slate-500">Titel</p>
+                <h3 className="text-lg font-semibold text-ink leading-tight">{m.title}</h3>
               </div>
-              <h3 className="text-lg font-semibold text-white drop-shadow-sm">{m.title}</h3>
-              <div className="flex gap-2 mt-2">
-                {fileUrls[m.id]?.file && (
+              <div className="mt-auto flex gap-2">
+                {fileUrls[m.id]?.file ? (
                   <a
                     href={fileUrls[m.id]?.file || '#'}
-                    className="rounded-lg bg-white text-ink px-3 py-2 text-sm font-semibold shadow hover:-translate-y-[1px] transition"
                     target="_blank"
+                    className="px-3 py-2 rounded-lg bg-pink-600 text-white text-xs font-semibold hover:bg-pink-500"
                     rel="noreferrer"
                   >
                     Öffnen
                   </a>
-                )}
-                {fileUrls[m.id]?.cover && (
-                  <a
-                    href={fileUrls[m.id]?.cover || '#'}
-                    className="rounded-lg border border-white/40 px-3 py-2 text-sm text-white hover:bg-white/10 transition"
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    Cover
-                  </a>
+                ) : (
+                  <span className="text-xs text-slate-500">keine Datei</span>
                 )}
               </div>
             </div>
