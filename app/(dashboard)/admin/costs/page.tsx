@@ -26,7 +26,6 @@ type CostRow = {
 export default function CostsPage() {
   const [items, setItems] = useState<CostRow[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [courses, setCourses] = useState<Course[]>([]);
   const [partners, setPartners] = useState<{ id: string; name: string | null }[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -34,7 +33,7 @@ export default function CostsPage() {
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
   const [filterCat, setFilterCat] = useState('');
-  const [filterCourse, setFilterCourse] = useState('');
+  const [filterPartner, setFilterPartner] = useState('');
 
   const [modalOpen, setModalOpen] = useState(false);
   const [catModalOpen, setCatModalOpen] = useState(false);
@@ -58,7 +57,7 @@ export default function CostsPage() {
     if (from) qs.set('from', from);
     if (to) qs.set('to', to);
     if (filterCat) qs.set('category_id', filterCat);
-    if (filterCourse) qs.set('course_id', filterCourse);
+    if (filterPartner) qs.set('partner_id', filterPartner);
     const res = await fetch('/api/admin/costs' + (qs.toString() ? `?${qs.toString()}` : ''));
     const data = await res.json();
     if (!res.ok) {
@@ -72,13 +71,11 @@ export default function CostsPage() {
   };
 
   const loadMeta = async () => {
-    const [catRes, courseRes, partnerRes] = await Promise.all([
+    const [catRes, partnerRes] = await Promise.all([
       fetch('/api/admin/cost-categories'),
-      fetch('/api/admin/courses'),
       fetch('/api/admin/partners'),
     ]);
     if (catRes.ok) setCategories(await catRes.json());
-    if (courseRes.ok) setCourses(await courseRes.json());
     if (partnerRes.ok) setPartners(await partnerRes.json());
   };
 
@@ -88,7 +85,7 @@ export default function CostsPage() {
 
   useEffect(() => {
     load();
-  }, [from, to, filterCat, filterCourse]);
+  }, [from, to, filterCat, filterPartner]);
 
   const resetForm = () => {
     setEditing(null);
@@ -268,14 +265,22 @@ export default function CostsPage() {
             </select>
           </div>
           <div>
-            <label className="text-xs uppercase tracking-[0.12em] text-slate-500">Kurs/Projekt</label>
-            <select className="input" value={filterCourse} onChange={(e) => setFilterCourse(e.target.value)}>
+            <label className="text-xs uppercase tracking-[0.12em] text-slate-500">Partner</label>
+            <select className="input" value={filterPartner} onChange={(e) => setFilterPartner(e.target.value)}>
               <option value="">Alle</option>
-              {courses.map((c) => <option key={c.id} value={c.id}>{c.title || c.id}</option>)}
+              {Array.from(
+                new Map(
+                  items
+                    .filter((i) => i.partner_id)
+                    .map((i) => [i.partner_id as string, i.partners?.name || partners.find((p) => p.id === i.partner_id)?.name || i.partner_id])
+                ).entries()
+              ).map(([id, name]) => (
+                <option key={id} value={id}>{name || id}</option>
+              ))}
             </select>
           </div>
           <div className="flex items-end">
-            <button className="text-sm text-slate-500 hover:underline" onClick={() => { setFrom(''); setTo(''); setFilterCat(''); setFilterCourse(''); }}>
+            <button className="text-sm text-slate-500 hover:underline" onClick={() => { setFrom(''); setTo(''); setFilterCat(''); setFilterPartner(''); }}>
               Filter zurücksetzen
             </button>
           </div>

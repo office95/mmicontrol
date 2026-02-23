@@ -24,6 +24,7 @@ export async function GET(req: Request) {
   const to = searchParams.get('to');
   const category = searchParams.get('category_id');
   const course = searchParams.get('course_id');
+  const partner = searchParams.get('partner_id');
 
   if (id) {
     const { data, error } = await service.from('costs').select(SELECT).eq('id', id).single();
@@ -36,6 +37,7 @@ export async function GET(req: Request) {
   if (to) q = q.lte('cost_date', to);
   if (category) q = q.eq('category_id', category);
   if (course) q = q.eq('course_id', course);
+  if (partner) q = q.eq('partner_id', partner);
 
   const { data, error } = await q;
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
