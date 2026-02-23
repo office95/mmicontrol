@@ -342,7 +342,7 @@ export default function AdminQuizzesPage() {
     setError(null);
     try {
     const body = {
-      quiz: { ...editQuiz, module_id: null },
+        quiz: { ...editQuiz, module_id: null },
       questions: editQuestions.map((q, idx) => ({
         id: q.id,
         prompt: q.prompt,

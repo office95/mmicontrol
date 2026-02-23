@@ -26,7 +26,7 @@ export async function GET(req: Request) {
   if (id) {
   const { data: quiz, error: qErr } = await supa
     .from('quizzes')
-    .select('id,title,description,cover_url,course_id,module_id,module_number,is_published,level_count,time_per_question,created_at')
+    .select('id,title,description,cover_url,course_id,module_id,is_published,level_count,time_per_question,created_at')
     .eq('id', id)
     .maybeSingle();
     if (qErr) return NextResponse.json({ error: qErr.message }, { status: 400 });
