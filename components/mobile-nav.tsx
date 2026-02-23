@@ -28,7 +28,7 @@ export default function MobileNav({ links }: { links: NavLink[] }) {
             {links.map((l) => (
               <Link
                 key={l.href}
-                href={l.href}
+                href={l.href as any}
                 className="flex items-center justify-between px-4 py-3 text-sm text-white hover:bg-white/10"
                 onClick={() => setOpen(false)}
               >
