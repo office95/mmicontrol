@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createSupabaseServerClient } from '@/lib/supabase-server';
 import { createClient } from '@supabase/supabase-js';
+import { sendMail } from '@/lib/mailer';
 
 const service = createClient(
   process.env.SUPABASE_URL!,
@@ -62,6 +63,13 @@ export async function POST(req: Request) {
     .from('support_tickets')
     .update({ status: nextStatus, last_message_at: new Date().toISOString() })
     .eq('id', ticket_id);
+
+  // Notify admin mailbox (simple)
+  await sendMail({
+    to: process.env.NOTIFY_ADMIN_EMAIL || 'office@musicmission.at',
+    subject: `Support: neue Nachricht zu Ticket ${ticket_id}`,
+    text: `Ticket ${ticket_id}\nStatus: ${nextStatus}\nVon: ${role}\nNachricht:\n${message}`,
+  });
 
   return NextResponse.json({ ok: true });
 }

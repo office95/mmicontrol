@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { sendMail } from '@/lib/mailer';
 
 const service = createClient(
   process.env.SUPABASE_URL!,
@@ -72,6 +73,13 @@ export async function POST(req: Request) {
       .update({ course_start: start_date })
       .eq('course_date_id', course_date_id);
   }
+
+  // Notify admin mailbox
+  await sendMail({
+    to: process.env.NOTIFY_ADMIN_EMAIL || 'office@musicmission.at',
+    subject: `Kurstermin verschoben: ${course_date_id}`,
+    text: `Kurstermin wurde verschoben.\nNeuer Start: ${start_date}\nNeues Ende: ${end_date || '-'}\nGrund: ${reason || '-'}\nCourseDate ID: ${course_date_id}`,
+  });
 
   const { data: history } = await service
     .from('course_reschedules')
