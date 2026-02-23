@@ -19,6 +19,7 @@ import { createSupabaseServerClient } from '@/lib/supabase-server';
 import { createClient } from '@supabase/supabase-js';
 import DashboardClient from './dashboard-client';
 import CountdownFlip from './countdown-flip';
+import { type Benefit } from './types';
 
 export default async function TeacherPage() {
   const supabase = createSupabaseServerClient();
@@ -668,6 +669,18 @@ export default async function TeacherPage() {
         website: string | null;
       }[]
     | null = [];
+
+  // Quizze für freigegebene Kurse (nur veröffentlicht)
+  let quizzes: { id: string; title: string; description: string | null; course_id: string | null }[] = [];
+  if (courseIds.length) {
+    const { data: quizRows } = await service
+      .from('quizzes')
+      .select('id, title, description, course_id, is_published')
+      .in('course_id', courseIds)
+      .eq('is_published', true)
+      .order('created_at', { ascending: false });
+    quizzes = (quizRows || []).map((q) => ({ id: q.id, title: q.title, description: q.description ?? null, course_id: q.course_id }));
+  }
   {
     const { data: rows } = await service
       .from('benefit_companies')
@@ -851,6 +864,7 @@ export default async function TeacherPage() {
         sources={sources}
         notes={notes}
         courses={courses || []}
+        quizzes={quizzes}
         materials={materials || []}
         feedbacks={feedbacks || []}
         feedbackOverallAvg={feedbackOverallAvg}

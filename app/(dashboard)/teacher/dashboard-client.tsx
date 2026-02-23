@@ -65,6 +65,7 @@ export default function DashboardClient({
   sources,
   notes,
   courses,
+  quizzes,
   materials,
   feedbacks,
   feedbackOverallAvg,
@@ -75,6 +76,7 @@ export default function DashboardClient({
   sources: PieSlice[];
   notes: PieSlice[];
   courses: CourseCard[];
+  quizzes: { id: string; title: string; course_id: string | null; description: string | null }[];
   materials: any[];
   feedbacks: Feedback[];
   feedbackOverallAvg?: number | null;
@@ -117,16 +119,25 @@ export default function DashboardClient({
   }, [feedbacks]);
 
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
+  const quizMap = useMemo(() => {
+    const m = new Map<string, { id: string; title: string; description: string | null }>();
+    quizzes.forEach((q) => {
+      if (q.course_id) m.set(q.course_id, q);
+    });
+    return m;
+  }, [quizzes]);
+  const [selectedQuizCourseId, setSelectedQuizCourseId] = useState<string | null>(null);
+  const selectedQuiz = selectedQuizCourseId ? quizMap.get(selectedQuizCourseId) || null : null;
   const selectedFeedbacks = selectedCourseId ? feedbackByCourse.get(selectedCourseId) || [] : [];
 
   return (
     <div className="min-h-screen flex flex-col space-y-4">
       <div className="flex-1 space-y-4">
-      <nav className="sticky top-0 z-30 -mx-4 px-4 pt-3 pb-4 bg-slate-950/85 border-b border-white/10 backdrop-blur-lg shadow-lg">
-        <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-sm font-semibold text-white/85">
-          <button
-            className={`px-3 py-2 rounded-full border transition ${tab === 'perf' ? 'border-pink-400 bg-pink-500/15 text-white shadow-pink-500/20 shadow-sm' : 'border-white/15 bg-white/5 hover:border-pink-300 hover:text-white'}`}
-            onClick={() => setTab('perf')}
+        <nav className="sticky top-0 z-30 -mx-4 px-4 pt-3 pb-4 bg-slate-950/85 border-b border-white/10 backdrop-blur-lg shadow-lg">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-sm font-semibold text-white/85">
+            <button
+              className={`px-3 py-2 rounded-full border transition ${tab === 'perf' ? 'border-pink-400 bg-pink-500/15 text-white shadow-pink-500/20 shadow-sm' : 'border-white/15 bg-white/5 hover:border-pink-300 hover:text-white'}`}
+              onClick={() => setTab('perf')}
           >
             Performance-Übersicht
           </button>
@@ -165,8 +176,54 @@ export default function DashboardClient({
               </span>
             )}
           </a>
+          </div>
+        </nav>
+
+        {/* Music Mission Quiz Banner */}
+        <div className="rounded-2xl border border-white/10 bg-slate-950 text-white overflow-hidden shadow-2xl">
+          <div className="grid md:grid-cols-[1.2fr,1fr] gap-0 relative">
+            <div className="relative min-h-[220px]">
+              <div
+                className="absolute inset-0 bg-center bg-cover"
+                style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1485579149621-3123dd979885?auto=format&fit=crop&w=1600&q=80)' }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/40 to-transparent" />
+              <div className="relative h-full w-full p-6 flex flex-col justify-end">
+                <p className="text-[11px] uppercase tracking-[0.24em] text-pink-200 mb-2">Music Mission Quiz</p>
+                <h2 className="text-3xl sm:text-4xl font-bold leading-tight">Music Mission Quiz</h2>
+                <p className="text-sm text-white/80 line-clamp-2">{selectedQuiz?.description || ''}</p>
+              </div>
+            </div>
+            <div className="p-6 sm:p-8 flex flex-col gap-4 justify-center bg-gradient-to-b from-slate-900 via-slate-900/90 to-slate-950">
+              <div className="space-y-1">
+                <h3 className="text-2xl font-semibold">{selectedQuiz?.title || 'Quiz auswählen'}</h3>
+                <p className="text-sm text-white/80 line-clamp-3">
+                  {selectedQuiz?.description || 'Wähle einen Kurs, um das passende Quiz zu starten.'}
+                </p>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
+                <select
+                  className="rounded-full border border-white/25 bg-black/40 px-3 py-2 text-sm text-white"
+                  value={selectedQuizCourseId || ''}
+                  onChange={(e) => setSelectedQuizCourseId(e.target.value || null)}
+                >
+                  <option value="">Kurs wählen</option>
+                  {(courses || []).map((c) => (
+                    <option key={c.id} value={c.id}>{c.title}</option>
+                  ))}
+                </select>
+                <a
+                  href={selectedQuiz ? `/quizzes?course_id=${selectedQuiz.course_id}&quiz_id=${selectedQuiz.id}` : '#'}
+                  className={`inline-flex items-center justify-center rounded-full px-5 py-2.5 text-sm font-semibold shadow-lg transition ${selectedQuiz ? 'bg-pink-600 text-white hover:bg-pink-500' : 'bg-slate-700 text-slate-300 cursor-not-allowed'}`}
+                  aria-disabled={!selectedQuiz}
+                  onClick={(e) => { if (!selectedQuiz) e.preventDefault(); }}
+                >
+                  {selectedQuiz ? 'Zum Quiz' : 'Kein Quiz' }
+                </a>
+              </div>
+            </div>
+          </div>
         </div>
-      </nav>
 
       {tab === 'perf' && (
         <TeacherStatsClient
