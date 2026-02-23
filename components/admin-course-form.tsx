@@ -45,6 +45,7 @@ export default function AdminCourseForm({
   const [coverUrl, setCoverUrl] = useState<string>(initial?.cover_url ?? '');
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState<string>(initial?.cover_url ?? '');
+  const [selectedModules, setSelectedModules] = useState<number[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -69,6 +70,21 @@ export default function AdminCourseForm({
     setSuccess(null);
     setError(null);
   }, [initial]);
+
+  useEffect(() => {
+    const loadModules = async () => {
+      if (!initial?.id) {
+        setSelectedModules([]);
+        return;
+      }
+      const res = await fetch(`/api/admin/modules?course_id=${initial.id}`);
+      if (res.ok) {
+        const data = await res.json();
+        setSelectedModules((data || []).map((m: any) => m.module_number).filter((n: number) => n != null));
+      }
+    };
+    loadModules();
+  }, [initial?.id]);
 
   const vatValue = (() => {
     if (vatMode === 'custom') {
@@ -145,6 +161,14 @@ export default function AdminCourseForm({
       setError(data.error || 'Fehler beim Anlegen');
       setSuccess(null);
     } else {
+      const savedCourseId = (data?.id as string) || initial?.id;
+      if (savedCourseId && selectedModules.length) {
+        await fetch('/api/admin/modules', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ course_id: savedCourseId, module_numbers: selectedModules }),
+        });
+      }
       if (isEdit) {
         setSuccess('Kurs gespeichert');
       } else {
@@ -158,6 +182,7 @@ export default function AdminCourseForm({
         setCoverFile(null);
         setCoverPreview('');
         setSuccess('Kurs angelegt');
+        setSelectedModules([]);
       }
       onSaved?.();
     }
@@ -314,6 +339,34 @@ export default function AdminCourseForm({
             <label className="text-sm font-medium text-slate-700">Saldo (Brutto - Anzahlung)</label>
             <input className="input bg-slate-100" value={saldo} readOnly />
           </div>
+        </div>
+      </div>
+
+      <div className="rounded-xl border border-slate-200 p-4 space-y-3 bg-white">
+        <p className="text-sm font-semibold text-slate-800">Module (optional)</p>
+        <p className="text-xs text-slate-500">Vordefinierte Module 1–20 auswählen. Bei Bedarf mehrere wählen.</p>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+          {Array.from({ length: 20 }, (_, i) => i + 1).map((n) => {
+            const selected = selectedModules.includes(n);
+            return (
+              <button
+                key={n}
+                type="button"
+                onClick={() =>
+                  setSelectedModules((prev) =>
+                    prev.includes(n) ? prev.filter((m) => m !== n) : [...prev, n].sort((a, b) => a - b)
+                  )
+                }
+                className={`rounded-lg border px-3 py-2 text-sm font-semibold ${
+                  selected
+                    ? 'border-pink-500 bg-pink-50 text-pink-700'
+                    : 'border-slate-200 bg-slate-50 text-slate-700'
+                }`}
+              >
+                Modul {n}
+              </button>
+            );
+          })}
         </div>
       </div>
 

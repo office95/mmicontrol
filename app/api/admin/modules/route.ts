@@ -27,3 +27,26 @@ export async function GET(req: Request) {
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
   return NextResponse.json(data);
 }
+
+export async function POST(req: Request) {
+  if (!(await isAdmin())) return NextResponse.json({ error: 'forbidden' }, { status: 403 });
+  const supa = service();
+  const body = await req.json().catch(() => ({}));
+  const { course_id, module_numbers } = body || {};
+  if (!course_id || !Array.isArray(module_numbers) || !module_numbers.length) {
+    return NextResponse.json({ error: 'course_id and module_numbers[] required' }, { status: 400 });
+  }
+
+  // Upsert Module 1..20 (or provided) with default title "Modul X"
+  const payload = module_numbers.map((n: number) => ({
+    course_id,
+    module_number: n,
+    title: `Modul ${n}`,
+  }));
+
+  const { error } = await supa
+    .from('modules')
+    .upsert(payload, { onConflict: 'course_id,module_number' });
+  if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+  return NextResponse.json({ ok: true });
+}
