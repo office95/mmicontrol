@@ -10,15 +10,25 @@ export default async function SurveyPage({ params, searchParams }: { params: { s
   if (!user) redirect('/login');
 
   const bookingId = typeof searchParams.booking_id === 'string' ? searchParams.booking_id : null;
-  if (!bookingId) return <div className="text-white p-6">booking_id fehlt.</div>;
+  const isPreview = searchParams.preview === '1';
 
-  const res = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || ''}/api/student/surveys/${params.surveyId}?booking_id=${bookingId}`, {
-    headers: { cookie: '' }, // handled server-side in route
-    cache: 'no-store',
-  }).catch(() => null);
+  if (!bookingId && !isPreview) return <div className="text-white p-6">booking_id fehlt.</div>;
 
-  if (!res || !res.ok) return <div className="text-white p-6">Nicht gefunden oder keine Berechtigung.</div>;
-  const data = await res.json();
+  let data: any = null;
+
+  if (isPreview) {
+    const { data: survey, error: surveyErr } = await supabase.from('course_surveys').select('*').eq('id', params.surveyId).single();
+    const { data: questions, error: qErr } = await supabase.from('course_survey_questions').select('*').eq('survey_id', params.surveyId).order('position');
+    if (surveyErr || qErr || !survey) return <div className="text-white p-6">Vorschau nicht möglich.</div>;
+    data = { survey, questions, booking: { course_title: survey.course_id } };
+  } else {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || ''}/api/student/surveys/${params.surveyId}?booking_id=${bookingId}`, {
+      headers: { cookie: '' }, // handled server-side in route
+      cache: 'no-store',
+    }).catch(() => null);
+    if (!res || !res.ok) return <div className="text-white p-6">Nicht gefunden oder keine Berechtigung.</div>;
+    data = await res.json();
+  }
 
   return (
     <div className="min-h-screen bg-slate-950 text-white px-4 sm:px-6 lg:px-10 py-8">
@@ -30,7 +40,7 @@ export default async function SurveyPage({ params, searchParams }: { params: { s
           {data?.survey?.instructions && <p className="mt-2 text-sm text-white/70 whitespace-pre-wrap">{data.survey.instructions}</p>}
         </div>
 
-        <SurveyForm survey={data.survey} questions={data.questions || []} bookingId={bookingId} />
+        <SurveyForm survey={data.survey} questions={data.questions || []} bookingId={bookingId || 'preview'} preview={isPreview} />
       </div>
     </div>
   );

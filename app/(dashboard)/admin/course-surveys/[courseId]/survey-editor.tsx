@@ -188,7 +188,7 @@ export default function SurveyEditor({ courseId, initialSurvey, initialQuestions
       {error && <p className="text-sm text-rose-300">{error}</p>}
       {success && <p className="text-sm text-emerald-300">{success}</p>}
 
-      <div className="flex gap-3">
+      <div className="flex gap-3 flex-wrap">
         <button
           className="px-4 py-2 rounded-lg bg-pink-600 text-white font-semibold hover:bg-pink-500 disabled:opacity-60"
           onClick={save}
@@ -196,6 +196,14 @@ export default function SurveyEditor({ courseId, initialSurvey, initialQuestions
         >
           {saving ? 'Speichert…' : 'Speichern'}
         </button>
+        <a
+          href={survey.id ? `/surveys/${survey.id}?booking_id=preview&preview=1` : '#'}
+          target="_blank"
+          rel="noreferrer"
+          className={`px-4 py-2 rounded-lg border border-white/20 text-white hover:bg-white/10 ${survey.id ? '' : 'opacity-50 pointer-events-none'}`}
+        >
+          Vorschau öffnen
+        </a>
         <button
           className="px-4 py-2 rounded-lg border border-white/20 text-white hover:bg-white/10"
           onClick={() => router.back()}

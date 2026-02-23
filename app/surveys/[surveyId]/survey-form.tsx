@@ -19,7 +19,7 @@ type Survey = {
   course_id: string;
 };
 
-export default function SurveyForm({ survey, questions, bookingId }: { survey: Survey; questions: Question[]; bookingId: string }) {
+export default function SurveyForm({ survey, questions, bookingId, preview = false }: { survey: Survey; questions: Question[]; bookingId: string; preview?: boolean }) {
   const router = useRouter();
   const search = useSearchParams();
   const [values, setValues] = useState<Record<string, string>>({});
@@ -151,13 +151,15 @@ export default function SurveyForm({ survey, questions, bookingId }: { survey: S
         className="px-4 py-2 rounded-lg bg-pink-600 text-white font-semibold hover:bg-pink-500 disabled:opacity-60"
         onClick={submit}
         disabled={
-          submitting
+          preview
+          || submitting
           || questions.some((q) => q.required && !(values[q.id] ?? '').trim())
           || questions.some((q) => q.extra_text_label && q.extra_text_required && !(extraValues[q.id] ?? '').trim())
         }
       >
-        {submitting ? 'Sendet…' : 'Absenden'}
+        {preview ? 'Vorschau' : submitting ? 'Sendet…' : 'Absenden'}
       </button>
+      {preview && <p className="text-xs text-white/60">Dies ist eine Vorschau – Eingaben werden nicht gespeichert.</p>}
     </div>
   );
 }
