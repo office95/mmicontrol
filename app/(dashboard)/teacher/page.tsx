@@ -19,7 +19,21 @@ import { createSupabaseServerClient } from '@/lib/supabase-server';
 import { createClient } from '@supabase/supabase-js';
 import DashboardClient from './dashboard-client';
 import CountdownFlip from './countdown-flip';
-import { type Benefit } from './types';
+type Benefit = {
+  id: string;
+  name: string;
+  action_title: string | null;
+  description: string | null;
+  logo_url: string | null;
+  discount_type: string | null;
+  discount_value: number | null;
+  code: string | null;
+  valid_from: string | null;
+  valid_to: string | null;
+  members_card_required: boolean;
+  how_to_redeem: string | null;
+  website: string | null;
+};
 
 export default async function TeacherPage() {
   const supabase = createSupabaseServerClient();
