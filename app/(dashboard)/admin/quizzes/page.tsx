@@ -176,17 +176,21 @@ export default function AdminQuizzesPage() {
   const ensureModules = async (cid: string) => {
     setError(null);
     try {
-      const res = await fetch('/api/admin/modules', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ course_id: cid, module_numbers: Array.from({ length: 20 }, (_, i) => i + 1) }),
-      });
-      if (!res.ok) {
-        const d = await res.json().catch(() => ({}));
-        throw new Error(d.error || 'Module konnten nicht angelegt werden');
+      // Nur anlegen, wenn weniger als 20 Module für den Kurs existieren
+      const current = modules.filter((m) => m.course_id === cid);
+      if (current.length < 20) {
+        const res = await fetch('/api/admin/modules', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ course_id: cid, module_numbers: Array.from({ length: 20 }, (_, i) => i + 1) }),
+        });
+        if (!res.ok) {
+          const d = await res.json().catch(() => ({}));
+          throw new Error(d.error || 'Module konnten nicht angelegt werden');
+        }
+        const modRes = await fetch('/api/admin/modules');
+        if (modRes.ok) setModules(await modRes.json());
       }
-      const modRes = await fetch('/api/admin/modules');
-      if (modRes.ok) setModules(await modRes.json());
     } catch (e: any) {
       setError(e.message);
     }
@@ -233,6 +237,13 @@ export default function AdminQuizzesPage() {
       setSaving(false);
     }
   };
+
+  // Immer 20 Module pro Kurs anlegen, sobald ein Kurs im Editor gewählt/geladen wird
+  useEffect(() => {
+    if (editQuiz?.course_id) {
+      ensureModules(editQuiz.course_id);
+    }
+  }, [editQuiz?.course_id]);
 
   return (
     <div className="space-y-6">
