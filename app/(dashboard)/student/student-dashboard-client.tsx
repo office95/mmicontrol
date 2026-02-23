@@ -93,7 +93,6 @@ export default function StudentDashboardClient({
   feedbacks: Record<string, any>;
 }) {
   const [tab, setTab] = useState<'bookings' | 'materials' | 'profile' | 'feedback'>(initialTab || 'bookings');
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [unread, setUnread] = useState(0);
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(courses[0]?.id || null);
   const courseTitle = (cid: string | null) => courses.find((c) => c.id === cid)?.title ?? 'Kurs';
@@ -144,44 +143,45 @@ export default function StudentDashboardClient({
 
   return (
     <div className="space-y-6">
-      {/* Tabs: Desktop = Buttons; Tablet = scrollbare Leiste; Mobile = Dropdown/Hamburger */}
-      <div className="hidden lg:flex gap-2 text-sm font-semibold text-white/80 mt-1 mb-6">
-        <button
-          className={`px-3 py-2 rounded-lg border ${tab === 'bookings' ? 'border-pink-400 bg-pink-500/15 text-white' : 'border-white/20 bg-white/10'}`}
-          onClick={() => setTab('bookings')}
-        >
-          Meine Buchungen
-        </button>
-        <button
-          className={`px-3 py-2 rounded-lg border ${tab === 'materials' ? 'border-pink-400 bg-pink-500/15 text-white' : 'border-white/20 bg-white/10'}`}
-          onClick={() => setTab('materials')}
-        >
-          Kursunterlagen
-        </button>
-        <button
-          className={`px-3 py-2 rounded-lg border ${tab === 'profile' ? 'border-pink-400 bg-pink-500/15 text-white' : 'border-white/20 bg-white/10'}`}
-          onClick={() => setTab('profile')}
-        >
-          Profil
-        </button>
-        <button
-          className={`px-3 py-2 rounded-lg border ${tab === 'feedback' ? 'border-pink-400 bg-pink-500/15 text-white' : 'border-white/20 bg-white/10'}`}
-          onClick={() => setTab('feedback')}
-        >
-          Kurs Bewertung
-        </button>
-        <a
-          href="/student/support"
-          className="relative px-3 py-2 rounded-lg border border-white/20 bg-white/10 hover:border-pink-300 hover:text-white flex items-center gap-2"
-        >
-          Support
-          {unread > 0 && (
-            <span className="inline-flex h-5 px-2 items-center justify-center rounded-full bg-rose-500 text-white text-xs font-bold">
-              {unread}
-            </span>
-          )}
-        </a>
-      </div>
+      <nav className="sticky top-0 z-30 -mx-4 px-4 pt-3 pb-4 bg-slate-950/85 border-b border-white/10 backdrop-blur-lg shadow-lg">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-sm font-semibold text-white/85">
+          <button
+            className={`px-3 py-2 rounded-full border transition ${tab === 'bookings' ? 'border-pink-400 bg-pink-500/15 text-white shadow-pink-500/20 shadow-sm' : 'border-white/15 bg-white/5 hover:border-pink-300 hover:text-white'}`}
+            onClick={() => setTab('bookings')}
+          >
+            Meine Buchungen
+          </button>
+          <button
+            className={`px-3 py-2 rounded-full border transition ${tab === 'materials' ? 'border-pink-400 bg-pink-500/15 text-white shadow-pink-500/20 shadow-sm' : 'border-white/15 bg-white/5 hover:border-pink-300 hover:text-white'}`}
+            onClick={() => setTab('materials')}
+          >
+            Kursunterlagen
+          </button>
+          <button
+            className={`px-3 py-2 rounded-full border transition ${tab === 'profile' ? 'border-pink-400 bg-pink-500/15 text-white shadow-pink-500/20 shadow-sm' : 'border-white/15 bg-white/5 hover:border-pink-300 hover:text-white'}`}
+            onClick={() => setTab('profile')}
+          >
+            Profil
+          </button>
+          <button
+            className={`px-3 py-2 rounded-full border transition ${tab === 'feedback' ? 'border-pink-400 bg-pink-500/15 text-white shadow-pink-500/20 shadow-sm' : 'border-white/15 bg-white/5 hover:border-pink-300 hover:text-white'}`}
+            onClick={() => setTab('feedback')}
+          >
+            Kurs Bewertung
+          </button>
+          <a
+            href="/student/support"
+            className="relative px-3 py-2 rounded-full border border-white/15 bg-white/5 hover:border-pink-300 hover:text-white flex items-center gap-2 transition"
+          >
+            Support
+            {unread > 0 && (
+              <span className="inline-flex h-5 px-2 items-center justify-center rounded-full bg-rose-500 text-white text-xs font-bold">
+                {unread}
+              </span>
+            )}
+          </a>
+        </div>
+      </nav>
 
       
       {tab === 'bookings' && <BookingsClient bookings={bookings} />}
