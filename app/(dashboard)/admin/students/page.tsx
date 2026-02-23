@@ -70,12 +70,14 @@ export default function StudentsPage() {
 
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase();
-    return items.filter((s) => {
-      const statusOk = filterStatus === 'all' ? true : s.status === filterStatus;
-      const text = `${s.name ?? ''} ${s.city ?? ''} ${s.state ?? ''} ${s.country ?? ''} ${s.email ?? ''}`.toLowerCase();
-      const searchOk = term === '' ? true : text.includes(term);
-      return statusOk && searchOk;
-    });
+    return items
+      .filter((s) => {
+        const statusOk = filterStatus === 'all' ? true : s.status === filterStatus;
+        const text = `${s.name ?? ''} ${s.city ?? ''} ${s.state ?? ''} ${s.country ?? ''} ${s.email ?? ''}`.toLowerCase();
+        const searchOk = term === '' ? true : text.includes(term);
+        return statusOk && searchOk;
+      })
+      .sort((a, b) => (a.name || '').localeCompare(b.name || '', 'de', { sensitivity: 'base' }));
   }, [items, search, filterStatus]);
 
   const openFor = (s: StudentListRow) => {
