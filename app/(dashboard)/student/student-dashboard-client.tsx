@@ -95,6 +95,7 @@ export default function StudentDashboardClient({
   const [tab, setTab] = useState<'bookings' | 'materials' | 'profile' | 'feedback'>(initialTab || 'bookings');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [unread, setUnread] = useState(0);
+  const [selectedCourseId, setSelectedCourseId] = useState<string | null>(courses[0]?.id || null);
   const courseTitle = (cid: string | null) => courses.find((c) => c.id === cid)?.title ?? 'Kurs';
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
@@ -213,15 +214,26 @@ export default function StudentDashboardClient({
                 <span className="px-3 py-1 rounded-full border border-white/20 bg-white/10">Zeitlimit pro Frage</span>
                 <span className="px-3 py-1 rounded-full border border-white/20 bg-white/10">Anonyme Bestenliste</span>
               </div>
-              <div className="flex gap-3">
+              <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
+                {courses.length > 1 && (
+                  <select
+                    className="rounded-full border border-white/25 bg-black/40 px-3 py-2 text-sm text-white"
+                    value={selectedCourseId || ''}
+                    onChange={(e) => setSelectedCourseId(e.target.value || null)}
+                  >
+                    {courses.map((c) => (
+                      <option key={c.id} value={c.id}>{c.title}</option>
+                    ))}
+                  </select>
+                )}
                 <a
-                  href="/quizzes"
+                  href={`/quizzes${selectedCourseId ? `?course_id=${selectedCourseId}` : ''}`}
                   className="inline-flex items-center justify-center rounded-full bg-pink-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg hover:bg-pink-500 transition"
                 >
                   Zum Quiz
                 </a>
                 <a
-                  href="/quizzes"
+                  href={`/quizzes${selectedCourseId ? `?course_id=${selectedCourseId}` : ''}`}
                   className="inline-flex items-center justify-center rounded-full border border-white/30 px-5 py-2.5 text-sm font-semibold text-white hover:bg-white/10 transition"
                 >
                   Bestenliste

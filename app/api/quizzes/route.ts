@@ -21,10 +21,13 @@ async function membershipCourseIds(userId: string, supa: ReturnType<typeof servi
   return (data ?? []).map((r) => r.course_id).filter(Boolean);
 }
 
-export async function GET() {
+export async function GET(req: Request) {
   if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
     return NextResponse.json({ error: 'service role key missing' }, { status: 500 });
   }
+
+  const { searchParams } = new URL(req.url);
+  const courseFilter = searchParams.get('course_id');
 
   const user = await currentUser();
   if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
@@ -37,7 +40,7 @@ export async function GET() {
 
   const query = supa
     .from('quizzes')
-    .select('id,title,description,course_id,module_id,level_count,time_per_question,allow_mixed_modules,is_published,created_at,courses(title),modules(module_number)')
+    .select('id,title,description,cover_url,course_id,module_id,level_count,time_per_question,allow_mixed_modules,is_published,created_at,courses(title),modules(module_number)')
     .order('created_at', { ascending: false });
 
   if (!isAdmin) {
@@ -45,6 +48,7 @@ export async function GET() {
     if (!courseIds || !courseIds.length) return NextResponse.json([]);
     query.in('course_id', courseIds as string[]);
   }
+  if (courseFilter) query.eq('course_id', courseFilter);
 
   const { data, error } = await query;
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
