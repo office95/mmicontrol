@@ -49,7 +49,7 @@ export default function ProfileModal({ open, onClose, profile }: Props) {
   async function save() {
     if (!profile?.id) return;
     setSaving(true);
-    await fetch('/api/student/profile', {
+    const res = await fetch('/api/student/profile', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -65,6 +65,20 @@ export default function ProfileModal({ open, onClose, profile }: Props) {
         birthdate: form.birthdate,
       })
     });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok && data.profile) {
+      setForm({
+        salutation: data.profile.salutation ?? 'Herr',
+        name: data.profile.name ?? '',
+        street: data.profile.street ?? '',
+        zip: data.profile.zip ?? '',
+        city: data.profile.city ?? '',
+        state: data.profile.state ?? '',
+        country: data.profile.country ?? '',
+        phone: data.profile.phone ?? '',
+        birthdate: data.profile.birthdate ?? '',
+      });
+    }
     setSaving(false);
     setEditing(false);
   }

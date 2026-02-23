@@ -10,10 +10,12 @@ export async function POST(req: Request) {
   const body = await req.json();
   const { id, salutation, name, street, zip, city, state, country, phone, birthdate } = body;
   if (!id) return NextResponse.json({ error: 'id fehlt' }, { status: 400 });
-  const { error } = await service
+  const { data, error } = await service
     .from('students')
     .update({ salutation, name, street, zip, city, state, country, phone, birthdate })
-    .eq('id', id);
+    .eq('id', id)
+    .select('id, salutation, name, street, zip, city, state, country, phone, birthdate, email')
+    .single();
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, profile: data });
 }
