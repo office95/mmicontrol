@@ -37,22 +37,45 @@ export default async function AdminFinancePage() {
   return (
     <main className="space-y-6">
       <header className="grid gap-4 md:grid-cols-4">
-        <StatCard title="Umsatz MTD" value={revenueAgg?.mtd_current ?? 0} delta={revenueAgg?.mtd_delta ?? 0} fmt="€" />
-        <StatCard title="Umsatz QTD" value={revenueAgg?.qtd_current ?? 0} delta={revenueAgg?.qtd_delta ?? 0} fmt="€" />
-        <StatCard title="Umsatz YTD" value={revenueAgg?.ytd_current ?? 0} delta={revenueAgg?.ytd_delta ?? 0} fmt="€" />
-        <StatCard title="Offene Forderungen" value={openInvoices?.reduce((s, b) => s + (b.saldo || 0), 0) ?? 0} fmt="€" />
+        <StatCard
+          title="Umsatz MTD"
+          value={revenueAgg?.mtd_current ?? 0}
+          delta={revenueAgg?.mtd_delta ?? 0}
+          fmt="€"
+          desc="Summe amount aller Buchungen im aktuellen Monat (Status ≠ Storno/Inkasso/Archiv) im Feld booking_date."
+        />
+        <StatCard
+          title="Umsatz QTD"
+          value={revenueAgg?.qtd_current ?? 0}
+          delta={revenueAgg?.qtd_delta ?? 0}
+          fmt="€"
+          desc="Summe amount aktuelles Quartal (Status ≠ Storno/Inkasso/Archiv)."
+        />
+        <StatCard
+          title="Umsatz YTD"
+          value={revenueAgg?.ytd_current ?? 0}
+          delta={revenueAgg?.ytd_delta ?? 0}
+          fmt="€"
+          desc="Summe amount aktuelles Jahr (Status ≠ Storno/Inkasso/Archiv)."
+        />
+        <StatCard
+          title="Offene Forderungen"
+          value={openInvoices?.reduce((s, b) => s + (b.saldo || 0), 0) ?? 0}
+          fmt="€"
+          desc="Saldo > 0 aus bookings (Status ≠ Storno/Inkasso/Archiv)."
+        />
       </header>
 
       <div className="grid gap-4 md:grid-cols-3">
-        <StatCard title="Kosten MTD" value={costAgg?.mtd_current ?? 0} fmt="€" />
-        <StatCard title="Kosten QTD" value={costAgg?.qtd_current ?? 0} fmt="€" />
-        <StatCard title="Kosten YTD" value={costAgg?.ytd_current ?? 0} fmt="€" />
+        <StatCard title="Kosten MTD" value={costAgg?.mtd_current ?? 0} fmt="€" desc="Summe amount_gross aus costs im aktuellen Monat." />
+        <StatCard title="Kosten QTD" value={costAgg?.qtd_current ?? 0} fmt="€" desc="Summe amount_gross aktuelles Quartal." />
+        <StatCard title="Kosten YTD" value={costAgg?.ytd_current ?? 0} fmt="€" desc="Summe amount_gross aktuelles Jahr." />
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
-        <StatCard title="Ergebnis MTD" value={profitAgg?.mtd ?? 0} fmt="€" />
-        <StatCard title="Ergebnis QTD" value={profitAgg?.qtd ?? 0} fmt="€" />
-        <StatCard title="Ergebnis YTD" value={profitAgg?.ytd ?? 0} fmt="€" />
+        <StatCard title="Ergebnis MTD" value={profitAgg?.mtd ?? 0} fmt="€" desc="Umsatz MTD minus Kosten MTD." />
+        <StatCard title="Ergebnis QTD" value={profitAgg?.qtd ?? 0} fmt="€" desc="Umsatz QTD minus Kosten QTD." />
+        <StatCard title="Ergebnis YTD" value={profitAgg?.ytd ?? 0} fmt="€" desc="Umsatz YTD minus Kosten YTD." />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
@@ -130,16 +153,38 @@ export default async function AdminFinancePage() {
   );
 }
 
-function StatCard({ title, value, delta, fmt = '€' }: { title: string; value: number; delta?: number; fmt?: '€' | '' }) {
+function StatCard({
+  title,
+  value,
+  delta,
+  fmt = '€',
+  desc,
+}: {
+  title: string;
+  value: number;
+  delta?: number;
+  fmt?: '€' | '';
+  desc?: string;
+}) {
   const trend = delta ?? 0;
   return (
-    <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-slate-900 via-slate-900/80 to-slate-950 p-4 shadow-xl text-white">
-      <p className="text-xs uppercase tracking-[0.24em] text-white/60">{title}</p>
+    <div className="group relative rounded-2xl border border-white/10 bg-gradient-to-br from-slate-900 via-slate-900/80 to-slate-950 p-4 shadow-xl text-white">
+      <div className="flex items-start justify-between gap-2">
+        <p className="text-xs uppercase tracking-[0.24em] text-white/60">{title}</p>
+        {desc && (
+          <span className="text-xs text-white/60 cursor-help">ⓘ</span>
+        )}
+      </div>
       <p className="text-3xl font-bold mt-1">{fmt === '€' ? formatEuro(value) : value}</p>
       {delta !== undefined && (
         <p className={`text-sm font-semibold ${trend >= 0 ? 'text-emerald-300' : 'text-rose-300'}`}>
           {trend >= 0 ? '▲' : '▼'} {Math.abs(trend).toFixed(1)}% vs. Vorjahr
         </p>
+      )}
+      {desc && (
+        <div className="pointer-events-none absolute top-full left-0 mt-2 w-64 rounded-lg border border-white/15 bg-slate-950/95 p-3 text-[12px] text-white/80 shadow-2xl opacity-0 transition-opacity duration-150 group-hover:opacity-100">
+          {desc}
+        </div>
       )}
     </div>
   );
