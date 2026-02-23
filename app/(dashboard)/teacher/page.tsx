@@ -845,6 +845,19 @@ export default async function TeacherPage() {
         </div>
       </div>
 
+      <DashboardClient
+        kpis={{ monthBookings, monthBookingsPrev, yearBookings, yearBookingsPrev, yearParticipants, yearParticipantsPrev }}
+        interests={topInterests}
+        sources={sources}
+        notes={notes}
+        courses={courses || []}
+        materials={materials || []}
+        feedbacks={feedbacks || []}
+        feedbackOverallAvg={feedbackOverallAvg}
+        benefits={benefits || []}
+      />
+
+      {/* Music Mission Quiz – immer ganz unten */}
       <div className="rounded-2xl border border-white/10 bg-gradient-to-r from-slate-900 via-slate-800 to-pink-900/60 text-white overflow-hidden shadow-2xl">
         <div className="grid md:grid-cols-[1.3fr,1fr] gap-0">
           <div className="relative min-h-[220px]">
@@ -904,18 +917,6 @@ export default async function TeacherPage() {
           </div>
         </div>
       </div>
-
-      <DashboardClient
-        kpis={{ monthBookings, monthBookingsPrev, yearBookings, yearBookingsPrev, yearParticipants, yearParticipantsPrev }}
-        interests={topInterests}
-        sources={sources}
-        notes={notes}
-        courses={courses || []}
-        materials={materials || []}
-        feedbacks={feedbacks || []}
-        feedbackOverallAvg={feedbackOverallAvg}
-        benefits={benefits || []}
-      />
     </div>
   );
 }
