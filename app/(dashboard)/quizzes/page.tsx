@@ -22,7 +22,8 @@ export default async function QuizzesPage({ searchParams }: { searchParams?: Rec
   const courseFilter = typeof searchParams?.course_id === 'string' ? searchParams.course_id : null;
   const preselectId = typeof searchParams?.quiz_id === 'string' ? searchParams.quiz_id : null;
   const mayPreview = profile?.role === 'admin' || profile?.role === 'teacher';
-  const includeDrafts = previewRequested && mayPreview;
+  // Für Admin/Teacher immer auch unveröffentlichte Quizze zeigen; für andere nur, wenn explizit erlaubt
+  const includeDrafts = mayPreview || previewRequested;
 
   const query = supabase
     .from('quizzes')
