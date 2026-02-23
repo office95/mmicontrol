@@ -188,14 +188,12 @@ export default async function DashboardLayout({ children }: { children: ReactNod
                   roleLabel === 'student'
                     ? links.filter((l) => l.roles.includes('student'))
                     : links.filter((l) => l.roles.includes(roleLabel as string) && (permissions[l.slug] ?? false));
-                const sorted = filtered
-                  .slice()
-                  .sort((a, b) => {
-                    if (a.slug === 'admin-dashboard') return -1;
-                    if (b.slug === 'admin-dashboard') return 1;
-                    return a.label.localeCompare(b.label, 'de');
-                  });
-                return filtered.map((l) => ({
+                const sorted = filtered.slice().sort((a, b) => {
+                  if (a.slug === 'admin-dashboard') return -1;
+                  if (b.slug === 'admin-dashboard') return 1;
+                  return a.label.localeCompare(b.label, 'de');
+                });
+                return sorted.map((l) => ({
                   href: l.href,
                   label: l.label,
                   badge: l.slug === 'admin-support' ? supportOpen : undefined,
@@ -217,30 +215,14 @@ export default async function DashboardLayout({ children }: { children: ReactNod
                       const allowed = links.filter(
                         (l) => l.roles.includes(roleLabel as string) && (permissions[l.slug] ?? false)
                       );
-                      const top = allowed.filter((l) => l.pin === 'top');
+                      const top = allowed.filter((l) => l.pin === 'top'); // Dashboard fix oben
                       const bottom = allowed
                         .filter((l) => l.pin === 'bottom')
                         .sort((a, b) => a.label.localeCompare(b.label, 'de'));
-                      const middleRaw = allowed.filter((l) => !l.pin);
-
-                      // Kurs-Verwaltungsgruppe (nur Admin) und aus der flachen Liste entfernen
-                      const courseGroupHrefs = ['/admin/courses', '/admin/materials', '/admin/course-dates'];
-                      const courseLinks = middleRaw.filter((l) => courseGroupHrefs.includes(l.href));
-                      const middle = middleRaw
-                        .filter((l) => !courseGroupHrefs.includes(l.href))
+                      const middle = allowed
+                        .filter((l) => !l.pin)
                         .sort((a, b) => a.label.localeCompare(b.label, 'de'));
-                      const grouped =
-                        roleLabel === 'admin' && courseLinks.length
-                          ? [
-                              {
-                                href: '#',
-                                label: 'Kursverwaltung',
-                                children: courseLinks.sort((a, b) => a.label.localeCompare(b.label, 'de')),
-                              },
-                            ]
-                          : [];
-
-                      return [...top, ...grouped, ...middle, ...bottom];
+                      return [...top, ...middle, ...bottom];
                     })()
                   : links
                 ).map((l) => (
