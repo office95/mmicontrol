@@ -129,13 +129,23 @@ export default function DashboardClient({
   const [selectedQuizCourseId, setSelectedQuizCourseId] = useState<string | null>(null);
   const selectedQuiz = selectedQuizCourseId ? quizMap.get(selectedQuizCourseId) || null : null;
 
-  // Default-Auswahl: bevorzugt erster Kurs mit Quiz, sonst erster Kurs
+  // Options: Kurse + ggf. Kurs aus Quiz (falls nicht in courses)
+  const quizCourseOptions = useMemo(() => {
+    const map = new Map<string, string>();
+    courses.forEach((c) => map.set(c.id, c.title));
+    quizzes.forEach((q) => {
+      if (q.course_id && !map.has(q.course_id)) map.set(q.course_id, q.title || q.course_id);
+    });
+    return Array.from(map.entries()).map(([id, title]) => ({ id, title }));
+  }, [courses, quizzes]);
+
+  // Default-Auswahl: erster Kurs mit Quiz, sonst erster Kurs aus Options
   useEffect(() => {
-    if (!courses.length) return;
-    const firstWithQuiz = courses.find((c) => quizMap.has(c.id));
-    const nextId = firstWithQuiz?.id || courses[0].id;
+    if (!quizCourseOptions.length) return;
+    const firstWithQuiz = quizCourseOptions.find((o) => quizMap.has(o.id));
+    const nextId = firstWithQuiz?.id || quizCourseOptions[0].id;
     setSelectedQuizCourseId((prev) => prev ?? nextId);
-  }, [courses, quizMap]);
+  }, [quizCourseOptions, quizMap]);
   const selectedFeedbacks = selectedCourseId ? feedbackByCourse.get(selectedCourseId) || [] : [];
 
   return (
@@ -186,52 +196,6 @@ export default function DashboardClient({
           </a>
           </div>
         </nav>
-
-        {/* Music Mission Quiz Banner */}
-        <div className="rounded-2xl border border-white/10 bg-slate-950 text-white overflow-hidden shadow-2xl">
-          <div className="grid md:grid-cols-[1.2fr,1fr] gap-0 relative">
-            <div className="relative min-h-[220px]">
-              <div
-                className="absolute inset-0 bg-center bg-cover"
-                style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1485579149621-3123dd979885?auto=format&fit=crop&w=1600&q=80)' }}
-              />
-              <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/40 to-transparent" />
-              <div className="relative h-full w-full p-6 flex flex-col justify-end">
-                <p className="text-[11px] uppercase tracking-[0.24em] text-pink-200 mb-2">Music Mission Quiz</p>
-                <h2 className="text-3xl sm:text-4xl font-bold leading-tight">Music Mission Quiz</h2>
-                <p className="text-sm text-white/80 line-clamp-2">{selectedQuiz?.description || ''}</p>
-              </div>
-            </div>
-            <div className="p-6 sm:p-8 flex flex-col gap-4 justify-center bg-gradient-to-b from-slate-900 via-slate-900/90 to-slate-950">
-              <div className="space-y-1">
-                <h3 className="text-2xl font-semibold">{selectedQuiz?.title || 'Quiz auswählen'}</h3>
-                <p className="text-sm text-white/80 line-clamp-3">
-                  {selectedQuiz?.description || 'Wähle einen Kurs, um das passende Quiz zu starten.'}
-                </p>
-              </div>
-              <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
-                <select
-                  className="rounded-full border border-white/25 bg-black/40 px-3 py-2 text-sm text-white"
-                  value={selectedQuizCourseId || ''}
-                  onChange={(e) => setSelectedQuizCourseId(e.target.value || null)}
-                >
-                  <option value="">Kurs wählen</option>
-                  {(courses || []).map((c) => (
-                    <option key={c.id} value={c.id}>{c.title}</option>
-                  ))}
-                </select>
-                <a
-                  href={selectedQuiz ? `/quizzes?course_id=${selectedQuiz.course_id}&quiz_id=${selectedQuiz.id}` : '#'}
-                  className={`inline-flex items-center justify-center rounded-full px-5 py-2.5 text-sm font-semibold shadow-lg transition ${selectedQuiz ? 'bg-pink-600 text-white hover:bg-pink-500' : 'bg-slate-700 text-slate-300 cursor-not-allowed'}`}
-                  aria-disabled={!selectedQuiz}
-                  onClick={(e) => { if (!selectedQuiz) e.preventDefault(); }}
-                >
-                  {selectedQuiz ? 'Zum Quiz' : 'Kein Quiz' }
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
 
       {tab === 'perf' && (
         <TeacherStatsClient
