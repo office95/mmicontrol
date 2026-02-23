@@ -78,19 +78,33 @@ export async function POST(req: Request) {
     amount = coursePrice != null ? Number(coursePrice) : null;
   }
 
+  // Wenn price_tier_id angegeben: Preise daraus ziehen
+  let tierValues: any = {};
+  const tierId = body.price_tier_id || null;
+  const courseId = cd?.course_id ?? body.course_id ?? null;
+  if (tierId && courseId) {
+    const { data: tier } = await service
+      .from('course_price_tiers')
+      .select('price_gross, vat_rate, price_net, deposit, saldo, duration_hours')
+      .eq('course_id', courseId)
+      .eq('price_tier_id', tierId)
+      .maybeSingle();
+    if (tier) tierValues = tier;
+  }
+
   const payload = {
     booking_code: body.booking_code || `BU-${Date.now()}-${Math.floor(Math.random() * 1e4)}`,
     booking_date: body.booking_date || new Date().toISOString().slice(0, 10),
-    amount,
-    vat_rate: body.vat_rate ?? null,
-    price_net: body.price_net ?? null,
-    deposit: body.deposit ?? null,
-    saldo: body.saldo ?? null,
-    duration_hours: body.duration_hours ?? null,
+    amount: body.amount ?? tierValues.price_gross ?? amount,
+    vat_rate: body.vat_rate ?? tierValues.vat_rate ?? null,
+    price_net: body.price_net ?? tierValues.price_net ?? null,
+    deposit: body.deposit ?? tierValues.deposit ?? null,
+    saldo: body.saldo ?? tierValues.saldo ?? null,
+    duration_hours: body.duration_hours ?? tierValues.duration_hours ?? null,
     due_date: body.due_date ?? null,
     status: body.status || 'offen',
     student_id: body.student_id,
-    course_id: cd?.course_id ?? body.course_id ?? null,
+    course_id: courseId,
     course_date_id: body.course_date_id,
     partner_id: body.partner_id ?? cd?.partner_id ?? null,
     course_title: (cd as any)?.course?.title ?? null,
@@ -98,6 +112,7 @@ export async function POST(req: Request) {
     partner_name: (cd as any)?.partner?.name ?? null,
     student_name: stu?.name ?? null,
     student_email: stu?.email ?? null,
+    price_tier_id: tierId,
   };
   const { data, error } = await service.from('bookings').insert(payload).select(SELECT).single();
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });

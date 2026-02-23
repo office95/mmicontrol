@@ -9,7 +9,12 @@ type CourseDate = {
   start_date: string | null;
   course_id: string | null;
   partner_id: string | null;
-  price_tier_id?: string | null;
+  course: { id: string; title: string; price_gross: number | null } | null;
+  partner: { id: string; name: string } | null;
+};
+
+type PriceTier = {
+  price_tier_id: string;
   price_gross?: number | null;
   vat_rate?: number | null;
   price_net?: number | null;
@@ -17,8 +22,6 @@ type CourseDate = {
   saldo?: number | null;
   duration_hours?: number | null;
   price_tier?: { id: string; label: string } | null;
-  course: { id: string; title: string; price_gross: number | null } | null;
-  partner: { id: string; name: string } | null;
 };
 
 type Student = { id: string; name: string };
@@ -39,9 +42,16 @@ export default function BookingModal({
   const [error, setError] = useState<string | null>(null);
 
   const [courseDateId, setCourseDateId] = useState('');
+  const [priceTiers, setPriceTiers] = useState<PriceTier[]>([]);
+  const [priceTierId, setPriceTierId] = useState('');
   const [bookingDate, setBookingDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [status, setStatus] = useState<(typeof STATUSES)[number]>('offen');
   const [amount, setAmount] = useState('');
+  const [vatRate, setVatRate] = useState('');
+  const [priceNet, setPriceNet] = useState('');
+  const [deposit, setDeposit] = useState('');
+  const [saldo, setSaldo] = useState('');
+  const [vatAmount, setVatAmount] = useState('');
   const [code, setCode] = useState(`BU-${Date.now()}`);
   const [invoice, setInvoice] = useState('');
   const [dueDate, setDueDate] = useState('');
@@ -57,31 +67,63 @@ export default function BookingModal({
 
   const selected = useMemo(() => dates.find((d) => d.id === courseDateId), [dates, courseDateId]);
 
+  // Lade Preisstufen, wenn ein Kurstermin gewählt wurde
   useEffect(() => {
-    async function syncPrice() {
-      const price =
-        (selected as any)?.price_gross ??
-        (selected as any)?.course?.price_gross ??
-        (selected as any)?.courses?.price_gross ??
-        null;
-      if (price != null) {
-        setAmount(String(price));
+    async function loadTiers() {
+      if (!selected?.course_id) {
+        setPriceTiers([]);
+        setPriceTierId('');
         return;
       }
-      if (selected?.course_id) {
-        const res = await fetch(`/api/admin/courses?id=${selected.course_id}`);
-        const data = await res.json();
-        if (res.ok && data?.price_gross != null) {
-          setAmount(String(data.price_gross));
-          return;
-        }
+      const res = await fetch(`/api/admin/courses?id=${selected.course_id}`);
+      const data = await res.json();
+      if (!res.ok) {
+        setPriceTiers([]);
+        setPriceTierId('');
+        return;
       }
-      if (!selected) {
-        setAmount('');
-      }
+      const tiers = data?.course_price_tiers || [];
+      setPriceTiers(tiers);
+      const defaultId = data?.default_price_tier_id || tiers[0]?.price_tier_id || '';
+      setPriceTierId(defaultId || '');
     }
-    syncPrice();
-  }, [selected]);
+    loadTiers();
+  }, [selected?.course_id]);
+
+  // Preise anwenden, wenn PKL geändert oder Kurstermin gewechselt
+  useEffect(() => {
+    const tier = priceTiers.find((t) => t.price_tier_id === priceTierId);
+    if (tier) {
+      const gross = tier.price_gross ?? null;
+      const vat = tier.vat_rate ?? null;
+      const net = tier.price_net ?? (gross != null && vat != null ? Number((gross / (1 + vat)).toFixed(2)) : null);
+      const dep = tier.deposit ?? null;
+      const sld = tier.saldo ?? (gross != null && dep != null ? Number((gross - dep).toFixed(2)) : null);
+      const vatAmt = gross != null && net != null ? Number((gross - net).toFixed(2)) : null;
+      setAmount(gross != null ? String(gross) : '');
+      setVatRate(vat != null ? String(vat) : '');
+      setPriceNet(net != null ? String(net) : '');
+      setDeposit(dep != null ? String(dep) : '');
+      setSaldo(sld != null ? String(sld) : '');
+      setVatAmount(vatAmt != null ? String(vatAmt) : '');
+    } else if (selected?.course?.price_gross != null) {
+      // Fallback auf Kurs-Basispreis
+      const gross = Number(selected.course.price_gross);
+      setAmount(String(gross));
+      setVatRate('');
+      setPriceNet('');
+      setDeposit('');
+      setSaldo('');
+      setVatAmount('');
+    } else {
+      setAmount('');
+      setVatRate('');
+      setPriceNet('');
+      setDeposit('');
+      setSaldo('');
+      setVatAmount('');
+    }
+  }, [priceTierId, priceTiers, selected]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -96,6 +138,11 @@ export default function BookingModal({
         course_date_id: courseDateId || null,
         partner_id: selected?.partner_id ?? null,
         amount: amount ? Number(amount) : null,
+        price_tier_id: priceTierId || null,
+        vat_rate: vatRate ? Number(vatRate) : null,
+        price_net: priceNet ? Number(priceNet) : null,
+        deposit: deposit ? Number(deposit) : null,
+        saldo: saldo ? Number(saldo) : null,
         status,
         booking_date: bookingDate || null,
         invoice_number: invoice || null,
@@ -150,12 +197,23 @@ export default function BookingModal({
                 {dates.map((d) => (
                   <option key={d.id} value={d.id}>
                     {d.course?.title ?? 'Unbekannter Kurs'} {d.code ? `(${d.code})` : ''} · {d.start_date ?? ''}
-                    {d.price_tier?.label ? ` · ${d.price_tier.label}` : ''}
-                    {d.price_gross != null ? ` · ${d.price_gross} €` : d.course?.price_gross != null ? ` · ${d.course.price_gross} €` : ''}
+                    {d.course?.title ? '' : ''}
                   </option>
                 ))}
               </select>
             </Field>
+
+            {priceTiers.length > 0 && (
+              <Field label="Preisklasse (PKL)">
+                <select className="input" value={priceTierId} onChange={(e) => setPriceTierId(e.target.value)}>
+                  {priceTiers.map((t) => (
+                    <option key={t.price_tier_id} value={t.price_tier_id}>
+                      {t.price_tier?.label ?? 'PKL'}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+            )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Field label="Anbieter">
@@ -166,11 +224,31 @@ export default function BookingModal({
                   className="input"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
-                  readOnly={selected?.course?.price_gross != null}
-                  placeholder="Automatisch aus Kurs"
+                  readOnly={priceTiers.length > 0}
+                  placeholder="Automatisch aus PKL"
                 />
               </Field>
             </div>
+
+            {priceTiers.length > 0 && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Field label="USt-Satz">
+                  <input className="input bg-slate-100" value={vatRate} readOnly />
+                </Field>
+                <Field label="Kursbeitrag Netto">
+                  <input className="input bg-slate-100" value={priceNet} readOnly />
+                </Field>
+                <Field label="Anzahlung">
+                  <input className="input bg-slate-100" value={deposit} readOnly />
+                </Field>
+                <Field label="Saldo">
+                  <input className="input bg-slate-100" value={saldo} readOnly />
+                </Field>
+                <Field label="USt Betrag (€)">
+                  <input className="input bg-slate-100" value={vatAmount} readOnly />
+                </Field>
+              </div>
+            )}
 
             <Field label="Status">
               <select className="input" value={status} onChange={(e) => setStatus(e.target.value as any)}>

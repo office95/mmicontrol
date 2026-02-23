@@ -30,6 +30,7 @@ alter table if exists public.leads enable row level security;
 -- Zusatzfelder für Buchungen
 alter table if exists public.bookings add column if not exists invoice_number text;
 alter table if exists public.bookings add column if not exists due_date date;
+alter table if exists public.bookings add column if not exists price_tier_id uuid references public.price_tiers(id) on delete set null;
 
 -- Hilfs-View auf Rolle
 create or replace view public.v_admin as
