@@ -4,6 +4,9 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import ButtonLink from '@/components/button-link';
 
+type Course = { id: string; title: string };
+type QuizDetail = any;
+
 export default function AdminQuizzesPage() {
   const [quizzes, setQuizzes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -13,6 +16,10 @@ export default function AdminQuizzesPage() {
   const [courses, setCourses] = useState<{ id: string; title: string }[]>([]);
   const [titleInput, setTitleInput] = useState('Neues Quiz');
   const [courseId, setCourseId] = useState<string | null>(null);
+  const [editOpen, setEditOpen] = useState(false);
+  const [editQuiz, setEditQuiz] = useState<QuizDetail | null>(null);
+  const [editQuestions, setEditQuestions] = useState<any[]>([]);
+  const [saving, setSaving] = useState(false);
   const router = useRouter();
 
   const load = async () => {
@@ -92,6 +99,114 @@ export default function AdminQuizzesPage() {
     }
     setCreating(false);
     load();
+  };
+
+  const openEditor = async (id: string) => {
+    setError(null);
+    try {
+      const res = await fetch(`/api/admin/quizzes?id=${id}`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Konnte Quiz nicht laden');
+      setEditQuiz(data.quiz);
+      setEditQuestions(
+        (data.questions || []).map((q: any) => ({
+          ...q,
+          options: q.options || [],
+        }))
+      );
+      setEditOpen(true);
+    } catch (e: any) {
+      setError(e.message);
+    }
+  };
+
+  const addQuestion = () => {
+    setEditQuestions((prev) => [
+      ...prev,
+      {
+        prompt: 'Neue Frage',
+        difficulty: 'medium',
+        qtype: 'single',
+        options: [
+          { label: 'Antwort 1', is_correct: true },
+          { label: 'Antwort 2', is_correct: false },
+        ],
+      },
+    ]);
+  };
+
+  const updateQuestion = (idx: number, changes: any) => {
+    setEditQuestions((prev) => prev.map((q, i) => (i === idx ? { ...q, ...changes } : q)));
+  };
+
+  const removeQuestion = (idx: number) => {
+    setEditQuestions((prev) => prev.filter((_, i) => i !== idx));
+  };
+
+  const addOption = (qIdx: number) => {
+    setEditQuestions((prev) =>
+      prev.map((q, i) =>
+        i === qIdx ? { ...q, options: [...(q.options || []), { label: 'Neue Option', is_correct: false }] } : q
+      )
+    );
+  };
+
+  const updateOption = (qIdx: number, oIdx: number, changes: any) => {
+    setEditQuestions((prev) =>
+      prev.map((q, i) =>
+        i === qIdx
+          ? { ...q, options: q.options.map((o: any, j: number) => (j === oIdx ? { ...o, ...changes } : o)) }
+          : q
+      )
+    );
+  };
+
+  const removeOption = (qIdx: number, oIdx: number) => {
+    setEditQuestions((prev) =>
+      prev.map((q, i) => (i === qIdx ? { ...q, options: q.options.filter((_: any, j: number) => j !== oIdx) } : q))
+    );
+  };
+
+  const saveQuiz = async () => {
+    if (!editQuiz) return;
+    setSaving(true);
+    setError(null);
+    try {
+      const body = {
+        quiz: editQuiz,
+        questions: editQuestions.map((q, idx) => ({
+          id: q.id,
+          prompt: q.prompt,
+          difficulty: q.difficulty,
+          qtype: q.qtype,
+          media_url: q.media_url,
+          explanation: q.explanation,
+          module_id: q.module_id || editQuiz.module_id || null,
+          order_index: idx,
+          options: (q.options || []).map((o: any, j: number) => ({
+            id: o.id,
+            label: o.label,
+            is_correct: !!o.is_correct,
+            order_index: j,
+          })),
+        })),
+      };
+      const res = await fetch('/api/admin/quizzes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'Speichern fehlgeschlagen');
+      setEditOpen(false);
+      setEditQuiz(null);
+      setEditQuestions([]);
+      load();
+    } catch (e: any) {
+      setError(e.message);
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -182,6 +297,12 @@ export default function AdminQuizzesPage() {
                 {q.is_published ? 'Verstecken' : 'Veröffentlichen'}
               </button>
               <button
+                onClick={() => openEditor(q.id)}
+                className="rounded-full border border-white/30 px-3 py-1 text-white hover:bg-white/10"
+              >
+                Bearbeiten
+              </button>
+              <button
                 onClick={() => router.push('/quizzes')}
                 className="rounded-full bg-pink-500 px-3 py-1 text-white hover:bg-pink-400"
               >
@@ -196,6 +317,184 @@ export default function AdminQuizzesPage() {
           </div>
         )}
       </div>
+
+      {editOpen && editQuiz && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-start justify-center overflow-auto">
+          <div className="relative mt-10 w-full max-w-4xl rounded-2xl border border-white/15 bg-slate-950/90 p-6 shadow-2xl">
+            <div className="flex items-start justify-between gap-3">
+              <div className="space-y-1 flex-1">
+                <p className="text-xs uppercase tracking-[0.2em] text-pink-200">Quiz bearbeiten</p>
+                <input
+                  className="w-full rounded-lg border border-white/20 bg-black/40 px-3 py-2 text-white text-lg font-semibold"
+                  value={editQuiz.title || ''}
+                  onChange={(e) => setEditQuiz({ ...editQuiz, title: e.target.value })}
+                />
+                <textarea
+                  className="w-full rounded-lg border border-white/20 bg-black/30 px-3 py-2 text-sm text-white"
+                  placeholder="Beschreibung"
+                  value={editQuiz.description || ''}
+                  onChange={(e) => setEditQuiz({ ...editQuiz, description: e.target.value })}
+                />
+                <div className="flex flex-wrap gap-3 text-sm">
+                  <div>
+                    <label className="text-xs text-slate-300">Zeit/Frage (s)</label>
+                    <input
+                      type="number"
+                      className="w-24 rounded border border-white/20 bg-black/30 px-2 py-1 text-white"
+                      value={editQuiz.time_per_question || 30}
+                      onChange={(e) => setEditQuiz({ ...editQuiz, time_per_question: Number(e.target.value) })}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-slate-300">Level</label>
+                    <input
+                      type="number"
+                      className="w-20 rounded border border-white/20 bg-black/30 px-2 py-1 text-white"
+                      value={editQuiz.level_count || 5}
+                      onChange={(e) => setEditQuiz({ ...editQuiz, level_count: Number(e.target.value) })}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-slate-300">Kurs</label>
+                    <select
+                      className="min-w-[180px] rounded border border-white/20 bg-black/30 px-2 py-2 text-white"
+                      value={editQuiz.course_id || ''}
+                      onChange={(e) => setEditQuiz({ ...editQuiz, course_id: e.target.value })}
+                    >
+                      {courses.map((c) => (
+                        <option key={c.id} value={c.id}>{c.title || c.id}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <label className="flex items-center gap-2 text-xs text-slate-200">
+                    <input
+                      type="checkbox"
+                      checked={!!editQuiz.is_published}
+                      onChange={(e) => setEditQuiz({ ...editQuiz, is_published: e.target.checked })}
+                    />
+                    Veröffentlicht
+                  </label>
+                </div>
+              </div>
+              <button
+                className="text-sm text-slate-200 hover:text-white"
+                onClick={() => { setEditOpen(false); setEditQuiz(null); setEditQuestions([]); }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="mt-4 space-y-4 max-h-[65vh] overflow-y-auto pr-1">
+              {editQuestions.map((q, idx) => (
+                <div key={idx} className="rounded-xl border border-white/15 bg-white/5 p-4 space-y-2">
+                  <div className="flex items-start justify-between gap-3">
+                    <input
+                      className="flex-1 rounded border border-white/20 bg-black/30 px-3 py-2 text-white font-semibold"
+                      value={q.prompt}
+                      onChange={(e) => updateQuestion(idx, { prompt: e.target.value })}
+                    />
+                    <button
+                      className="text-xs text-rose-300 hover:text-rose-200"
+                      onClick={() => removeQuestion(idx)}
+                    >
+                      Löschen
+                    </button>
+                  </div>
+                  <div className="flex flex-wrap gap-3 text-xs text-slate-200">
+                    <select
+                      className="rounded border border-white/20 bg-black/30 px-2 py-1"
+                      value={q.difficulty}
+                      onChange={(e) => updateQuestion(idx, { difficulty: e.target.value })}
+                    >
+                      <option value="easy">easy</option>
+                      <option value="medium">medium</option>
+                      <option value="hard">hard</option>
+                    </select>
+                    <select
+                      className="rounded border border-white/20 bg-black/30 px-2 py-1"
+                      value={q.qtype}
+                      onChange={(e) => updateQuestion(idx, { qtype: e.target.value })}
+                    >
+                      <option value="single">single</option>
+                      <option value="multiple">multiple</option>
+                      <option value="boolean">boolean</option>
+                      <option value="order">order</option>
+                      <option value="match">match</option>
+                      <option value="text">text</option>
+                      <option value="media">media</option>
+                    </select>
+                    <input
+                      className="flex-1 min-w-[200px] rounded border border-white/20 bg-black/20 px-2 py-1 text-white"
+                      placeholder="Media URL (optional)"
+                      value={q.media_url || ''}
+                      onChange={(e) => updateQuestion(idx, { media_url: e.target.value })}
+                    />
+                  </div>
+                  <textarea
+                    className="w-full rounded border border-white/20 bg-black/20 px-2 py-2 text-sm text-white"
+                    placeholder="Erklärung (optional)"
+                    value={q.explanation || ''}
+                    onChange={(e) => updateQuestion(idx, { explanation: e.target.value })}
+                  />
+                  <div className="space-y-2">
+                    {(q.options || []).map((o: any, oIdx: number) => (
+                      <div key={oIdx} className="flex items-center gap-2">
+                        <input
+                          className="flex-1 rounded border border-white/20 bg-black/20 px-2 py-1 text-white"
+                          value={o.label}
+                          onChange={(e) => updateOption(idx, oIdx, { label: e.target.value })}
+                        />
+                        <label className="flex items-center gap-1 text-xs text-slate-200">
+                          <input
+                            type="checkbox"
+                            checked={!!o.is_correct}
+                            onChange={(e) => updateOption(idx, oIdx, { is_correct: e.target.checked })}
+                          />
+                          korrekt
+                        </label>
+                        <button
+                          className="text-xs text-rose-300 hover:text-rose-200"
+                          onClick={() => removeOption(idx, oIdx)}
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))}
+                    <button
+                      className="text-xs text-pink-200 hover:text-pink-100"
+                      onClick={() => addOption(idx)}
+                    >
+                      + Option
+                    </button>
+                  </div>
+                </div>
+              ))}
+              <button
+                className="rounded border border-dashed border-white/30 px-3 py-2 text-sm text-white hover:bg-white/10"
+                onClick={addQuestion}
+              >
+                + Frage hinzufügen
+              </button>
+            </div>
+
+            <div className="mt-4 flex items-center justify-end gap-3 text-sm">
+              {saving && <span className="text-slate-300">Speichere...</span>}
+              <button
+                className="rounded-full border border-white/30 px-4 py-2 text-white hover:bg-white/10"
+                onClick={() => { setEditOpen(false); setEditQuiz(null); setEditQuestions([]); }}
+              >
+                Abbrechen
+              </button>
+              <button
+                className="rounded-full bg-pink-600 px-4 py-2 font-semibold text-white hover:bg-pink-500"
+                onClick={saveQuiz}
+              >
+                Speichern
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

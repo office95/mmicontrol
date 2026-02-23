@@ -16,9 +16,37 @@ async function isAdmin() {
   return profile?.role === 'admin';
 }
 
-export async function GET() {
+export async function GET(req: Request) {
   if (!(await isAdmin())) return NextResponse.json({ error: 'forbidden' }, { status: 403 });
   const supa = service();
+  const { searchParams } = new URL(req.url);
+  const id = searchParams.get('id');
+
+  if (id) {
+    const { data: quiz, error: qErr } = await supa
+      .from('quizzes')
+      .select('id,title,description,course_id,module_id,is_published,level_count,time_per_question,created_at')
+      .eq('id', id)
+      .maybeSingle();
+    if (qErr) return NextResponse.json({ error: qErr.message }, { status: 400 });
+    if (!quiz) return NextResponse.json({ error: 'not found' }, { status: 404 });
+
+    const { data: questions, error: qsErr } = await supa
+      .from('quiz_questions')
+      .select('id,quiz_id,module_id,difficulty,qtype,prompt,media_url,explanation,order_index,quiz_answer_options(id,label,is_correct,order_index)')
+      .eq('quiz_id', id)
+      .order('order_index', { ascending: true });
+    if (qsErr) return NextResponse.json({ error: qsErr.message }, { status: 400 });
+
+    return NextResponse.json({
+      quiz,
+      questions: (questions || []).map((q: any) => ({
+        ...q,
+        options: (q.quiz_answer_options || []).sort((a: any, b: any) => (a.order_index ?? 0) - (b.order_index ?? 0)),
+      })),
+    });
+  }
+
   const { data, error } = await supa
     .from('quizzes')
     .select('id,title,description,course_id,module_id,is_published,level_count,time_per_question,created_at')
