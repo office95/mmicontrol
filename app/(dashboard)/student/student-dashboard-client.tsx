@@ -184,6 +184,51 @@ export default function StudentDashboardClient({
 
       
       {tab === 'bookings' && <BookingsClient bookings={bookings} />}
+
+      {tab === 'bookings' && (
+        <div className="rounded-2xl border border-white/10 bg-gradient-to-r from-slate-900 via-slate-800 to-pink-900/60 text-white overflow-hidden shadow-2xl">
+          <div className="grid md:grid-cols-[1.2fr,1fr] gap-0">
+            <div className="relative">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="https://images.unsplash.com/photo-1507878866276-a947ef722fee?auto=format&fit=crop&w=1600&q=80"
+                alt="Music Mission Quiz"
+                className="h-full w-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent" />
+            </div>
+            <div className="p-6 sm:p-8 flex flex-col gap-4 justify-center">
+              <div className="space-y-1">
+                <p className="text-[11px] uppercase tracking-[0.22em] text-pink-200">Neu · Lernquiz</p>
+                <h3 className="text-2xl font-semibold">Teste dein Wissen mit dem Music Mission Quiz</h3>
+                <p className="text-sm text-white/80">
+                  Level, Zeitdruck, anonyme Bestenliste. Fragen je Modul und Kurs – perfekt zur Vorbereitung vor deinem Termin.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-3 text-xs text-white/80">
+                <span className="px-3 py-1 rounded-full border border-white/20 bg-white/10">Mehrere Module</span>
+                <span className="px-3 py-1 rounded-full border border-white/20 bg-white/10">Zeitlimit pro Frage</span>
+                <span className="px-3 py-1 rounded-full border border-white/20 bg-white/10">Anonyme Bestenliste</span>
+              </div>
+              <div className="flex gap-3">
+                <a
+                  href="/quizzes"
+                  className="inline-flex items-center justify-center rounded-full bg-pink-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg hover:bg-pink-500 transition"
+                >
+                  Zum Quiz
+                </a>
+                <a
+                  href="/quizzes"
+                  className="inline-flex items-center justify-center rounded-full border border-white/30 px-5 py-2.5 text-sm font-semibold text-white hover:bg-white/10 transition"
+                >
+                  Mehr erfahren
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {tab === 'bookings' && (
         <div className="space-y-3">
           <h3 className="text-lg font-semibold text-white mt-4">Diese Kurse könnten dich auch interessieren</h3>
