@@ -171,6 +171,11 @@ export default async function StudentPage({ searchParams }: { searchParams: Reco
   });
 
   const bookingId = typeof searchParams?.booking === 'string' ? searchParams.booking : null;
+  const initialTab =
+    typeof searchParams?.tab === 'string' &&
+    ['bookings', 'materials', 'profile', 'feedback'].includes(searchParams.tab)
+      ? (searchParams.tab as any)
+      : showProfile ? 'profile' : 'bookings';
   const selectedBooking = bookingId
     ? bookings?.find((b) => b.id === bookingId) || null
     : null;
@@ -363,7 +368,7 @@ export default async function StudentPage({ searchParams }: { searchParams: Reco
           }
             : null
       }
-      showProfileInitially={showProfile}
+      initialTab={initialTab as any}
       benefits={benefits}
     />
 

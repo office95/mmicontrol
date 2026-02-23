@@ -3,6 +3,7 @@ import { ReactNode } from 'react';
 import { createSupabaseServerClient } from '@/lib/supabase-server';
 import { getPermissions, ensureSlugs } from '@/lib/permissions';
 import { createClient } from '@supabase/supabase-js';
+import MobileNav from '@/components/mobile-nav';
 
 const PAGES = [
   'admin-dashboard',
@@ -169,11 +170,16 @@ export default async function DashboardLayout({ children }: { children: ReactNod
               </button>
             </form>
             {/* Hamburger fürs Handy rechts neben Logout */}
-            <div className="md:hidden">
-              <button className="rounded-full border border-white/40 px-3 py-1 text-[14px] font-semibold text-white hover:bg-white/10">
-                ☰
-              </button>
-            </div>
+            <MobileNav
+              links={(roleLabel
+                ? links.filter((l) => l.roles.includes(roleLabel as string) && (permissions[l.slug] ?? false))
+                : []
+              ).map((l) => ({
+                href: l.href,
+                label: l.label,
+                badge: l.slug === 'admin-support' ? supportOpen : undefined,
+              }))}
+            />
           </div>
         </div>
       </header>
