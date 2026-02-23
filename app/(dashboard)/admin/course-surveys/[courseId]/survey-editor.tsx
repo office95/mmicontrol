@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 const TYPES = [
   { value: 'text', label: 'Kurztext' },
   { value: 'textarea', label: 'Langtext' },
+  { value: 'single', label: 'Einfachauswahl (Radio)' },
   { value: 'select', label: 'Auswahl (Dropdown)' },
   { value: 'multiselect', label: 'Mehrfachauswahl' },
   { value: 'scale', label: 'Skala 1–5' },
@@ -147,7 +148,7 @@ export default function SurveyEditor({ courseId, initialSurvey, initialQuestions
           value={q.prompt}
           onChange={(e) => updateQuestion(idx, { prompt: e.target.value })}
         />
-        {(q.qtype === 'select' || q.qtype === 'multiselect') && (
+        {(q.qtype === 'select' || q.qtype === 'multiselect' || q.qtype === 'single') && (
           <div className="space-y-1">
             <label className="text-xs text-white/70">Optionen (Kommagetrennt)</label>
             <input

@@ -96,6 +96,23 @@ export default function SurveyForm({ survey, questions, bookingId, preview = fal
               ))}
             </select>
           )}
+          {q.qtype === 'single' && (
+            <div className="flex flex-col gap-2">
+              {(q.options?.choices || []).map((c: string, idx: number) => (
+                <label key={idx} className="flex items-center gap-2 text-white/80">
+                  <input
+                    type="radio"
+                    name={q.id}
+                    value={c}
+                    checked={(values[q.id] || '') === c}
+                    onChange={(e) => setVal(q.id, e.target.value)}
+                    required={q.required}
+                  />
+                  {c}
+                </label>
+              ))}
+            </div>
+          )}
           {q.qtype === 'multiselect' && (
             <div className="flex flex-wrap gap-2">
               {(q.options?.choices || []).map((c: string, idx: number) => {
