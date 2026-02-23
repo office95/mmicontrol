@@ -126,26 +126,36 @@ export default function AdminQuizzesPage() {
     }
   };
 
-const addQuestion = () => {
-  setEditQuestions((prev) => [
-    ...prev,
-    {
-      prompt: 'Neue Frage',
-      difficulty: 'medium',
-      qtype: 'single',
-      options: [
-        { label: 'Antwort 1', is_correct: true },
-        { label: 'Antwort 2', is_correct: false },
+  const typeHints: Record<string, string> = {
+    single: 'Eine richtige Antwort markieren.',
+    multiple: 'Mehrere Antworten können richtig sein.',
+    boolean: 'Wahr/Falsch Frage – genau eine richtige Option.',
+    text: 'Freitext – akzeptierte Antworten hinterlegen.',
+    order: 'Reihenfolge festlegen (oben = zuerst).',
+    match: 'Zuordnungen als Paare erfassen.',
+    media: 'Frage mit Media (Bild/Video/Audio).',
+  };
+
+  const addQuestion = () => {
+    setEditQuestions((prev) => [
+      ...prev,
+      {
+        prompt: 'Neue Frage',
+        difficulty: 'medium',
+        qtype: 'single',
+        options: [
+          { label: 'Antwort 1', is_correct: true },
+          { label: 'Antwort 2', is_correct: false },
       ],
     },
   ]);
 };
 
-const updateQuestion = (idx: number, changes: any) => {
-  setEditQuestions((prev) =>
-    prev.map((q, i) => {
-      if (i !== idx) return q;
-      // Wenn Fragetyp geändert wird, Option-Set sinnvoll anpassen
+  const updateQuestion = (idx: number, changes: any) => {
+    setEditQuestions((prev) =>
+      prev.map((q, i) => {
+        if (i !== idx) return q;
+        // Wenn Fragetyp geändert wird, Option-Set sinnvoll anpassen
       if (changes.qtype && changes.qtype !== q.qtype) {
         if (changes.qtype === 'boolean') {
           return {
@@ -207,6 +217,125 @@ const updateQuestion = (idx: number, changes: any) => {
   const removeOption = (qIdx: number, oIdx: number) => {
     setEditQuestions((prev) =>
       prev.map((q, i) => (i === qIdx ? { ...q, options: q.options.filter((_: any, j: number) => j !== oIdx) } : q))
+    );
+  };
+
+  const renderOptionsForType = (q: any, idx: number) => {
+    if (q.qtype === 'text') {
+      return (
+        <div className="space-y-2">
+          <p className="text-[11px] uppercase tracking-[0.14em] text-slate-400">Gültige Antworten</p>
+          {(q.options || []).map((o: any, oIdx: number) => (
+            <div key={oIdx} className="flex items-center gap-2">
+              <input
+                className="flex-1 rounded border border-white/20 bg-black/20 px-2 py-1 text-white"
+                value={o.label}
+                onChange={(e) => updateOption(idx, oIdx, { label: e.target.value, is_correct: true })}
+                placeholder="Akzeptierte Antwort"
+              />
+              <button
+                className="text-xs text-rose-300 hover:text-rose-200"
+                onClick={() => removeOption(idx, oIdx)}
+              >
+                ✕
+              </button>
+            </div>
+          ))}
+          <button
+            className="text-xs text-pink-200 hover:text-pink-100"
+            onClick={() => addOption(idx)}
+          >
+            + Antwort hinzufügen
+          </button>
+        </div>
+      );
+    }
+
+    if (q.qtype === 'boolean') {
+      return (
+        <div className="space-y-2">
+          <p className="text-[11px] uppercase tracking-[0.14em] text-slate-400">Richtig / Falsch</p>
+          {(q.options || []).map((o: any, oIdx: number) => (
+            <label key={oIdx} className="flex items-center gap-2 text-xs text-slate-200">
+              <input
+                type="radio"
+                name={`bool-${idx}`}
+                checked={!!o.is_correct}
+                onChange={() =>
+                  setEditQuestions((prev) =>
+                    prev.map((qq, i) =>
+                      i === idx
+                        ? {
+                            ...qq,
+                            options: (qq.options || []).map((oo: any, j: number) => ({
+                              ...oo,
+                              is_correct: j === oIdx,
+                            })),
+                          }
+                        : qq
+                    )
+                  )
+                }
+              />
+              {o.label}
+            </label>
+          ))}
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-2">
+        <p className="text-[11px] uppercase tracking-[0.14em] text-slate-400">Antwortoptionen</p>
+        {(q.options || []).map((o: any, oIdx: number) => (
+          <div key={oIdx} className="flex items-center gap-2">
+            <input
+              className="flex-1 rounded border border-white/20 bg-black/20 px-2 py-1 text-white"
+              value={o.label}
+              onChange={(e) => updateOption(idx, oIdx, { label: e.target.value })}
+            />
+            <label className="flex items-center gap-1 text-xs text-slate-200">
+              <input
+                type={q.qtype === 'single' ? 'radio' : 'checkbox'}
+                name={`corr-${idx}`}
+                checked={!!o.is_correct}
+                onChange={(e) => {
+                  if (q.qtype === 'single') {
+                    setEditQuestions((prev) =>
+                      prev.map((qq, i) =>
+                        i === idx
+                          ? {
+                              ...qq,
+                              options: (qq.options || []).map((oo: any, j: number) => ({
+                                ...oo,
+                                is_correct: j === oIdx,
+                              })),
+                            }
+                          : qq
+                      )
+                    );
+                  } else {
+                    updateOption(idx, oIdx, { is_correct: e.target.checked });
+                  }
+                }}
+              />
+              korrekt
+            </label>
+            <button
+              className="text-xs text-rose-300 hover:text-rose-200"
+              onClick={() => removeOption(idx, oIdx)}
+            >
+              ✕
+            </button>
+          </div>
+        ))}
+        <button
+          className="text-xs text-pink-200 hover:text-pink-100"
+          onClick={() => addOption(idx)}
+        >
+          + Option
+        </button>
+      </div>
     );
   };
 
@@ -551,115 +680,7 @@ const updateQuestion = (idx: number, changes: any) => {
                 value={q.explanation || ''}
                 onChange={(e) => updateQuestion(idx, { explanation: e.target.value })}
               />
-              {/* Optionen je nach Fragetyp */}
-              {q.qtype === 'text' ? (
-                <div className="space-y-2">
-                  <p className="text-[11px] uppercase tracking-[0.14em] text-slate-400">Gültige Antworten</p>
-                  {(q.options || []).map((o: any, oIdx: number) => (
-                    <div key={oIdx} className="flex items-center gap-2">
-                      <input
-                        className="flex-1 rounded border border-white/20 bg-black/20 px-2 py-1 text-white"
-                        value={o.label}
-                        onChange={(e) => updateOption(idx, oIdx, { label: e.target.value, is_correct: true })}
-                        placeholder="Akzeptierte Antwort"
-                      />
-                      <button
-                        className="text-xs text-rose-300 hover:text-rose-200"
-                        onClick={() => removeOption(idx, oIdx)}
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  ))}
-                  <button
-                    className="text-xs text-pink-200 hover:text-pink-100"
-                    onClick={() => addOption(idx)}
-                  >
-                    + Antwort hinzufügen
-                  </button>
-                </div>
-              ) : q.qtype === 'boolean' ? (
-                <div className="space-y-2">
-                  <p className="text-[11px] uppercase tracking-[0.14em] text-slate-400">Richtig / Falsch</p>
-                  {(q.options || []).map((o: any, oIdx: number) => (
-                    <label key={oIdx} className="flex items-center gap-2 text-xs text-slate-200">
-                      <input
-                        type="radio"
-                        name={`bool-${idx}`}
-                        checked={!!o.is_correct}
-                        onChange={() =>
-                          setEditQuestions((prev) =>
-                            prev.map((qq, i) =>
-                              i === idx
-                                ? {
-                                    ...qq,
-                                    options: (qq.options || []).map((oo: any, j: number) => ({
-                                      ...oo,
-                                      is_correct: j === oIdx,
-                                    })),
-                                  }
-                                : qq
-                            )
-                          )
-                        }
-                      />
-                      {o.label}
-                    </label>
-                  ))}
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  <p className="text-[11px] uppercase tracking-[0.14em] text-slate-400">Antwortoptionen</p>
-                  {(q.options || []).map((o: any, oIdx: number) => (
-                    <div key={oIdx} className="flex items-center gap-2">
-                      <input
-                        className="flex-1 rounded border border-white/20 bg-black/20 px-2 py-1 text-white"
-                        value={o.label}
-                        onChange={(e) => updateOption(idx, oIdx, { label: e.target.value })}
-                      />
-                      <label className="flex items-center gap-1 text-xs text-slate-200">
-                        <input
-                          type={q.qtype === 'single' ? 'radio' : 'checkbox'}
-                          name={`corr-${idx}`}
-                          checked={!!o.is_correct}
-                          onChange={(e) => {
-                            if (q.qtype === 'single') {
-                              setEditQuestions((prev) =>
-                                prev.map((qq, i) =>
-                                  i === idx
-                                    ? {
-                                        ...qq,
-                                        options: (qq.options || []).map((oo: any, j: number) => ({
-                                          ...oo,
-                                          is_correct: j === oIdx,
-                                        })),
-                                      }
-                                    : qq
-                                )
-                              );
-                            } else {
-                              updateOption(idx, oIdx, { is_correct: e.target.checked });
-                            }
-                          }}
-                        />
-                        korrekt
-                      </label>
-                      <button
-                        className="text-xs text-rose-300 hover:text-rose-200"
-                        onClick={() => removeOption(idx, oIdx)}
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  ))}
-                  <button
-                    className="text-xs text-pink-200 hover:text-pink-100"
-                    onClick={() => addOption(idx)}
-                  >
-                    + Option
-                  </button>
-                </div>
-              )}
+              {renderOptionsForType(q, idx)}
             </div>
           ))}
               <button
@@ -691,3 +712,5 @@ const updateQuestion = (idx: number, changes: any) => {
     </div>
   );
 }
+
+// Helper wurde weiter oben inline genutzt; keine globale Version nötig.
