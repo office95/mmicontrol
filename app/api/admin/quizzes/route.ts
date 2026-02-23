@@ -59,17 +59,20 @@ export async function POST(req: Request) {
   if (Array.isArray(questions) && questions.length) {
     // delete existing questions for quiz to keep it simple
     await supa.from('quiz_questions').delete().eq('quiz_id', quizRow.id);
-    const qPayload = questions.map((q: any, idx: number) => ({
-      id: q.id,
-      quiz_id: quizRow.id,
-      module_id: q.module_id ?? quizRow.module_id,
-      difficulty: q.difficulty ?? 'medium',
-      qtype: q.qtype ?? 'single',
-      prompt: q.prompt,
-      media_url: q.media_url ?? null,
-      explanation: q.explanation ?? null,
-      order_index: q.order_index ?? idx,
-    }));
+    const qPayload = questions.map((q: any, idx: number) => {
+      const base: any = {
+        quiz_id: quizRow.id,
+        module_id: q.module_id ?? quizRow.module_id,
+        difficulty: q.difficulty ?? 'medium',
+        qtype: q.qtype ?? 'single',
+        prompt: q.prompt,
+        media_url: q.media_url ?? null,
+        explanation: q.explanation ?? null,
+        order_index: q.order_index ?? idx,
+      };
+      if (q.id) base.id = q.id; // nur setzen, wenn vorhanden, sonst Default greift
+      return base;
+    });
     const { data: insertedQs, error: insQErr } = await supa.from('quiz_questions').insert(qPayload).select();
     if (insQErr) return NextResponse.json({ error: insQErr.message }, { status: 400 });
 
