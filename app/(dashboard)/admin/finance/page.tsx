@@ -10,11 +10,13 @@ export default async function AdminFinancePage() {
   } = await supabase.auth.getUser();
   if (!user) return null;
 
-  // Umsatz & Kosten aggregiert (Monat, Jahr, Vorjahr)
+  // Umsatz, Kosten, Ergebnis aggregiert
   const { data: revenueAggRaw } = await supabase.rpc('finance_revenue_summary').single();
-  const revenueAgg = revenueAggRaw || {} as any;
+  const revenueAgg = (revenueAggRaw || {}) as any;
   const { data: costAggRaw } = await supabase.rpc('finance_cost_summary').single();
-  const costAgg = costAggRaw || {} as any;
+  const costAgg = (costAggRaw || {}) as any;
+  const { data: profitAggRaw } = await supabase.rpc('finance_profit_summary').single();
+  const profitAgg = (profitAggRaw || {}) as any;
 
   // Kosten nach Kategorie
   const { data: costByCat } = await supabase.rpc('finance_cost_by_category');
@@ -29,14 +31,29 @@ export default async function AdminFinancePage() {
 
   // Kurs-Umsatz Top 5
   const { data: topCourses } = await supabase.rpc('finance_top_courses');
+  const { data: cashflow } = await supabase.rpc('finance_cashflow_monthly');
+  const { data: aging } = await supabase.rpc('finance_open_invoices_aging');
 
   return (
     <main className="space-y-6">
-      <header className="grid gap-4 md:grid-cols-3">
-        <StatCard title="Umsatz Monat" value={revenueAgg?.month_current ?? 0} delta={revenueAgg?.month_delta ?? 0} fmt="€" />
-        <StatCard title="Umsatz Jahr" value={revenueAgg?.year_current ?? 0} delta={revenueAgg?.year_delta ?? 0} fmt="€" />
+      <header className="grid gap-4 md:grid-cols-4">
+        <StatCard title="Umsatz MTD" value={revenueAgg?.mtd_current ?? 0} delta={revenueAgg?.mtd_delta ?? 0} fmt="€" />
+        <StatCard title="Umsatz QTD" value={revenueAgg?.qtd_current ?? 0} delta={revenueAgg?.qtd_delta ?? 0} fmt="€" />
+        <StatCard title="Umsatz YTD" value={revenueAgg?.ytd_current ?? 0} delta={revenueAgg?.ytd_delta ?? 0} fmt="€" />
         <StatCard title="Offene Forderungen" value={openInvoices?.reduce((s, b) => s + (b.saldo || 0), 0) ?? 0} fmt="€" />
       </header>
+
+      <div className="grid gap-4 md:grid-cols-3">
+        <StatCard title="Kosten MTD" value={costAgg?.mtd_current ?? 0} fmt="€" />
+        <StatCard title="Kosten QTD" value={costAgg?.qtd_current ?? 0} fmt="€" />
+        <StatCard title="Kosten YTD" value={costAgg?.ytd_current ?? 0} fmt="€" />
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-3">
+        <StatCard title="Ergebnis MTD" value={profitAgg?.mtd ?? 0} fmt="€" />
+        <StatCard title="Ergebnis QTD" value={profitAgg?.qtd ?? 0} fmt="€" />
+        <StatCard title="Ergebnis YTD" value={profitAgg?.ytd ?? 0} fmt="€" />
+      </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Panel title="Kosten nach Kategorie">
@@ -82,6 +99,31 @@ export default async function AdminFinancePage() {
             </div>
           ))}
           {!openInvoices?.length && <p className="text-sm text-white/70 py-2">Keine offenen Forderungen.</p>}
+        </div>
+      </Panel>
+
+      <Panel title="Cashflow (letzte 12 Monate)">
+        <div className="space-y-2 text-sm text-white/90">
+          {(cashflow || []).map((m: any) => (
+            <div key={m.label} className="grid grid-cols-3 items-center gap-3">
+              <span className="text-white/80">{m.label}</span>
+              <span className="text-emerald-200 font-semibold">{formatEuro(m.revenue)}</span>
+              <span className="text-amber-200 font-semibold">{formatEuro(m.cost)}</span>
+            </div>
+          ))}
+          {!cashflow?.length && <p className="text-white/70">Keine Daten.</p>}
+        </div>
+      </Panel>
+
+      <Panel title="Aging Offene Forderungen">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm text-white/90">
+          {(aging || []).map((a: any) => (
+            <div key={a.bucket} className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-center">
+              <p className="text-xs uppercase tracking-[0.18em] text-white/60">{a.bucket}</p>
+              <p className="text-base font-semibold">{formatEuro(a.amount)}</p>
+            </div>
+          ))}
+          {!aging?.length && <p className="text-white/70">Keine offenen Posten.</p>}
         </div>
       </Panel>
     </main>
