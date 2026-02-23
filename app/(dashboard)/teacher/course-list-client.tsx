@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import AttendanceModal from '@/components/attendance-modal';
 
 type Participant = { name: string; email: string; phone?: string | null; booking_date?: string | null; student_id?: string | null };
@@ -13,6 +13,8 @@ type CourseCard = {
   reschedule?: { latest: any | null; history: any[] };
   duration_hours?: number | null;
   participants: Participant[];
+  survey_id?: string | null;
+  survey_responses_count?: number | null;
 };
 
 const formatDate = (d: string | null) => (d ? new Date(d).toLocaleDateString() : 'kein Termin');
@@ -28,6 +30,7 @@ const colorForDate = (start: string | null) => {
 export default function CourseListClient({ courses }: { courses: CourseCard[] }) {
   const [openId, setOpenId] = useState<string | null>(null);
   const [attendanceCourse, setAttendanceCourse] = useState<CourseCard | null>(null);
+  const [surveyCourse, setSurveyCourse] = useState<CourseCard | null>(null);
 
   const selected = useMemo(() => courses.find((c) => c.id === openId) || null, [courses, openId]);
 
@@ -91,6 +94,13 @@ export default function CourseListClient({ courses }: { courses: CourseCard[] })
                   onClick={() => setAttendanceCourse(c)}
                 >
                   Anwesenheitsliste
+                </button>
+                <button
+                  className="rounded-full border border-amber-300 bg-amber-50 px-4 py-2 text-sm text-amber-700 hover:bg-amber-100 transition"
+                  onClick={() => setSurveyCourse(c)}
+                  disabled={!c.survey_id}
+                >
+                  Fragebogen-Antworten {c.survey_responses_count ? `(${c.survey_responses_count})` : ''}
                 </button>
               </div>
             </div>
@@ -170,6 +180,72 @@ export default function CourseListClient({ courses }: { courses: CourseCard[] })
           onClose={() => setAttendanceCourse(null)}
         />
       )}
+
+      {surveyCourse && (
+        <SurveyModal course={surveyCourse} onClose={() => setSurveyCourse(null)} />
+      )}
+    </div>
+  );
+}
+
+function SurveyModal({ course, onClose }: { course: CourseCard; onClose: () => void }) {
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [data, setData] = useState<any>(null);
+
+  useEffect(() => {
+    let ignore = false;
+    const load = async () => {
+      setLoading(true);
+      const res = await fetch(`/api/teacher/course-surveys?course_id=${course.id}`);
+      const json = await res.json().catch(() => ({}));
+      if (ignore) return;
+      if (!res.ok) setError(json.error || 'Fehler beim Laden');
+      else setData(json);
+      setLoading(false);
+    };
+    load();
+    return () => { ignore = true; };
+  }, [course.id]);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
+      <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white text-ink shadow-2xl p-6 relative">
+        <button className="absolute top-3 right-3 text-slate-500 hover:text-ink" onClick={onClose}>×</button>
+        <h3 className="text-2xl font-semibold mb-2">Fragebogen-Antworten · {course.title}</h3>
+        {loading && <p className="text-sm text-slate-500">Lade…</p>}
+        {error && <p className="text-sm text-rose-600">{error}</p>}
+        {data && (
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <p className="text-sm text-slate-600">Eingereicht: {data.responses?.length || 0}</p>
+              <a
+                href={`/api/teacher/course-surveys/export?course_id=${course.id}`}
+                className="text-sm px-3 py-1 rounded-lg border border-slate-300 bg-slate-50 hover:bg-slate-100"
+              >
+                CSV Export
+              </a>
+            </div>
+            {(data.responses || []).map((r: any, idx: number) => (
+              <div key={idx} className="rounded-xl border border-slate-200 bg-slate-50 p-3 space-y-2">
+                <p className="text-sm text-slate-700">Teilnehmer: {r.student_name || r.student_email || '—'} · {r.submitted_at ? new Date(r.submitted_at).toLocaleString() : '—'}</p>
+                <div className="space-y-1 text-sm">
+                  {(r.answers || []).map((a: any, i: number) => (
+                    <div key={i} className="border border-slate-200 rounded-lg bg-white px-3 py-2">
+                      <p className="font-semibold text-slate-800">{a.prompt}</p>
+                      <p className="text-slate-700">{a.value || '—'}</p>
+                      {a.extra_text_label && (
+                        <p className="text-slate-600 mt-1"><span className="font-semibold">{a.extra_text_label}:</span> {a.extra_text || '—'}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+            {!data.responses?.length && <p className="text-sm text-slate-500">Noch keine Antworten.</p>}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

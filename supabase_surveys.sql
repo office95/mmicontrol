@@ -18,6 +18,8 @@ create table if not exists public.course_survey_questions (
   qtype text not null check (qtype in ('text','textarea','select','scale')),
   prompt text not null,
   options jsonb,
+  extra_text_label text,
+  extra_text_required boolean default false,
   required boolean default true,
   position int default 1,
   created_at timestamptz default now()
@@ -39,6 +41,7 @@ create table if not exists public.course_survey_answers (
   response_id uuid not null references public.course_survey_responses(id) on delete cascade,
   question_id uuid not null references public.course_survey_questions(id) on delete cascade,
   value text,
+  extra_text text,
   created_at timestamptz default now()
 );
 
@@ -84,4 +87,3 @@ create policy if not exists course_survey_responses_student_insert on public.cou
   for insert with check (auth.uid() = student_id);
 create policy if not exists course_survey_answers_student_insert on public.course_survey_answers
   for insert with check (exists (select 1 from public.course_survey_responses r where r.id = course_survey_answers.response_id and r.student_id = auth.uid()));
-
