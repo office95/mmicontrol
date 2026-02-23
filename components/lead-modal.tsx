@@ -394,7 +394,7 @@ export default function LeadModal({
               </Field>
               <Field label="Status">
                 <select className="input" value={status} onChange={(e) => setStatus(e.target.value)}>
-                  <option value="offen">offen</option>
+                  <option value="offen">Offen (Standard)</option>
                   <option value="nicht erreicht">nicht erreicht</option>
                   <option value="erledigt">erledigt</option>
                   <option value="löschen">löschen</option>
