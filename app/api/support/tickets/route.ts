@@ -15,6 +15,8 @@ export async function GET(req: Request) {
     process.env.SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
+  const limit = Math.max(1, Math.min(100, Number(searchParams.get('limit')) || 20));
+  const offset = Math.max(0, Number(searchParams.get('offset')) || 0);
 
   const resolveCreator = async (creatorId: string | null | undefined, profileHint?: { full_name?: string | null; email?: string | null } | null) => {
     if (!creatorId) return null;
@@ -68,7 +70,8 @@ export async function GET(req: Request) {
   const { data, error } = await supabase
     .from('support_tickets')
     .select('id, subject, status, priority, role, created_at, last_message_at, created_by')
-    .order('last_message_at', { ascending: false });
+    .order('last_message_at', { ascending: false })
+    .range(offset, offset + limit - 1);
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
 
   const creators = Array.from(new Set((data || []).map((t) => t.created_by).filter(Boolean))) as string[];

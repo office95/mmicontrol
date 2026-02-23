@@ -12,6 +12,10 @@ export default function TeacherSupportPage() {
   const [unread, setUnread] = useState(0);
   const [seenTick, setSeenTick] = useState(0);
   const [statusFilter, setStatusFilter] = useState<'all' | 'open' | 'in_progress' | 'closed'>('all');
+  const [page, setPage] = useState(0);
+  const pageSize = 15;
+  const [hasMore, setHasMore] = useState(false);
+  const [openId, setOpenId] = useState<string | null>(null);
 
   const seenKey = (id: string) => `support_seen_${id}`;
   const isTicketUnread = (t: any) => {
@@ -21,9 +25,9 @@ export default function TeacherSupportPage() {
     return last > seen;
   };
 
-  const load = async () => {
+  const load = async (nextPage = page) => {
     setLoading(true);
-    const res = await fetch('/api/support/tickets');
+    const res = await fetch(`/api/support/tickets?limit=${pageSize}&offset=${nextPage * pageSize}`);
     const data = await res.json();
     if (!res.ok) {
       setError(data.error || 'Fehler beim Laden');
@@ -31,13 +35,15 @@ export default function TeacherSupportPage() {
     } else {
       setError(null);
       setTickets(data || []);
+      setHasMore((data || []).length === pageSize);
+      setPage(nextPage);
       setUnread(0);
     }
     setLoading(false);
   };
 
   useEffect(() => {
-    load();
+    load(0);
     fetch('/api/support/unread').then(async (r) => {
       const d = await r.json();
       setUnread(d.count || 0);
@@ -144,11 +150,14 @@ export default function TeacherSupportPage() {
         )}
         {tickets.length > 0 && filteredTickets.length > 0 && (
           <div className="divide-y divide-slate-200">
-            {filteredTickets.map((t) => (
-              <details key={t.id} className="py-3">
+            {filteredTickets.map((t) => {
+              const isOpen = openId === t.id;
+              return (
+              <details key={t.id} className="py-3" open={isOpen}>
                 <summary
                   className="flex items-center justify-between cursor-pointer"
                   onClick={() => {
+                    setOpenId((prev) => prev === t.id ? null : t.id);
                     if (typeof window !== 'undefined') {
                       localStorage.setItem(seenKey(t.id), Date.now().toString());
                       setSeenTick((x) => x + 1);
@@ -170,11 +179,28 @@ export default function TeacherSupportPage() {
                     </span>
                   </div>
                 </summary>
-                <TicketThread ticketId={t.id} />
+                {isOpen && <TicketThread ticketId={t.id} />}
               </details>
-            ))}
+            )})}
           </div>
         )}
+        <div className="flex items-center justify-between pt-3">
+          <button
+            className="px-3 py-2 rounded-lg border border-slate-300 text-sm disabled:opacity-50"
+            onClick={() => load(Math.max(0, page - 1))}
+            disabled={page === 0 || loading}
+          >
+            ← Zurück
+          </button>
+          <span className="text-xs text-slate-600">Seite {page + 1}</span>
+          <button
+            className="px-3 py-2 rounded-lg border border-slate-300 text-sm disabled:opacity-50"
+            onClick={() => load(page + 1)}
+            disabled={!hasMore || loading}
+          >
+            Weiter →
+          </button>
+        </div>
       </div>
       </div>
     </div>
