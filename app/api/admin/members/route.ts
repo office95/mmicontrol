@@ -44,18 +44,27 @@ export async function PATCH(req: Request) {
 
   // Mail an den Benutzer schicken (Rollen-/Freischaltungsinfo)
   try {
+    // Aktuellen Stand nach Update holen, damit die Mail den echten Status enthält
+    const { data: updatedProfile } = await service
+      .from('profiles')
+      .select('role, approved')
+      .eq('id', id)
+      .maybeSingle();
+    const finalRole = updatedProfile?.role ?? role ?? 'unverändert';
+    const finalApproved = updatedProfile?.approved ?? approved ?? false;
+
     const user = await service.auth.admin.getUserById(id);
     const email = user.data?.user?.email;
     const name = (user.data?.user?.user_metadata as any)?.full_name || 'Music Mission Nutzer';
     if (email) {
-      const statusTxt = approved === false ? 'ist noch nicht freigeschaltet.' : 'wurde freigeschaltet.';
+      const statusTxt = finalApproved ? 'wurde freigeschaltet.' : 'ist noch nicht freigeschaltet.';
       const res = await sendMail({
         to: email,
         subject: 'Dein Music Mission Dashboard Zugriff',
         text: [
           `Hallo ${name},`,
           '',
-          `deine Rolle wurde auf "${role ?? 'unverändert'}" gesetzt und dein Account ${statusTxt}`,
+          `deine Rolle wurde auf "${finalRole}" gesetzt und dein Account ${statusTxt}`,
           'Du kannst dich unter https://musicmissioncontrol.com anmelden.',
           '',
           'Liebe Grüße',
