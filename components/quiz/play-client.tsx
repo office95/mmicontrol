@@ -457,7 +457,6 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
             <div className="flex items-center justify-between gap-2 flex-wrap">
               <div>
                 <h3 className="text-lg font-semibold text-white">Leaderboard</h3>
-                <p className="text-xs text-slate-300">anonym, zeitgleiche Dauer als Tie-Break</p>
               </div>
               <div className="flex items-center gap-2">
                 {(['month', 'quarter', 'year'] as const).map((p) => (
