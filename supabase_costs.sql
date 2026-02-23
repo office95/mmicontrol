@@ -17,6 +17,7 @@ create table if not exists public.costs (
   amount_net numeric not null,
   vat_amount numeric not null,
   vendor text,
+  invoice_number text,
   description text,
   attachment_url text,
   category_id uuid references public.cost_categories(id) on delete set null,

@@ -13,6 +13,7 @@ type CostRow = {
   amount_net: number;
   vat_amount: number;
   vendor?: string | null;
+  invoice_number?: string | null;
   description?: string | null;
   attachment_url?: string | null;
   category_id?: string | null;
@@ -42,6 +43,7 @@ export default function CostsPage() {
   const [amount, setAmount] = useState('');
   const [vatRate, setVatRate] = useState('20');
   const [vendor, setVendor] = useState('');
+  const [invoiceNumber, setInvoiceNumber] = useState('');
   const [categoryId, setCategoryId] = useState('');
   const [newCategoryName, setNewCategoryName] = useState('');
   const [newCategoryDesc, setNewCategoryDesc] = useState('');
@@ -93,6 +95,7 @@ export default function CostsPage() {
     setAmount('');
     setVatRate('20');
     setVendor('');
+    setInvoiceNumber('');
     setCategoryId('');
     setCourseId('');
     setPartnerId('');
@@ -115,6 +118,7 @@ export default function CostsPage() {
     setAmount(String(row.amount_gross));
     setVatRate(String(row.vat_rate ?? 0));
     setVendor(row.vendor || '');
+    setInvoiceNumber(row.invoice_number || '');
     setCategoryId(row.category_id || '');
     setCourseId(row.course_id || '');
     setPartnerId(row.partner_id || '');
@@ -138,6 +142,7 @@ export default function CostsPage() {
       amount_gross: Number(amount),
       vat_rate: Number(vatRate || 0),
       vendor: vendor || null,
+      invoice_number: invoiceNumber || null,
       category_id: catId || null,
       course_id: courseId || null,
       description: description || null,
@@ -339,12 +344,10 @@ export default function CostsPage() {
                   <option value="">Bitte wählen</option>
                   {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
-                <input
-                  className="input mt-2"
-                  placeholder="oder neue Kategorie"
-                  value={newCategoryName}
-                  onChange={(e) => { setNewCategoryName(e.target.value); if (e.target.value) setCategoryId(''); }}
-                />
+              </div>
+              <div>
+                <label className="text-xs uppercase tracking-[0.12em] text-slate-500">Rechnungsnummer</label>
+                <input className="input" value={invoiceNumber} onChange={(e) => setInvoiceNumber(e.target.value)} placeholder="z. B. R-2024-123" />
               </div>
               {showPartner && (
                 <div>
