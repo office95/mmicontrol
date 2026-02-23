@@ -51,8 +51,12 @@ const adjectives = ['Bold', 'Groove', 'Silent', 'Sonic', 'Velvet', 'Bright', 'Wi
 const nouns = ['Rhythm', 'Chord', 'Pulse', 'Beat', 'Riff', 'Hook', 'Melody', 'Harmony', 'Bass', 'Tempo'];
 const randomAlias = () => `${adjectives[Math.floor(Math.random() * adjectives.length)]}-${nouns[Math.floor(Math.random() * nouns.length)]}-${Math.floor(Math.random() * 900 + 100)}`;
 
-export default function QuizPlayClient({ quizzes }: { quizzes: QuizMeta[] }) {
-  const [selected, setSelected] = useState<QuizMeta | null>(quizzes[0] || null);
+export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: QuizMeta[]; initialQuizId?: string | null }) {
+  const [selected, setSelected] = useState<QuizMeta | null>(() => {
+    if (!quizzes.length) return null;
+    if (initialQuizId) return quizzes.find((q) => q.id === initialQuizId) || quizzes[0];
+    return quizzes[0];
+  });
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

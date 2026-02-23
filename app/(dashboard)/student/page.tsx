@@ -247,6 +247,31 @@ export default async function StudentPage({ searchParams }: { searchParams: Reco
     recommended = (recRows || []).sort(() => Math.random() - 0.5); // zufällige Reihenfolge, alle anzeigen
   }
 
+  // Quizze zu den gebuchten Kursen laden (nur veröffentlichte)
+  let quizzes: {
+    id: string;
+    title: string;
+    description: string | null;
+    course_id: string | null;
+    level_count: number;
+    time_per_question: number;
+  }[] = [];
+  if (courseIds.length) {
+    const { data: quizRows } = await service
+      .from('quizzes')
+      .select('id, title, description, course_id, level_count, time_per_question, is_published')
+      .in('course_id', courseIds)
+      .eq('is_published', true);
+    quizzes = (quizRows || []).map((q) => ({
+      id: q.id,
+      title: q.title,
+      description: q.description ?? null,
+      course_id: q.course_id ?? null,
+      level_count: q.level_count ?? 0,
+      time_per_question: q.time_per_question ?? 30,
+    }));
+  }
+
   // Benefits (Rabatte) für Studierende: aktive, gültige, target passt
   let benefits: {
     id: string;
@@ -348,6 +373,7 @@ export default async function StudentPage({ searchParams }: { searchParams: Reco
       <StudentDashboardClient
         bookings={bookings || []}
         courses={courses || []}
+        quizzes={quizzes}
         materials={materials}
         recommended={recommended}
         feedbacks={feedbacks}

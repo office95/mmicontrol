@@ -74,6 +74,7 @@ type StudentProfile = {
 export default function StudentDashboardClient({
   bookings,
   courses,
+  quizzes,
   profile,
   initialTab,
   materials,
@@ -84,6 +85,7 @@ export default function StudentDashboardClient({
 }: {
   bookings: Booking[];
   courses: Course[];
+  quizzes: { id: string; title: string; description: string | null; course_id: string | null; level_count: number; time_per_question: number }[];
   profile: StudentProfile;
   initialTab?: 'bookings' | 'materials' | 'profile' | 'feedback';
   materials: Material[];
@@ -95,6 +97,7 @@ export default function StudentDashboardClient({
   const [tab, setTab] = useState<'bookings' | 'materials' | 'profile' | 'feedback'>(initialTab || 'bookings');
   const [unread, setUnread] = useState(0);
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(courses[0]?.id || null);
+  const courseQuiz = useMemo(() => quizzes.find((q) => q.course_id === selectedCourseId) || null, [quizzes, selectedCourseId]);
   const courseTitle = (cid: string | null) => courses.find((c) => c.id === cid)?.title ?? 'Kurs';
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const benefitsRef = useRef<HTMLDivElement | null>(null);
@@ -223,16 +226,16 @@ export default function StudentDashboardClient({
               <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/40 to-transparent" />
               <div className="relative h-full w-full p-6 flex flex-col justify-end">
                 <p className="text-[11px] uppercase tracking-[0.24em] text-pink-200 mb-2">Music Mission Quiz</p>
-                <h2 className="text-3xl sm:text-4xl font-bold leading-tight">Music Mission Quiz</h2>
-                <p className="text-sm text-white/80">Bildungs-Boost für deine Module – produzieren, mischen, live.</p>
+                <h2 className="text-3xl sm:text-4xl font-bold leading-tight">{courseQuiz?.title || 'Music Mission Quiz'}</h2>
+                <p className="text-sm text-white/80 line-clamp-2">{courseQuiz?.description || 'Bildungs-Boost für deine Module – produzieren, mischen, live.'}</p>
               </div>
             </div>
             <div className="p-6 sm:p-8 flex flex-col gap-4 justify-center bg-gradient-to-b from-slate-900 via-slate-900/90 to-slate-950">
               <div className="space-y-1">
                 <p className="text-[11px] uppercase tracking-[0.22em] text-pink-200">Neu · Lernquiz</p>
-                <h3 className="text-2xl font-semibold">Teste dein Wissen vor dem Kurs</h3>
-                <p className="text-sm text-white/80">
-                  Level, Zeitlimit und anonyme Bestenliste. Fragen je Modul und Kurs – ideal zur Vorbereitung.
+                <h3 className="text-2xl font-semibold">{courseQuiz?.title || 'Teste dein Wissen vor dem Kurs'}</h3>
+                <p className="text-sm text-white/80 line-clamp-3">
+                  {courseQuiz?.description || 'Level, Zeitlimit und anonyme Bestenliste. Fragen je Modul und Kurs – ideal zur Vorbereitung.'}
                 </p>
               </div>
               <div className="flex flex-wrap gap-3 text-xs text-white/80">
@@ -253,13 +256,13 @@ export default function StudentDashboardClient({
                   </select>
                 )}
                 <a
-                  href={`/quizzes${selectedCourseId ? `?course_id=${selectedCourseId}` : ''}`}
+                  href={courseQuiz ? `/quizzes?course_id=${courseQuiz.course_id}&quiz_id=${courseQuiz.id}` : '/quizzes'}
                   className="inline-flex items-center justify-center rounded-full bg-pink-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg hover:bg-pink-500 transition"
                 >
                   Zum Quiz
                 </a>
                 <a
-                  href={`/quizzes${selectedCourseId ? `?course_id=${selectedCourseId}` : ''}`}
+                  href={courseQuiz ? `/quizzes?course_id=${courseQuiz.course_id}&quiz_id=${courseQuiz.id}` : '/quizzes'}
                   className="inline-flex items-center justify-center rounded-full border border-white/30 px-5 py-2.5 text-sm font-semibold text-white hover:bg-white/10 transition"
                 >
                   Bestenliste

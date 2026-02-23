@@ -18,6 +18,8 @@ export default async function QuizzesPage({ searchParams }: { searchParams?: Rec
     .maybeSingle();
 
   const previewRequested = (searchParams?.preview ?? '') === '1';
+  const courseFilter = typeof searchParams?.course_id === 'string' ? searchParams.course_id : null;
+  const preselectId = typeof searchParams?.quiz_id === 'string' ? searchParams.quiz_id : null;
   const mayPreview = profile?.role === 'admin' || profile?.role === 'teacher';
   const includeDrafts = previewRequested && mayPreview;
 
@@ -25,6 +27,8 @@ export default async function QuizzesPage({ searchParams }: { searchParams?: Rec
     .from('quizzes')
     .select('id,title,description,course_id,module_id,level_count,time_per_question,is_published')
     .order('created_at', { ascending: false });
+
+  if (courseFilter) query.eq('course_id', courseFilter);
 
   if (!includeDrafts) query.eq('is_published', true);
 
@@ -38,7 +42,7 @@ export default async function QuizzesPage({ searchParams }: { searchParams?: Rec
       {safeQuizzes.length === 0 && (
         <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-white">Keine Quizze vorhanden.</div>
       )}
-      {safeQuizzes.length > 0 && <QuizPlayClient quizzes={safeQuizzes as any} />}
+      {safeQuizzes.length > 0 && <QuizPlayClient quizzes={safeQuizzes as any} initialQuizId={preselectId || safeQuizzes[0]?.id} />}
     </main>
   );
 }
