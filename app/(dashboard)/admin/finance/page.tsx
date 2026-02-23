@@ -11,8 +11,10 @@ export default async function AdminFinancePage() {
   if (!user) return null;
 
   // Umsatz & Kosten aggregiert (Monat, Jahr, Vorjahr)
-  const { data: revenueAgg } = await supabase.rpc('finance_revenue_summary').single();
-  const { data: costAgg } = await supabase.rpc('finance_cost_summary').single();
+  const { data: revenueAggRaw } = await supabase.rpc('finance_revenue_summary').single();
+  const revenueAgg = revenueAggRaw || {} as any;
+  const { data: costAggRaw } = await supabase.rpc('finance_cost_summary').single();
+  const costAgg = costAggRaw || {} as any;
 
   // Kosten nach Kategorie
   const { data: costByCat } = await supabase.rpc('finance_cost_by_category');
