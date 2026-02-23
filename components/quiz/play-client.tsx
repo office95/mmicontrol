@@ -72,6 +72,7 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
   const [period, setPeriod] = useState<'month' | 'quarter' | 'year'>('year');
   const [saving, setSaving] = useState(false);
   const [feedback, setFeedback] = useState<{ correctIds: string[]; isCorrect: boolean } | null>(null);
+  const [showPoints, setShowPoints] = useState(false);
 
   const current = questions[idx];
 
@@ -268,6 +269,30 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
         </div>
       </div>
 
+      {showPoints && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
+          <div className="w-full max-w-xl rounded-2xl border border-white/15 bg-slate-950/95 text-white shadow-2xl p-6 relative">
+            <button
+              className="absolute top-3 right-3 text-slate-300 hover:text-white"
+              onClick={() => setShowPoints(false)}
+            >
+              ×
+            </button>
+            <h3 className="text-xl font-semibold mb-2">Punktesystem</h3>
+            <p className="text-sm text-slate-200 mb-3">
+              So werden Punkte und Ranglisten berechnet.
+            </p>
+            <ul className="space-y-2 text-sm text-slate-100 list-disc list-inside">
+              <li>Basis pro Frage: Easy 100 · Medium 140 · Hard 180 Punkte.</li>
+              <li>Zeitbonus: +5 Punkte pro verbleibender Sekunde.</li>
+              <li>Nur korrekte Antworten zählen; falsche bringen 0 Punkte.</li>
+              <li>Tie-Break: schnellere Gesamtzeit rankt vor langsameren bei gleichem Score.</li>
+              <li>Leaderboard filterbar nach Monat, Quartal oder Jahr.</li>
+            </ul>
+          </div>
+        </div>
+      )}
+
       <div className="grid md:grid-cols-[2fr,1fr] gap-5">
         <div className="space-y-4">
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -417,14 +442,16 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
 
         <div className="space-y-4">
           <div className="rounded-2xl border border-white/10 bg-white/5 p-4 shadow-xl">
-            <h3 className="text-lg font-semibold text-white">Punktesystem</h3>
-            <ul className="mt-2 space-y-1 text-sm text-slate-100 list-disc list-inside">
-              <li>Basis: Easy 100 · Medium 140 · Hard 180 Punkte.</li>
-              <li>Zeitbonus: +5 Punkte pro verbleibender Sekunde.</li>
-              <li>Nur korrekte Antworten zählen (falsch = 0 Punkte).</li>
-              <li>Tie-Break: schnellere Gesamtzeit rankt höher.</li>
-              <li>Leaderboard filterbar: Monat, Quartal, Jahr.</li>
-            </ul>
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-white">Punktesystem</h3>
+              <button
+                onClick={() => setShowPoints(true)}
+                className="rounded-full border border-white/30 px-3 py-1 text-xs font-semibold text-white hover:bg-white/10"
+              >
+                Anzeigen
+              </button>
+            </div>
+            <p className="mt-2 text-sm text-slate-200">Wie die Punkte berechnet werden.</p>
           </div>
           <div className="rounded-2xl border border-white/10 bg-slate-950/70 p-4 shadow-xl">
             <div className="flex items-center justify-between gap-2 flex-wrap">
