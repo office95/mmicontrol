@@ -144,6 +144,25 @@ export default async function StudentPage({ searchParams }: { searchParams: Reco
     bookings = bookingRows || [];
   }
 
+  // Falls Kurs-IDs nur in den Buchungen stehen, ergänzen
+  const bookingCourseIds = (bookings || []).map((b) => b.course_id).filter(Boolean) as string[];
+  const missingCourseIds = bookingCourseIds.filter((id) => !courseIds.includes(id));
+  if (missingCourseIds.length) {
+    const { data: extraCourses } = await service
+      .from('courses')
+      .select('id, title, description')
+      .in('id', missingCourseIds);
+    courses = [...(courses || []), ...(extraCourses || [])];
+    courseIds = Array.from(new Set([...courseIds, ...missingCourseIds]));
+    if (courseIds.length) {
+      const { data: extraDates } = await service
+        .from('course_dates')
+        .select('id, course_id, start_date, end_date')
+        .in('course_id', missingCourseIds);
+      courseDates = [...(courseDates || []), ...(extraDates || [])];
+    }
+  }
+
   // Reschedules nachladen, falls course_date_id nur aus Buchungen kommt
   const bookingCourseDateIds = (bookings || []).map((b) => (b as any).course_date_id).filter(Boolean) as string[];
   const allCdIds = Array.from(new Set([...
