@@ -97,6 +97,7 @@ export default function StudentDashboardClient({
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(courses[0]?.id || null);
   const courseTitle = (cid: string | null) => courses.find((c) => c.id === cid)?.title ?? 'Kurs';
   const scrollRef = useRef<HTMLDivElement | null>(null);
+  const benefitsRef = useRef<HTMLDivElement | null>(null);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [reminderVisible, setReminderVisible] = useState<boolean>(!!feedbackReminder);
@@ -140,6 +141,21 @@ export default function StudentDashboardClient({
     }, 20);
     return () => window.clearInterval(id);
   }, [recommended, tab]);
+
+  // sanftes Auto-Scroll der Benefits (loop von links nach rechts)
+  useEffect(() => {
+    const el = benefitsRef.current;
+    if (!el || !benefits.length || tab !== 'bookings') return;
+    el.scrollLeft = 0;
+    const id = window.setInterval(() => {
+      if (!el) return;
+      el.scrollLeft += 1;
+      if (el.scrollLeft >= el.scrollWidth - el.clientWidth - 1) {
+        el.scrollLeft = 0;
+      }
+    }, 20);
+    return () => window.clearInterval(id);
+  }, [benefits, tab]);
 
   return (
     <div className="min-h-screen flex flex-col space-y-6">
@@ -290,8 +306,8 @@ export default function StudentDashboardClient({
           <div className="mt-4 space-y-2">
             <h3 className="text-lg font-semibold text-white">Benefits für dich</h3>
             <p className="text-sm text-white/70">Members Card vorzeigen und Vorteile nutzen.</p>
-            <div className="overflow-x-auto scrollbar-hide">
-              <div className="flex gap-4 py-2">
+            <div className="overflow-x-auto scrollbar-hide" ref={benefitsRef}>
+              <div className="flex gap-4 py-2 min-w-full">
                 {benefits.map((b) => (
                   <div key={b.id} className="min-w-[210px] max-w-[220px] rounded-2xl bg-white text-ink border border-slate-200 shadow-md overflow-hidden flex flex-col">
                     <div className="relative h-24 bg-slate-100">
