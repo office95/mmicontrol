@@ -182,7 +182,7 @@ function StatCard({
         </p>
       )}
       {desc && (
-        <div className="pointer-events-none absolute top-full left-0 mt-2 w-64 rounded-lg border border-black/60 bg-black text-white p-3 text-[12px] shadow-2xl opacity-0 transition-opacity duration-150 group-hover:opacity-100">
+        <div className="pointer-events-none absolute top-full left-0 mt-2 w-64 rounded-lg border border-black/60 bg-black text-white p-3 text-[12px] shadow-2xl opacity-0 transition-opacity duration-150 group-hover:opacity-100 z-50">
           {desc}
         </div>
       )}
