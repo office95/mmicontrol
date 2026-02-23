@@ -128,6 +128,14 @@ export default function DashboardClient({
   }, [quizzes]);
   const [selectedQuizCourseId, setSelectedQuizCourseId] = useState<string | null>(null);
   const selectedQuiz = selectedQuizCourseId ? quizMap.get(selectedQuizCourseId) || null : null;
+
+  // Default-Auswahl: bevorzugt erster Kurs mit Quiz, sonst erster Kurs
+  useEffect(() => {
+    if (!courses.length) return;
+    const firstWithQuiz = courses.find((c) => quizMap.has(c.id));
+    const nextId = firstWithQuiz?.id || courses[0].id;
+    setSelectedQuizCourseId((prev) => prev ?? nextId);
+  }, [courses, quizMap]);
   const selectedFeedbacks = selectedCourseId ? feedbackByCourse.get(selectedCourseId) || [] : [];
 
   return (
