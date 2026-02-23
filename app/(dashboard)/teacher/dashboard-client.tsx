@@ -316,6 +316,52 @@ export default function DashboardClient({
           </div>
         </div>
       )}
+
+      {/* Music Mission Quiz – immer als letzter Abschnitt sichtbar */}
+      <div className="rounded-2xl border border-white/10 bg-slate-950 text-white overflow-hidden shadow-2xl">
+        <div className="grid md:grid-cols-[1.1fr,1fr] gap-0 relative">
+          <div className="relative min-h-[220px]">
+            <div
+              className="absolute inset-0 bg-center bg-cover"
+              style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1483412033650-1015ddeb83d1?auto=format&fit=crop&w=1600&q=80)' }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/45 to-transparent" />
+            <div className="relative h-full w-full p-6 flex flex-col justify-end">
+              <p className="text-[11px] uppercase tracking-[0.24em] text-pink-200 mb-2">Music Mission Quiz</p>
+              <h2 className="text-3xl sm:text-4xl font-bold leading-tight">Lernquiz für deine Kurse</h2>
+              <p className="text-sm text-white/80">Module 1–20 mit Coverbildern, Zeitlimit und Bestenliste – perfekte Vorbereitung für deine Teilnehmenden.</p>
+            </div>
+          </div>
+          <div className="p-6 sm:p-8 flex flex-col gap-4 justify-center bg-gradient-to-b from-slate-900 via-slate-900/90 to-slate-950">
+            <div className="space-y-1">
+              <p className="text-[11px] uppercase tracking-[0.22em] text-pink-200">Neu · Dozentenbereich</p>
+              <h3 className="text-2xl font-semibold">Quiz auswählen oder anpassen</h3>
+              <p className="text-sm text-white/80">
+                Kurs filtern, Modul-Cover pflegen und Fragen einsehen. Erstellen/Löschen bleibt Admin vorbehalten, aber du siehst den Lernstand deiner Gruppen.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-3 text-xs text-white/80">
+              <span className="px-3 py-1 rounded-full border border-white/20 bg-white/10">Anonyme Bestenliste</span>
+              <span className="px-3 py-1 rounded-full border border-white/20 bg-white/10">Zeitlimit pro Frage</span>
+              <span className="px-3 py-1 rounded-full border border-white/20 bg-white/10">Module 1–20</span>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
+              <a
+                href="/quizzes"
+                className="inline-flex items-center justify-center rounded-full bg-pink-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg hover:bg-pink-500 transition"
+              >
+                Zum Quiz
+              </a>
+              <a
+                href="/quizzes?view=leaderboard"
+                className="inline-flex items-center justify-center rounded-full border border-white/30 px-5 py-2.5 text-sm font-semibold text-white hover:bg-white/10 transition"
+              >
+                Bestenliste
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

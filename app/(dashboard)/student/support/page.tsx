@@ -69,35 +69,52 @@ export default function StudentSupportPage() {
 
   return (
     <div className="min-h-screen bg-transparent text-white px-4 sm:px-6 lg:px-10 py-6 space-y-6">
-      {/* Hero (grau wie Buchungen) */}
-      <div className="rounded-2xl bg-gradient-to-r from-slate-800 via-slate-700 to-slate-800 text-white p-6 shadow-xl border border-white/10">
-        <p className="text-[11px] uppercase tracking-[0.24em] text-white/70">Support · Student</p>
-        <h1 className="text-3xl font-semibold">Wie können wir dir helfen?</h1>
-        <p className="text-sm text-white/80">Erstelle ein Ticket oder sieh dir die bisherigen im Verlauf an.</p>
-      </div>
-
-      {/* Tabs unter dem Hero */}
-      <div className="flex flex-wrap gap-2 text-sm font-semibold">
-        {[
-          ['Meine Buchungen', '/student'],
-          ['Kursunterlagen', '/student?tab=materials'],
-          ['Profil', '/student?tab=profile'],
-          ['Kurs Bewertung', '/student?tab=feedback'],
-          ['Support', '/student/support'],
-        ].map(([label, href]) => (
+      {/* Top-Navigation wie Dashboard */}
+      <nav className="sticky top-0 z-30 -mx-4 px-4 pt-1 pb-3 bg-slate-950/85 border-b border-white/10 backdrop-blur-lg shadow-lg">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-sm font-semibold text-white/85">
           <a
-            key={label}
-            href={href}
-            className={`relative px-3 py-2 rounded-lg border ${href === '/student/support' ? 'border-pink-400 bg-pink-500/20 text-white' : 'border-white/20 bg-white/10 text-white/80 hover:border-pink-300 hover:text-white'}`}
+            href="/student"
+            className="px-3 py-2 rounded-full border border-white/15 bg-white/5 hover:border-pink-300 hover:text-white transition"
           >
-            {label}
-            {href === '/student/support' && unread > 0 && (
+            Meine Buchungen
+          </a>
+          <a
+            href="/student?tab=materials"
+            className="px-3 py-2 rounded-full border border-white/15 bg-white/5 hover:border-pink-300 hover:text-white transition"
+          >
+            Kursunterlagen
+          </a>
+          <a
+            href="/student?tab=profile"
+            className="px-3 py-2 rounded-full border border-white/15 bg-white/5 hover:border-pink-300 hover:text-white transition"
+          >
+            Profil
+          </a>
+          <a
+            href="/student?tab=feedback"
+            className="px-3 py-2 rounded-full border border-white/15 bg-white/5 hover:border-pink-300 hover:text-white transition"
+          >
+            Kurs Bewertung
+          </a>
+          <a
+            href="/student/support"
+            className="relative px-3 py-2 rounded-full border border-pink-400 bg-pink-500/20 text-white shadow-pink-500/20 shadow-sm"
+          >
+            Support
+            {unread > 0 && (
               <span className="absolute -right-2 -top-2 h-5 min-w-[20px] px-1 rounded-full bg-rose-500 text-white text-[11px] font-semibold flex items-center justify-center">
                 {unread}
               </span>
             )}
           </a>
-        ))}
+        </div>
+      </nav>
+
+      {/* Hero (grau wie Buchungen) */}
+      <div className="rounded-2xl bg-gradient-to-r from-slate-800 via-slate-700 to-slate-800 text-white p-6 shadow-xl border border-white/10">
+        <p className="text-[11px] uppercase tracking-[0.24em] text-white/70">Support · Student</p>
+        <h1 className="text-3xl font-semibold">Wie können wir dir helfen?</h1>
+        <p className="text-sm text-white/80">Erstelle ein Ticket oder sieh dir die bisherigen im Verlauf an.</p>
       </div>
 
       <div className="rounded-2xl bg-white p-6 border border-slate-200 shadow-sm space-y-3 text-slate-900">
