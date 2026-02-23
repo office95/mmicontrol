@@ -30,6 +30,8 @@ const statusColor: Record<string, string> = {
   abgesagt: 'bg-red-100 text-red-700',
 };
 
+const STATUS_FILTERS = ['offen', 'laufend', 'verschoben', 'abgeschlossen', 'abgesagt'];
+
 export default function CourseDatesPage() {
   const [items, setItems] = useState<CourseDateListRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -47,6 +49,7 @@ export default function CourseDatesPage() {
   const [resModal, setResModal] = useState<{ open: boolean; item: CourseDateListRow | null }>({ open: false, item: null });
   const [resForm, setResForm] = useState({ start_date: '', end_date: '', time_from: '', time_to: '', reason: '', update_bookings: true });
   const [resSaving, setResSaving] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<string[]>(['offen', 'laufend', 'verschoben']);
 
   const load = async () => {
     setLoading(true);
@@ -84,6 +87,10 @@ export default function CourseDatesPage() {
     () =>
       [...items].sort((a, b) => (a.start_date || '').localeCompare(b.start_date || '')),
     [items]
+  );
+  const filtered = useMemo(
+    () => sorted.filter((t) => statusFilter.includes(t.status)),
+    [sorted, statusFilter]
   );
 
   const latestReschedule = (courseDateId: string) => reschedules[courseDateId]?.[0];
@@ -174,14 +181,41 @@ export default function CourseDatesPage() {
         </button>
       </div>
 
+      <div className="flex flex-wrap items-center gap-2 text-xs text-slate-200">
+        <span className="uppercase tracking-[0.15em] text-slate-400">Status</span>
+        {STATUS_FILTERS.map((s) => (
+          <button
+            key={s}
+            onClick={() =>
+              setStatusFilter((prev) =>
+                prev.includes(s) ? prev.filter((x) => x !== s) : [...prev, s]
+              )
+            }
+            className={`px-3 py-1 rounded-full border text-[12px] ${
+              statusFilter.includes(s)
+                ? 'border-pink-300 bg-pink-500/20 text-white'
+                : 'border-white/20 bg-white/10 text-slate-200'
+            }`}
+          >
+            {s}
+          </button>
+        ))}
+        <button
+          className="ml-2 text-[12px] text-slate-300 hover:underline"
+          onClick={() => setStatusFilter(['offen', 'laufend', 'verschoben'])}
+        >
+          Standard (offen/laufend/verschoben)
+        </button>
+      </div>
+
       <div className="card p-6 shadow-xl text-slate-900">
         {loading && <p className="text-sm text-slate-500">Lade Kurstermine...</p>}
         {error && <p className="text-sm text-red-600">{error}</p>}
-        {!loading && !sorted.length && <p className="text-sm text-slate-500">Keine Kurstermine vorhanden.</p>}
+        {!loading && !filtered.length && <p className="text-sm text-slate-500">Keine Kurstermine in diesem Filter.</p>}
 
         {activeTab === 'list' && (
           <div className="space-y-3">
-            {sorted.map((t) => {
+            {filtered.map((t) => {
               const latest = latestReschedule(t.id);
               const hasHist = !!reschedules[t.id]?.length;
               return (
@@ -312,8 +346,8 @@ export default function CourseDatesPage() {
           const today = new Date();
           const dayMs = 86_400_000;
           const toDate = (d: string | null) => (d ? new Date(d) : null);
-          const starts = sorted.map((t) => toDate(t.start_date)).filter(Boolean) as Date[];
-          const ends = sorted.map((t) => toDate(t.end_date || t.start_date)).filter(Boolean) as Date[];
+          const starts = filtered.map((t) => toDate(t.start_date)).filter(Boolean) as Date[];
+          const ends = filtered.map((t) => toDate(t.end_date || t.start_date)).filter(Boolean) as Date[];
 
           // Padding vor/nach heute und Terminen für Scrollbar
           const padBeforeDays = 14;
@@ -403,7 +437,7 @@ export default function CourseDatesPage() {
 
                     {/* Kompakte Liste */}
                     <div className="space-y-2">
-                      {sorted.map((t) => {
+                      {filtered.map((t) => {
                         const start = toDate(t.start_date);
                         const end = toDate(t.end_date || t.start_date);
                         const left = posPx(start);
