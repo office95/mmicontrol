@@ -13,8 +13,11 @@ export default function TopNav({ links }: { links: NavLink[] }) {
     const [path, query] = href.split('?');
     if (pathname !== path) return false;
     if (!query) return true;
-    const current = searchParams.toString();
-    return current === query;
+    const target = new URLSearchParams(query);
+    for (const [k, v] of target.entries()) {
+      if (searchParams.get(k) !== v) return false;
+    }
+    return true;
   };
 
   return (
