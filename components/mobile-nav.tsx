@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import Link, { type LinkProps } from 'next/link';
+import Link from 'next/link';
 
 type NavLink = { href: string; label: string; badge?: number };
 
@@ -28,7 +28,7 @@ export default function MobileNav({ links }: { links: NavLink[] }) {
             {links.map((l) => (
               <Link
                 key={l.href}
-                href={l.href as LinkProps['href']}
+                href={l.href}
                 className="flex items-center justify-between px-4 py-3 text-sm text-white hover:bg-white/10"
                 onClick={() => setOpen(false)}
               >
