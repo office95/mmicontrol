@@ -1,16 +1,20 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 
 type NavLink = { href: string; label: string };
 
 export default function TopNav({ links }: { links: NavLink[] }) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   const isActive = (href: string) => {
-    const clean = href.split('?')[0];
-    return pathname === clean || pathname.startsWith(clean + '/') || href === pathname;
+    const [path, query] = href.split('?');
+    if (pathname !== path) return false;
+    if (!query) return true;
+    const current = searchParams.toString();
+    return current === query;
   };
 
   return (
