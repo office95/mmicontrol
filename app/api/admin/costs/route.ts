@@ -25,9 +25,13 @@ export async function GET(req: Request) {
   const category = searchParams.get('category_id');
   const course = searchParams.get('course_id');
 
-  let q = service.from('costs').select(SELECT);
-  if (id) q = q.eq('id', id).single();
-  else q = q.order('cost_date', { ascending: false }).order('created_at', { ascending: false });
+  if (id) {
+    const { data, error } = await service.from('costs').select(SELECT).eq('id', id).single();
+    if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+    return NextResponse.json(data);
+  }
+
+  let q = service.from('costs').select(SELECT).order('cost_date', { ascending: false }).order('created_at', { ascending: false });
   if (from) q = q.gte('cost_date', from);
   if (to) q = q.lte('cost_date', to);
   if (category) q = q.eq('category_id', category);
