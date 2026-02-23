@@ -130,6 +130,7 @@ create policy quizq_member_select on quiz_questions for select using (
 -- 8) quiz_attempts
 drop policy if exists qa_admin_all on quiz_attempts;
 drop policy if exists qa_insert_student on quiz_attempts;
+drop policy if exists qa_insert_teacher on quiz_attempts;
 drop policy if exists qa_read_own on quiz_attempts;
 drop policy if exists qa_read_teacher on quiz_attempts;
 create policy qa_admin_all on quiz_attempts for all using (auth.uid() in (select id from v_admin));
@@ -137,7 +138,15 @@ create policy qa_insert_student on quiz_attempts for insert with check (
   auth.uid() = user_id
   and auth.uid() in (
     select cm.user_id from quizzes q join course_members cm on cm.course_id = q.course_id
-    where q.id = quiz_attempts.quiz_id and cm.role='student'
+    where q.id = quiz_attempts.quiz_id and cm.role = 'student'
+  )
+);
+
+create policy qa_insert_teacher on quiz_attempts for insert with check (
+  auth.uid() = user_id
+  and auth.uid() in (
+    select cm.user_id from quizzes q join course_members cm on cm.course_id = q.course_id
+    where q.id = quiz_attempts.quiz_id and cm.role = 'teacher'
   )
 );
 create policy qa_read_own on quiz_attempts for select using (user_id = auth.uid());
