@@ -47,6 +47,8 @@ type PaymentRow = {
   method?: string | null;
   note?: string | null;
   bank_fee?: number | null;
+  category?: string | null;
+  partner_id?: string | null;
 };
 
 export default function BookingsPage() {
@@ -64,12 +66,17 @@ export default function BookingsPage() {
   const [payMethod, setPayMethod] = useState('');
   const [payNote, setPayNote] = useState('');
   const [payBankFee, setPayBankFee] = useState('');
+  const [payCategory, setPayCategory] = useState('');
+  const [payPartnerId, setPayPartnerId] = useState('');
+  const [payCustomCategory, setPayCustomCategory] = useState('');
   const [savingPayment, setSavingPayment] = useState(false);
   const [statusSaving, setStatusSaving] = useState(false);
   const [basicsSaving, setBasicsSaving] = useState(false);
   const [viewTab, setViewTab] = useState<'overview' | 'open'>('overview');
   const [modalTab, setModalTab] = useState<'overview' | 'payments' | 'dunning'>('overview');
   const [metrics, setMetrics] = useState<Metrics | null>(null);
+  const [partners, setPartners] = useState<{ id: string; name: string }[]>([]);
+  const [categoryOptions, setCategoryOptions] = useState<string[]>(['Bankgebühr', 'Honorarnote', 'Sonstiges']);
 
   const load = async () => {
     setLoading(true);
@@ -93,6 +100,18 @@ export default function BookingsPage() {
 
   useEffect(() => { load(); }, []);
 
+  // Partner-Liste für Honorarnoten
+  useEffect(() => {
+    async function loadPartners() {
+      const res = await fetch('/api/admin/partners');
+      if (res.ok) {
+        const data = await res.json();
+        setPartners(data || []);
+      }
+    }
+    loadPartners();
+  }, []);
+
   // Öffne Modal direkt, wenn ?id=... gesetzt ist (z. B. von Kursteilnehmer-Ansicht)
   useEffect(() => {
     const presetId = searchParams.get('id');
@@ -108,6 +127,11 @@ export default function BookingsPage() {
       const fallback = items.find((b) => b.id === id) || {};
       setSelected({ ...fallback, ...data });
       setPayments(data.payments || []);
+      // neue Kategorien aus Zahlungsverlauf aufnehmen
+      const cats = (data.payments || [])
+        .map((p: PaymentRow) => p.category)
+        .filter((c): c is string => !!c && !categoryOptions.includes(c));
+      if (cats.length) setCategoryOptions((prev) => Array.from(new Set([...prev, ...cats])));
       setModalTab('overview');
     }
   };
@@ -135,6 +159,8 @@ export default function BookingsPage() {
       load();
     }
   };
+
+  const partnerMap = useMemo(() => Object.fromEntries(partners.map((p) => [p.id, p.name])), [partners]);
 
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -518,7 +544,17 @@ export default function BookingsPage() {
                     </div>
                     <div>
                       <label className="text-xs uppercase tracking-[0.12em] text-slate-500">Bankgebühr (intern)</label>
-                      <input type="number" className="input" value={payBankFee} onChange={(e) => setPayBankFee(e.target.value)} placeholder="0,00" />
+                      <input
+                        type="number"
+                        className="input"
+                        value={payBankFee}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setPayBankFee(val);
+                          if (val && !payCategory) setPayCategory('Bankgebühr');
+                        }}
+                        placeholder="0,00"
+                      />
                     </div>
                     <div>
                       <label className="text-xs uppercase tracking-[0.12em] text-slate-500">Zahlungsmethode</label>
@@ -551,6 +587,45 @@ export default function BookingsPage() {
                         <option value="Teilzahlung">Teilzahlung</option>
                       </select>
                     </div>
+                    <div>
+                      <label className="text-xs uppercase tracking-[0.12em] text-slate-500">Kategorie</label>
+                      <div className="flex gap-2">
+                        <select
+                          className="input flex-1"
+                          value={payCategory}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setPayCategory(val);
+                            if (val !== 'custom') setPayCustomCategory('');
+                          }}
+                        >
+                          <option value="">Keine</option>
+                          {categoryOptions.map((opt) => (
+                            <option key={opt} value={opt}>{opt}</option>
+                          ))}
+                          <option value="custom">+ Eigene</option>
+                        </select>
+                        {payCategory === 'custom' && (
+                          <input
+                            className="input flex-1"
+                            placeholder="Neue Kategorie"
+                            value={payCustomCategory}
+                            onChange={(e) => setPayCustomCategory(e.target.value)}
+                          />
+                        )}
+                      </div>
+                    </div>
+                    {payCategory === 'Honorarnote' && (
+                      <div>
+                        <label className="text-xs uppercase tracking-[0.12em] text-slate-500">Partner</label>
+                        <select className="input" value={payPartnerId} onChange={(e) => setPayPartnerId(e.target.value)}>
+                          <option value="">Bitte wählen</option>
+                          {partners.map((p) => (
+                            <option key={p.id} value={p.id}>{p.name}</option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
                   </div>
                   <div className="flex justify-end">
                     <button
@@ -574,6 +649,8 @@ export default function BookingsPage() {
                             method: payMethod || null,
                             note: payNote || null,
                             bank_fee: payBankFee ? Number(payBankFee) : null,
+                            category: (payCategory === 'custom' ? payCustomCategory : payCategory) || null,
+                            partner_id: payCategory === 'Honorarnote' ? (payPartnerId || null) : null,
                           }),
                         });
                         setSavingPayment(false);
@@ -590,6 +667,9 @@ export default function BookingsPage() {
                           setPayMethod('');
                           setPayNote('');
                           setPayBankFee('');
+                          setPayCategory('');
+                          setPayCustomCategory('');
+                          setPayPartnerId('');
                           loadOne(selected.id);
                           load(); // Liste aktualisieren
                         } else {
@@ -610,7 +690,12 @@ export default function BookingsPage() {
                             {new Date(p.payment_date).toLocaleDateString()} · {Number(p.amount).toFixed(2)} €
                             {p.bank_fee != null && Number(p.bank_fee) !== 0 ? ` · Bankgebühr: ${Number(p.bank_fee).toFixed(2)} €` : ''}
                           </p>
-                          <p className="text-xs text-slate-500">{p.method || '—'} {p.note ? `· ${p.note}` : ''}</p>
+                          <p className="text-xs text-slate-500">
+                            {p.method || '—'}
+                            {p.note ? ` · ${p.note}` : ''}
+                            {p.category ? ` · Kategorie: ${p.category}` : ''}
+                            {p.partner_id ? ` · Partner: ${partnerMap[p.partner_id] || p.partner_id}` : ''}
+                          </p>
                         </div>
                         <button
                           className="text-xs text-red-600 hover:underline"

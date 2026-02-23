@@ -192,7 +192,7 @@ export async function GET(req: Request) {
   if (id && enriched) {
     const { data: payments } = await service
       .from('payments')
-      .select('id, payment_date, amount, method, note, created_at')
+      .select('id, payment_date, amount, method, note, bank_fee, category, partner_id, created_at')
       .eq('booking_id', id)
       .order('payment_date', { ascending: false });
     const paid = (payments ?? []).reduce((sum, p) => sum + Number(p.amount || 0), 0);
