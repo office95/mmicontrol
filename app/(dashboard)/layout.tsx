@@ -267,7 +267,9 @@ export default async function DashboardLayout({ children }: { children: ReactNod
             </aside>
           )}
 
-          <main className={`flex-1 w-full ${isTeacher || isStudent ? '' : 'md:pl-72'} space-y-10 text-[17px] md:text-[18px]`}>
+          <main
+            className={`flex-1 w-full ${isTeacher || isStudent ? '' : 'md:pl-72 overflow-y-auto max-h-[calc(100vh-8rem)]'} space-y-10 text-[17px] md:text-[18px]`}
+          >
             {children}
           </main>
         </div>
