@@ -22,7 +22,7 @@ export default function TopNav({ links }: { links: NavLink[] }) {
           className={`inline-flex items-center rounded-full border px-3 py-2 text-sm font-semibold transition ${
             isActive(l.href)
               ? 'border-2 border-pink-400 bg-white/5 text-white shadow-lg shadow-pink-500/30'
-              : 'border-white/15 bg-white/5 text-white hover:border-pink-300 hover:bg-white/10'
+              : 'border-white/15 bg-white/5 text-white hover:border-white/25 hover:bg-white/10'
           }`}
         >
           {l.label}
