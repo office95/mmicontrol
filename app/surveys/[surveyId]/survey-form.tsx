@@ -9,6 +9,8 @@ type Question = {
   prompt: string;
   options?: any;
   required?: boolean;
+  extra_text_label?: string | null;
+  extra_text_required?: boolean | null;
 };
 
 type Survey = {
@@ -21,17 +23,23 @@ export default function SurveyForm({ survey, questions, bookingId }: { survey: S
   const router = useRouter();
   const search = useSearchParams();
   const [values, setValues] = useState<Record<string, string>>({});
+  const [extraValues, setExtraValues] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
 
   const setVal = (id: string, v: string) => setValues((prev) => ({ ...prev, [id]: v }));
+  const setExtra = (id: string, v: string) => setExtraValues((prev) => ({ ...prev, [id]: v }));
 
   const submit = async () => {
     setSubmitting(true);
     setError(null);
     try {
-      const answers = questions.map((q) => ({ question_id: q.id, value: values[q.id] ?? '' }));
+      const answers = questions.map((q) => ({
+        question_id: q.id,
+        value: values[q.id] ?? '',
+        extra_text: q.extra_text_label ? (extraValues[q.id] ?? '') : null,
+      }));
       const res = await fetch(`/api/student/surveys/${survey.id}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -102,6 +110,18 @@ export default function SurveyForm({ survey, questions, bookingId }: { survey: S
               ))}
             </div>
           )}
+          {q.extra_text_label && (
+            <div className="space-y-1">
+              <label className="text-xs text-white/70">{q.extra_text_label}</label>
+              <textarea
+                className="input"
+                rows={3}
+                value={extraValues[q.id] ?? ''}
+                onChange={(e) => setExtra(q.id, e.target.value)}
+                required={q.extra_text_required ?? false}
+              />
+            </div>
+          )}
         </div>
       ))}
 
@@ -110,7 +130,11 @@ export default function SurveyForm({ survey, questions, bookingId }: { survey: S
       <button
         className="px-4 py-2 rounded-lg bg-pink-600 text-white font-semibold hover:bg-pink-500 disabled:opacity-60"
         onClick={submit}
-        disabled={submitting || questions.some((q) => q.required && !(values[q.id] ?? '').trim())}
+        disabled={
+          submitting
+          || questions.some((q) => q.required && !(values[q.id] ?? '').trim())
+          || questions.some((q) => q.extra_text_label && q.extra_text_required && !(extraValues[q.id] ?? '').trim())
+        }
       >
         {submitting ? 'Sendet…' : 'Absenden'}
       </button>

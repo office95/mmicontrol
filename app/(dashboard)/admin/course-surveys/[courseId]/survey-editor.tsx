@@ -16,6 +16,8 @@ type Question = {
   prompt: string;
   options?: any;
   required?: boolean;
+  extra_text_label?: string | null;
+  extra_text_required?: boolean | null;
   position?: number;
 };
 
@@ -140,25 +142,45 @@ export default function SurveyEditor({ courseId, initialSurvey, initialQuestions
               </button>
             </div>
             <input
+          className="input"
+          value={q.prompt}
+          onChange={(e) => updateQuestion(idx, { prompt: e.target.value })}
+        />
+        {q.qtype === 'select' && (
+          <div className="space-y-1">
+            <label className="text-xs text-white/70">Optionen (Kommagetrennt)</label>
+            <input
               className="input"
-              value={q.prompt}
-              onChange={(e) => updateQuestion(idx, { prompt: e.target.value })}
+              value={(q.options?.choices || []).join(', ')}
+              onChange={(e) => updateQuestion(idx, { options: { choices: e.target.value.split(',').map((s) => s.trim()).filter(Boolean) } })}
             />
-            {q.qtype === 'select' && (
-              <div className="space-y-1">
-                <label className="text-xs text-white/70">Optionen (Kommagetrennt)</label>
-                <input
-                  className="input"
-                  value={(q.options?.choices || []).join(', ')}
-                  onChange={(e) => updateQuestion(idx, { options: { choices: e.target.value.split(',').map((s) => s.trim()).filter(Boolean) } })}
-                />
-              </div>
-            )}
-            {q.qtype === 'scale' && (
-              <p className="text-xs text-white/60">Skala 1 (niedrig) bis 5 (hoch)</p>
-            )}
           </div>
-        ))}
+        )}
+        {q.qtype === 'scale' && (
+          <p className="text-xs text-white/60">Skala 1 (niedrig) bis 5 (hoch)</p>
+        )}
+        <div className="grid gap-2 md:grid-cols-[1fr,auto] items-center">
+          <div className="space-y-1">
+            <label className="text-xs text-white/70">Zusatz-Textfeld (optional)</label>
+            <input
+              className="input"
+              placeholder='Überschrift des Zusatzfelds, z.B. "Warum?"'
+              value={q.extra_text_label ?? ''}
+              onChange={(e) => updateQuestion(idx, { extra_text_label: e.target.value || null })}
+            />
+          </div>
+          <label className="flex items-center gap-2 text-xs text-white/70 mt-1 md:mt-6">
+            <input
+              type="checkbox"
+              checked={q.extra_text_required ?? false}
+              onChange={(e) => updateQuestion(idx, { extra_text_required: e.target.checked })}
+              disabled={!q.extra_text_label}
+            />
+            Zusatzfeld Pflicht
+          </label>
+        </div>
+      </div>
+    ))}
         {!questions.length && <p className="text-sm text-white/70">Noch keine Fragen angelegt.</p>}
       </div>
 

@@ -39,6 +39,8 @@ export async function POST(req: Request) {
     options: q.options || null,
     required: q.required ?? true,
     position: q.position ?? idx + 1,
+    extra_text_label: q.extra_text_label || null,
+    extra_text_required: q.extra_text_required ?? false,
   }));
 
   if (payload.length) {
