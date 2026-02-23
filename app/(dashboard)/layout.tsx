@@ -207,33 +207,6 @@ export default async function DashboardLayout({ children }: { children: ReactNod
 
       {/* Content area below header */}
       <div className="pt-28 pb-12 px-3 md:px-6">
-        {/* Tabs direkt über der Hero-Section für Student/Teacher */}
-        {(isTeacher || isStudent) && (
-          <div className="w-full max-w-6xl mx-auto mb-4">
-            <TopNav
-              links={(() => {
-                if (isStudent) {
-                  return [
-                    { href: '/student', label: 'Dashboard' },
-                    { href: '/student?tab=materials', label: 'Kursunterlagen' },
-                    { href: '/student?tab=feedback', label: 'Kurs Bewertung' },
-                    { href: '/student/support', label: 'Support' },
-                    { href: '/student?tab=profile', label: 'Profil' },
-                  ];
-                }
-                if (isTeacher) {
-                  return [
-                    { href: '/teacher', label: 'Dashboard' },
-                    { href: '/teacher/materials', label: 'Kursunterlagen' },
-                    { href: '/quizzes', label: 'Quiz' },
-                  ];
-                }
-                return [];
-              })()}
-            />
-          </div>
-        )}
-
         <div className={`w-full ${isTeacher || isStudent ? 'max-w-6xl' : 'max-w-[85vw]'} mx-auto flex gap-8 ${!isTeacher && !isStudent ? 'md:pl-72' : ''}`}>
           {!isTeacher && !isStudent && (
             <aside className="hidden md:flex fixed top-28 bottom-6 left-4 w-64 flex-col rounded-2xl border border-white/15 bg-white/10 backdrop-blur-xl text-white shadow-2xl text-[17px]">
