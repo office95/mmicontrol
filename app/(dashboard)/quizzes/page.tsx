@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import QuizPlayClient from '@/components/quiz/play-client';
+import TopNav from '@/components/top-nav';
 import { createSupabaseServerClient } from '@/lib/supabase-server';
 
 export const dynamic = 'force-dynamic';
@@ -35,8 +36,31 @@ export default async function QuizzesPage({ searchParams }: { searchParams?: Rec
   const { data: quizzes, error } = await query;
   const safeQuizzes = quizzes || [];
 
+  const showTabs = profile?.role === 'teacher' || profile?.role === 'student';
+
+  const tabLinks = profile?.role === 'teacher'
+    ? [
+        { href: '/teacher', label: 'Dashboard' },
+        { href: '/teacher/materials', label: 'Kursunterlagen' },
+        { href: '/quizzes', label: 'Quiz' },
+      ]
+    : profile?.role === 'student'
+      ? [
+          { href: '/student', label: 'Dashboard' },
+          { href: '/student?tab=materials', label: 'Kursunterlagen' },
+          { href: '/student?tab=feedback', label: 'Kurs Bewertung' },
+          { href: '/student/support', label: 'Support' },
+          { href: '/student?tab=profile', label: 'Profil' },
+        ]
+      : [];
+
   return (
     <main className="space-y-6">
+      {showTabs && tabLinks.length > 0 && (
+        <div className="-mx-2 sm:mx-0">
+          <TopNav links={tabLinks} />
+        </div>
+      )}
       {error && <p className="text-sm text-red-300">{error.message}</p>}
       {includeDrafts && <p className="text-xs text-amber-200">Vorschau zeigt auch unveröffentlichte Quizze.</p>}
       {safeQuizzes.length === 0 && (
