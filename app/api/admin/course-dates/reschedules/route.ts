@@ -37,7 +37,7 @@ export async function POST(req: Request) {
 
   const { data: cd, error: cdErr } = await service
     .from('course_dates')
-    .select('id, start_date, end_date, time_from, time_to')
+    .select('id, course_id, start_date, end_date, time_from, time_to, course:courses(title)')
     .eq('id', course_date_id)
     .maybeSingle();
   if (cdErr) return NextResponse.json({ error: cdErr.message }, { status: 400 });
@@ -80,6 +80,50 @@ export async function POST(req: Request) {
     subject: `Kurstermin verschoben: ${course_date_id}`,
     text: `Kurstermin wurde verschoben.\nNeuer Start: ${start_date}\nNeues Ende: ${end_date || '-'}\nGrund: ${reason || '-'}\nCourseDate ID: ${course_date_id}`,
   });
+
+  // Notify betroffene Lehrende/Studierende per E-Mail
+  try {
+    const recipients = new Set<string>();
+    // course members
+    if (cd?.course_id) {
+      const { data: members } = await service
+        .from('course_members')
+        .select('user_id')
+        .eq('course_id', cd.course_id);
+      for (const m of members || []) {
+        const u = await service.auth.admin.getUserById(m.user_id);
+        const email = u.data?.user?.email;
+        if (email) recipients.add(email);
+      }
+    }
+    // bookings (falls Gast-Mailadresse hinterlegt)
+    const { data: bookings } = await service
+      .from('bookings')
+      .select('student_email')
+      .eq('course_date_id', course_date_id);
+    for (const b of bookings || []) {
+      if (b.student_email) recipients.add(b.student_email.toLowerCase());
+    }
+
+    if (recipients.size) {
+      const title = cd?.course?.title || 'Kurs';
+      const text = [
+        `Kurstermin wurde verschoben: ${title}`,
+        `Neuer Start: ${start_date}`,
+        end_date ? `Neues Ende: ${end_date}` : undefined,
+        reason ? `Grund: ${reason}` : undefined,
+        '',
+        'Bitte im Dashboard die aktualisierten Termine beachten.',
+      ].filter(Boolean).join('\n');
+      await sendMail({
+        to: Array.from(recipients),
+        subject: `Update: Neuer Starttermin für ${title}`,
+        text,
+      });
+    }
+  } catch (e) {
+    console.warn('reschedule notify users failed', e);
+  }
 
   const { data: history } = await service
     .from('course_reschedules')

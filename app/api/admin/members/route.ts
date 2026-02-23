@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { sendMail } from '@/lib/mailer';
 
 const service = createClient(
   process.env.SUPABASE_URL!,
@@ -40,6 +41,32 @@ export async function PATCH(req: Request) {
   if (Object.keys(updates).length === 0) return NextResponse.json({ error: 'keine Felder' }, { status: 400 });
   const { error } = await service.from('profiles').update(updates).eq('id', id);
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+
+  // Mail an den Benutzer schicken (Rollen-/Freischaltungsinfo)
+  try {
+    const user = await service.auth.admin.getUserById(id);
+    const email = user.data?.user?.email;
+    const name = (user.data?.user?.user_metadata as any)?.full_name || 'Music Mission Nutzer';
+    if (email) {
+      const statusTxt = approved === false ? 'ist noch nicht freigeschaltet.' : 'wurde freigeschaltet.';
+      await sendMail({
+        to: email,
+        subject: 'Dein Music Mission Dashboard Zugriff',
+        text: [
+          `Hallo ${name},`,
+          '',
+          `deine Rolle wurde auf "${role ?? 'unverändert'}" gesetzt und dein Account ${statusTxt}`,
+          'Du kannst dich unter https://musicmissioncontrol.com anmelden.',
+          '',
+          'Liebe Grüße',
+          'Music Mission Team'
+        ].join('\n'),
+      });
+    }
+  } catch (e) {
+    console.warn('roles mail failed', e);
+  }
+
   return NextResponse.json({ ok: true });
 }
 

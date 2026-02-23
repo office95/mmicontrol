@@ -71,5 +71,70 @@ export async function POST(req: Request) {
     text: `Ticket ${ticket_id}\nStatus: ${nextStatus}\nVon: ${role}\nNachricht:\n${message}`,
   });
 
+  // Notify Ticket-Ersteller (nur wenn Absender nicht der Ersteller ist)
+  try {
+    if (ticket.created_by && ticket.created_by !== user.id) {
+      const { data: ownerProfile } = await service
+        .from('profiles')
+        .select('full_name')
+        .eq('id', ticket.created_by)
+        .maybeSingle();
+      const ownerUser = await service.auth.admin.getUserById(ticket.created_by);
+      const ownerEmail = ownerUser.data?.user?.email;
+      const ownerName = ownerProfile?.full_name || ownerUser.data?.user?.user_metadata?.full_name || 'Music Mission Nutzer';
+      if (ownerEmail) {
+        await sendMail({
+          to: ownerEmail,
+          subject: `Neue Antwort zu deinem Support-Ticket ${ticket_id}`,
+          text: [
+            `Hallo ${ownerName},`,
+            '',
+            'es gibt eine neue Antwort auf dein Support-Ticket.',
+            `Ticket-ID: ${ticket_id}`,
+            `Status: ${nextStatus}`,
+            '',
+            'Nachricht:',
+            message,
+            '',
+            'Antworten kannst du direkt im Dashboard im Tab "Support".',
+            '',
+            'Liebe Grüße',
+            'Music Mission Team'
+          ].join('\n'),
+        });
+      }
+    }
+  } catch (e) {
+    console.warn('support owner mail failed', e);
+  }
+
+  // Falls Ticket jetzt geschlossen wird: Abschluss-Mail an Ersteller
+  try {
+    if (nextStatus === 'closed' && ticket.created_by) {
+      const u = await service.auth.admin.getUserById(ticket.created_by);
+      const email = u.data?.user?.email;
+      const name = u.data?.user?.user_metadata?.full_name || 'Music Mission Nutzer';
+      if (email) {
+        await sendMail({
+          to: email,
+          subject: `Ticket ${ticket_id} wurde geschlossen`,
+          text: [
+            `Hallo ${name},`,
+            '',
+            'dein Support-Ticket wurde soeben geschlossen.',
+            `Ticket-ID: ${ticket_id}`,
+            '',
+            'Falls du noch etwas brauchst, erstelle einfach ein neues Ticket.',
+            '',
+            'Liebe Grüße',
+            'Music Mission Team'
+          ].join('\n'),
+        });
+      }
+    }
+  } catch (e) {
+    console.warn('support closed mail failed', e);
+  }
+
   return NextResponse.json({ ok: true });
 }
