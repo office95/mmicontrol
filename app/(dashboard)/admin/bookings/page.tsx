@@ -130,7 +130,7 @@ export default function BookingsPage() {
       // neue Kategorien aus Zahlungsverlauf aufnehmen
       const cats = (data.payments || [])
         .map((p: PaymentRow) => p.category)
-        .filter((c): c is string => !!c && !categoryOptions.includes(c));
+        .filter((c: string | null | undefined): c is string => !!c && !categoryOptions.includes(c));
       if (cats.length) setCategoryOptions((prev) => Array.from(new Set([...prev, ...cats])));
       setModalTab('overview');
     }
