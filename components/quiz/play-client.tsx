@@ -60,15 +60,17 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [status, setStatus] = useState<'intro' | 'playing' | 'done'>('intro');
+  const [status, setStatus] = useState<'intro' | 'playing' | 'feedback' | 'done'>('intro');
   const [idx, setIdx] = useState(0);
   const [picked, setPicked] = useState<string[]>([]);
   const [timeLeft, setTimeLeft] = useState<number>(selected?.time_per_question || 30);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const [answers, setAnswers] = useState<AnswerDraft[]>([]);
+  const answersRef = useRef<AnswerDraft[]>([]);
   const [alias, setAlias] = useState(randomAlias());
   const [leaderboard, setLeaderboard] = useState<LeaderboardRow[]>([]);
   const [saving, setSaving] = useState(false);
+  const [feedback, setFeedback] = useState<{ correctIds: string[]; isCorrect: boolean } | null>(null);
 
   const current = questions[idx];
 
@@ -101,7 +103,7 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
     if (!selected) return;
     const loadLb = async () => {
       try {
-        const res = await fetch(`/api/quizzes/${selected.id}/leaderboard?period=week&limit=15`);
+        const res = await fetch(`/api/quizzes/${selected.id}/leaderboard?period=year&limit=15`);
         const data = await res.json();
         if (res.ok) setLeaderboard(data);
       } catch (e) {
@@ -135,8 +137,10 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
       return;
     }
     setAnswers([]);
+    answersRef.current = [];
     setIdx(0);
     setPicked([]);
+    setFeedback(null);
     setStatus('playing');
     setTimeLeft(selected?.time_per_question || 30);
   };
@@ -150,8 +154,10 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
     }
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     if (!current || status !== 'playing') return;
+    if (timerRef.current) clearInterval(timerRef.current);
+
     const correctIds = (current.options || []).filter((o) => o.is_correct).map((o) => o.id);
     const isSingle = current.type === 'single' || current.type === 'boolean';
     const isCorrect = isSingle
@@ -173,18 +179,30 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
       points,
     };
 
-    setAnswers((prev) => [...prev, draft]);
+    setAnswers((prev) => {
+      const next = [...prev, draft];
+      answersRef.current = next;
+      return next;
+    });
+    setFeedback({ correctIds, isCorrect });
+    setStatus('feedback');
+  };
 
-    if (idx + 1 >= questions.length) {
-      // finish
+  const goNext = async () => {
+    if (!current) return;
+    const lastIndex = idx >= questions.length - 1;
+    if (lastIndex) {
       setStatus('done');
+      setFeedback(null);
       if (timerRef.current) clearInterval(timerRef.current);
-      await saveAttempt([...answers, draft]);
-    } else {
-      setIdx((prev) => prev + 1);
-      setPicked([]);
-      setTimeLeft(selected?.time_per_question || 30);
+      await saveAttempt(answersRef.current);
+      return;
     }
+    setIdx((prev) => prev + 1);
+    setPicked([]);
+    setFeedback(null);
+    setStatus('playing');
+    setTimeLeft(selected?.time_per_question || 30);
   };
 
   const saveAttempt = async (all: AnswerDraft[]) => {
@@ -209,7 +227,7 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
         const d = await res.json().catch(() => ({}));
         setError(d.error || 'Speichern fehlgeschlagen');
       } else {
-        const lb = await fetch(`/api/quizzes/${selected.id}/leaderboard?period=week&limit=15`).then((r) => r.json().catch(() => []));
+        const lb = await fetch(`/api/quizzes/${selected.id}/leaderboard?period=year&limit=15`).then((r) => r.json().catch(() => []));
         setLeaderboard(lb || []);
       }
     } catch (e: any) {
@@ -219,7 +237,7 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
     }
   };
 
-  const progress = useMemo(() => ((idx) / Math.max(questions.length, 1)) * 100, [idx, questions.length]);
+  const progress = useMemo(() => ((idx + (status === 'feedback' || status === 'done' ? 1 : 0)) / Math.max(questions.length, 1)) * 100, [idx, questions.length, status]);
 
   return (
     <div className="space-y-6">
@@ -288,11 +306,13 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
               </div>
             )}
 
-            {!loading && !error && selected && status === 'playing' && current && (
+            {!loading && !error && selected && (status === 'playing' || status === 'feedback') && current && (
               <div className="space-y-4">
                 <div className="flex items-center justify-between text-sm text-slate-200">
                   <span>Frage {idx + 1} / {questions.length}</span>
-                  <span className={`font-semibold ${timeLeft < 6 ? 'text-amber-300' : 'text-lime-200'}`}>{timeLeft}s</span>
+                  <span className={`font-semibold ${timeLeft < 6 ? 'text-amber-300' : 'text-lime-200'}`}>
+                    {status === 'feedback' ? '—' : `${timeLeft}s`}
+                  </span>
                 </div>
                 <div className="h-2 rounded-full bg-white/10 overflow-hidden">
                   <div className="h-full bg-gradient-to-r from-pink-500 to-amber-400" style={{ width: `${progress}%` }} />
@@ -303,23 +323,65 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
                   <img src={current.media_url} alt="Frage Media" className="max-h-48 w-full object-contain rounded-xl border border-white/10" />
                 )}
                 <div className="space-y-2">
-                  {current.options.map((o) => (
-                    <button
-                      key={o.id}
-                      onClick={() => handleToggle(o.id)}
-                      className={`w-full text-left rounded-xl border px-4 py-3 text-sm font-semibold transition ${picked.includes(o.id) ? 'border-pink-400 bg-pink-500/15 text-white' : 'border-white/10 bg-white/5 text-slate-100 hover:border-pink-300/40'}`}
-                    >
-                      {o.label}
-                    </button>
-                  ))}
+                  {current.options.map((o) => {
+                    const active = picked.includes(o.id);
+                    const showFeedback = status === 'feedback';
+                    const isCorrect = o.is_correct;
+                    const showCorrect = showFeedback && isCorrect;
+                    const showWrong = showFeedback && active && !isCorrect;
+                    return (
+                      <button
+                        key={o.id}
+                        onClick={() => handleToggle(o.id)}
+                        disabled={showFeedback}
+                        className={`w-full text-left rounded-xl border px-4 py-3 text-sm font-semibold transition ${
+                          showCorrect
+                            ? 'border-emerald-400 bg-emerald-500/15 text-white'
+                            : showWrong
+                              ? 'border-rose-400 bg-rose-500/15 text-white'
+                              : active
+                                ? 'border-pink-400 bg-pink-500/15 text-white'
+                                : 'border-white/10 bg-white/5 text-slate-100 hover:border-pink-300/40'
+                        } ${showFeedback ? 'cursor-default' : ''}`}
+                      >
+                        {o.label}
+                      </button>
+                    );
+                  })}
                 </div>
+
+                {status === 'feedback' && feedback && (
+                  <div className={`rounded-xl border px-4 py-3 text-sm ${
+                    feedback.isCorrect
+                      ? 'border-emerald-400 bg-emerald-500/10 text-emerald-50'
+                      : 'border-rose-400 bg-rose-500/10 text-rose-50'
+                  }`}>
+                    {feedback.isCorrect ? 'Richtig! Gut gemacht.' : 'Falsch. Richtige Antwort:'}{' '}
+                    {!feedback.isCorrect && (
+                      <span className="font-semibold">
+                        {current.options.filter((o) => o.is_correct).map((o) => o.label).join(', ')}
+                      </span>
+                    )}
+                  </div>
+                )}
+
                 <div className="flex justify-end">
-                  <button
-                    onClick={handleSubmit}
-                    className="rounded-full bg-pink-500 px-5 py-2 text-sm font-semibold text-white shadow-lg hover:bg-pink-400"
-                  >
-                    Weiter
-                  </button>
+                  {status === 'playing' && (
+                    <button
+                      onClick={handleSubmit}
+                      className="rounded-full bg-pink-500 px-5 py-2 text-sm font-semibold text-white shadow-lg hover:bg-pink-400"
+                    >
+                      Antwort prüfen
+                    </button>
+                  )}
+                  {status === 'feedback' && (
+                    <button
+                      onClick={goNext}
+                      className="rounded-full bg-pink-500 px-5 py-2 text-sm font-semibold text-white shadow-lg hover:bg-pink-400"
+                    >
+                      {idx >= questions.length - 1 ? 'Ergebnis speichern' : 'Nächste Frage'}
+                    </button>
+                  )}
                 </div>
               </div>
             )}
@@ -355,7 +417,7 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
         <div className="space-y-4">
           <div className="rounded-2xl border border-white/10 bg-slate-950/70 p-4 shadow-xl">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-white">Leaderboard (Woche)</h3>
+              <h3 className="text-lg font-semibold text-white">Leaderboard (Jahr)</h3>
               <span className="text-xs text-slate-300">Anonym</span>
             </div>
             <div className="mt-3 space-y-2 text-sm">
