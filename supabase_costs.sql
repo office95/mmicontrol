@@ -21,6 +21,7 @@ create table if not exists public.costs (
   attachment_url text,
   category_id uuid references public.cost_categories(id) on delete set null,
   course_id uuid references public.courses(id) on delete set null,
+  partner_id uuid references public.partners(id) on delete set null,
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );

@@ -7,7 +7,7 @@ const service = createClient(
 );
 
 const SELECT =
-  'id, cost_date, amount_gross, vat_rate, amount_net, vat_amount, vendor, description, attachment_url, category_id, course_id, created_at, updated_at, cost_categories (id, name), courses (id, title)';
+  'id, cost_date, amount_gross, vat_rate, amount_net, vat_amount, vendor, description, attachment_url, category_id, course_id, partner_id, created_at, updated_at, cost_categories (id, name), courses (id, title), partners (id, name)';
 
 function computeAmounts(amount_gross: number, vat_rate: number) {
   const gross = Number(amount_gross);
@@ -60,6 +60,7 @@ export async function POST(req: Request) {
     attachment_url: body.attachment_url || null,
     category_id: body.category_id || null,
     course_id: body.course_id || null,
+    partner_id: body.partner_id || null,
   };
 
   const { data, error } = await service.from('costs').insert(payload).select(SELECT).single();

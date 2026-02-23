@@ -17,14 +17,17 @@ type CostRow = {
   attachment_url?: string | null;
   category_id?: string | null;
   course_id?: string | null;
+  partner_id?: string | null;
   cost_categories?: Category | null;
   courses?: Course | null;
+  partners?: { id: string; name: string | null } | null;
 };
 
 export default function CostsPage() {
   const [items, setItems] = useState<CostRow[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [courses, setCourses] = useState<Course[]>([]);
+  const [partners, setPartners] = useState<{ id: string; name: string | null }[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -42,6 +45,7 @@ export default function CostsPage() {
   const [categoryId, setCategoryId] = useState('');
   const [newCategory, setNewCategory] = useState('');
   const [courseId, setCourseId] = useState('');
+  const [partnerId, setPartnerId] = useState('');
   const [description, setDescription] = useState('');
   const [attachment, setAttachment] = useState('');
   const [saving, setSaving] = useState(false);
@@ -66,12 +70,14 @@ export default function CostsPage() {
   };
 
   const loadMeta = async () => {
-    const [catRes, courseRes] = await Promise.all([
+    const [catRes, courseRes, partnerRes] = await Promise.all([
       fetch('/api/admin/cost-categories'),
       fetch('/api/admin/courses'),
+      fetch('/api/admin/partners'),
     ]);
     if (catRes.ok) setCategories(await catRes.json());
     if (courseRes.ok) setCourses(await courseRes.json());
+    if (partnerRes.ok) setPartners(await partnerRes.json());
   };
 
   useEffect(() => {
@@ -91,6 +97,7 @@ export default function CostsPage() {
     setCategoryId('');
     setNewCategory('');
     setCourseId('');
+    setPartnerId('');
     setDescription('');
     setAttachment('');
   };
@@ -108,6 +115,7 @@ export default function CostsPage() {
     setVendor(row.vendor || '');
     setCategoryId(row.category_id || '');
     setCourseId(row.course_id || '');
+    setPartnerId(row.partner_id || '');
     setDescription(row.description || '');
     setAttachment(row.attachment_url || '');
     setModalOpen(true);
@@ -134,6 +142,12 @@ export default function CostsPage() {
       }
     }
 
+    if (showPartner && !partnerId) {
+      alert('Bitte Partner auswählen (Honorarnote).');
+      setSaving(false);
+      return;
+    }
+
     const payload = {
       cost_date: date,
       amount_gross: Number(amount),
@@ -143,6 +157,7 @@ export default function CostsPage() {
       course_id: courseId || null,
       description: description || null,
       attachment_url: attachment || null,
+      partner_id: showPartner ? (partnerId || null) : null,
     };
 
     const url = '/api/admin/costs' + (editing ? '' : '');
@@ -177,6 +192,14 @@ export default function CostsPage() {
     () => items.reduce((s, r) => s + Number(r.amount_gross || 0), 0),
     [items]
   );
+
+  const effectiveCategoryId = categoryId || (newCategory.trim() ? 'new' : '');
+  const showPartner = (() => {
+    const selectedCat =
+      categories.find((c) => c.id === categoryId) ||
+      (newCategory.trim() ? { name: newCategory.trim() } : null);
+    return (selectedCat?.name || '').toLowerCase() === 'honorarnote';
+  })();
 
   return (
     <div className="space-y-6">
@@ -250,6 +273,7 @@ export default function CostsPage() {
                 <p className="text-xs text-slate-500">
                   {r.vendor || '—'} · {r.cost_categories?.name || 'keine Kategorie'}
                   {r.courses?.title ? ` · Kurs: ${r.courses.title}` : ''}
+                  {r.partners?.name ? ` · Partner: ${r.partners.name}` : ''}
                   {r.description ? ` · ${r.description}` : ''}
                   {r.attachment_url ? ` · Beleg: ${r.attachment_url}` : ''}
                 </p>
@@ -296,6 +320,15 @@ export default function CostsPage() {
                   onChange={(e) => { setNewCategory(e.target.value); if (e.target.value) setCategoryId(''); }}
                 />
               </div>
+              {showPartner && (
+                <div>
+                  <label className="text-xs uppercase tracking-[0.12em] text-slate-500">Partner (bei Honorarnote)</label>
+                  <select className="input" value={partnerId} onChange={(e) => setPartnerId(e.target.value)}>
+                    <option value="">Bitte wählen</option>
+                    {partners.map((p) => <option key={p.id} value={p.id}>{p.name || p.id}</option>)}
+                  </select>
+                </div>
+              )}
               <div>
                 <label className="text-xs uppercase tracking-[0.12em] text-slate-500">Lieferant</label>
                 <input className="input" value={vendor} onChange={(e) => setVendor(e.target.value)} placeholder="z. B. AWS, Druckerei" />
