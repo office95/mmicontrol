@@ -4,7 +4,7 @@ import { createClient } from '@supabase/supabase-js';
 const service = () =>
   createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
 
-type Period = 'week' | 'month' | 'year' | 'all';
+type Period = 'week' | 'month' | 'quarter' | 'year' | 'all';
 
 function dateRange(period: Period): { from?: string; to?: string } {
   const now = new Date();
@@ -12,6 +12,11 @@ function dateRange(period: Period): { from?: string; to?: string } {
   if (period === 'all') return {};
   if (period === 'year') {
     const from = new Date(Date.UTC(now.getUTCFullYear(), 0, 1)).toISOString();
+    return { from, to };
+  }
+  if (period === 'quarter') {
+    const quarter = Math.floor(now.getUTCMonth() / 3); // 0,1,2,3
+    const from = new Date(Date.UTC(now.getUTCFullYear(), quarter * 3, 1)).toISOString();
     return { from, to };
   }
   if (period === 'month') {

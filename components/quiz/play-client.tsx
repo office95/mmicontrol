@@ -69,6 +69,7 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
   const answersRef = useRef<AnswerDraft[]>([]);
   const [alias, setAlias] = useState(randomAlias());
   const [leaderboard, setLeaderboard] = useState<LeaderboardRow[]>([]);
+  const [period, setPeriod] = useState<'month' | 'quarter' | 'year'>('year');
   const [saving, setSaving] = useState(false);
   const [feedback, setFeedback] = useState<{ correctIds: string[]; isCorrect: boolean } | null>(null);
 
@@ -103,7 +104,7 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
     if (!selected) return;
     const loadLb = async () => {
       try {
-        const res = await fetch(`/api/quizzes/${selected.id}/leaderboard?period=year&limit=15`);
+        const res = await fetch(`/api/quizzes/${selected.id}/leaderboard?period=${period}&limit=15`);
         const data = await res.json();
         if (res.ok) setLeaderboard(data);
       } catch (e) {
@@ -111,7 +112,7 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
       }
     };
     loadLb();
-  }, [selected]);
+  }, [selected, period]);
 
   // timer handling
   useEffect(() => {
@@ -227,7 +228,7 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
         const d = await res.json().catch(() => ({}));
         setError(d.error || 'Speichern fehlgeschlagen');
       } else {
-        const lb = await fetch(`/api/quizzes/${selected.id}/leaderboard?period=year&limit=15`).then((r) => r.json().catch(() => []));
+        const lb = await fetch(`/api/quizzes/${selected.id}/leaderboard?period=${period}&limit=15`).then((r) => r.json().catch(() => []));
         setLeaderboard(lb || []);
       }
     } catch (e: any) {
@@ -415,10 +416,37 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
         </div>
 
         <div className="space-y-4">
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-4 shadow-xl">
+            <h3 className="text-lg font-semibold text-white">Punktesystem</h3>
+            <ul className="mt-2 space-y-1 text-sm text-slate-100 list-disc list-inside">
+              <li>Basis: Easy 100 · Medium 140 · Hard 180 Punkte.</li>
+              <li>Zeitbonus: +5 Punkte pro verbleibender Sekunde.</li>
+              <li>Nur korrekte Antworten zählen (falsch = 0 Punkte).</li>
+              <li>Tie-Break: schnellere Gesamtzeit rankt höher.</li>
+              <li>Leaderboard filterbar: Monat, Quartal, Jahr.</li>
+            </ul>
+          </div>
           <div className="rounded-2xl border border-white/10 bg-slate-950/70 p-4 shadow-xl">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-white">Leaderboard (Jahr)</h3>
-              <span className="text-xs text-slate-300">Anonym</span>
+            <div className="flex items-center justify-between gap-2 flex-wrap">
+              <div>
+                <h3 className="text-lg font-semibold text-white">Leaderboard</h3>
+                <p className="text-xs text-slate-300">anonym, zeitgleiche Dauer als Tie-Break</p>
+              </div>
+              <div className="flex items-center gap-2">
+                {(['month', 'quarter', 'year'] as const).map((p) => (
+                  <button
+                    key={p}
+                    onClick={() => setPeriod(p)}
+                    className={`rounded-full px-3 py-1 text-xs font-semibold border transition ${
+                      period === p
+                        ? 'bg-pink-500 text-white border-pink-300 shadow'
+                        : 'border-white/20 text-slate-200 hover:border-pink-300'
+                    }`}
+                  >
+                    {p === 'month' ? 'Monat' : p === 'quarter' ? 'Quartal' : 'Jahr'}
+                  </button>
+                ))}
+              </div>
             </div>
             <div className="mt-3 space-y-2 text-sm">
               {leaderboard.length === 0 && <p className="text-slate-400">Noch keine Einträge.</p>}
