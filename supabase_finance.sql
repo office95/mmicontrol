@@ -1,3 +1,60 @@
+-- Hilfs-Trigger: fehlende Datumsfelder setzen
+create or replace function public.set_booking_date_default()
+returns trigger as $$
+begin
+  if new.booking_date is null then
+    new.booking_date := (new.created_at)::date;
+  end if;
+  return new;
+end;
+$$ language plpgsql;
+
+drop trigger if exists trg_booking_date_default on public.bookings;
+create trigger trg_booking_date_default
+before insert on public.bookings
+for each row execute function public.set_booking_date_default();
+
+create or replace function public.set_cost_date_default()
+returns trigger as $$
+begin
+  if new.cost_date is null then
+    new.cost_date := (new.created_at)::date;
+  end if;
+  return new;
+end;
+$$ language plpgsql;
+
+drop trigger if exists trg_cost_date_default on public.costs;
+create trigger trg_cost_date_default
+before insert on public.costs
+for each row execute function public.set_cost_date_default();
+
+-- Hilfs-Views für saubere Finance-Basis
+create or replace view public.v_finance_bookings as
+select
+  id,
+  coalesce(booking_date, created_at::date) as d,
+  coalesce(amount,0) as amount,
+  status,
+  course_id,
+  course_title,
+  student_id,
+  saldo,
+  created_at
+from public.bookings
+where coalesce(status,'') not in ('Storno','Inkasso','Archiv');
+
+create or replace view public.v_finance_costs as
+select
+  id,
+  coalesce(cost_date, created_at::date) as d,
+  coalesce(amount_gross,0) as amount_gross,
+  category_id,
+  course_id,
+  partner_id,
+  created_at
+from public.costs;
+
 -- Umsatz-Aggregation: MTD, QTD, YTD vs. Vorjahr
 create or replace function public.finance_revenue_summary()
 returns table (
@@ -12,9 +69,8 @@ returns table (
   ytd_delta numeric
 ) language sql security definer as $$
   with b as (
-    select coalesce(booking_date, created_at::date) as d, coalesce(amount,0) as amt
-    from public.bookings
-    where coalesce(status,'') not in ('Storno','Inkasso','Archiv')
+    select d, amount as amt
+    from public.v_finance_bookings
   ),
   cur as (
     select
@@ -51,8 +107,8 @@ returns table (
   ytd_current numeric
 ) language sql security definer as $$
   with c as (
-    select coalesce(cost_date, created_at::date) as d, coalesce(amount_gross,0) as amt
-    from public.costs
+    select d, amount_gross as amt
+    from public.v_finance_costs
   )
   select
     coalesce(sum(case when date_trunc('month', d) = date_trunc('month', current_date) then amt else 0 end),0) as mtd_current,
@@ -100,11 +156,10 @@ returns table (
   avg_rev_per_student numeric
 ) language sql security definer as $$
   with bookings as (
-    select course_id, course_title, coalesce(amount,0) as amt, student_id, coalesce(booking_date, created_at::date) as d
-    from public.bookings
+    select course_id, course_title, amount as amt, student_id, d
+    from public.v_finance_bookings
     where course_id is not null
-      and coalesce(status,'') not in ('Storno','Inkasso','Archiv')
-      and date_trunc('year', coalesce(booking_date, created_at::date)) = date_trunc('year', current_date)
+      and date_trunc('year', d) = date_trunc('year', current_date)
   )
   select
     course_id,
@@ -129,16 +184,15 @@ returns table (
     select generate_series(date_trunc('month', current_date) - interval '11 months', date_trunc('month', current_date), interval '1 month') as m
   ),
   rev as (
-    select date_trunc('month', coalesce(booking_date, created_at::date)) as m, sum(coalesce(amount,0)) as amt
-    from public.bookings
-    where coalesce(status,'') not in ('Storno','Inkasso','Archiv')
-      and coalesce(booking_date, created_at::date) >= date_trunc('month', current_date) - interval '11 months'
+    select date_trunc('month', d) as m, sum(amount) as amt
+    from public.v_finance_bookings
+    where d >= date_trunc('month', current_date) - interval '11 months'
     group by 1
   ),
   cst as (
-    select date_trunc('month', coalesce(cost_date, created_at::date)) as m, sum(coalesce(amount_gross,0)) as amt
-    from public.costs
-    where coalesce(cost_date, created_at::date) >= date_trunc('month', current_date) - interval '11 months'
+    select date_trunc('month', d) as m, sum(amount_gross) as amt
+    from public.v_finance_costs
+    where d >= date_trunc('month', current_date) - interval '11 months'
     group by 1
   )
   select to_char(m.m, 'Mon YY') as label,
@@ -157,10 +211,9 @@ returns table (
   amount numeric
 ) language sql security definer as $$
   with base as (
-    select coalesce(saldo,0) as saldo, coalesce(booking_date, created_at::date, current_date) as d
-    from public.bookings
+    select coalesce(saldo,0) as saldo, coalesce(d, current_date) as d
+    from public.v_finance_bookings
     where saldo > 0
-      and coalesce(status,'') not in ('Storno','Inkasso','Archiv')
   )
   select bucket, sum(saldo) as amount from (
     select case
