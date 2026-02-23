@@ -5,9 +5,8 @@ async function handle(request: Request) {
   const supabase = createSupabaseServerClient();
   await supabase.auth.signOut();
   const origin = new URL(request.url).origin;
-  const envBase = process.env.NEXT_PUBLIC_APP_URL;
-  const base = envBase && !envBase.includes('localhost') ? envBase : origin;
-  return NextResponse.redirect(new URL('/login', base));
+  // Immer auf die Login-Seite derselben Origin zurück
+  return NextResponse.redirect(new URL('/login', origin));
 }
 
 export async function POST(request: Request) {
