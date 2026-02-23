@@ -381,9 +381,7 @@ export default function AdminQuizzesPage() {
 
   // Immer 20 Module pro Kurs anlegen, sobald ein Kurs im Editor gewählt/geladen wird
   useEffect(() => {
-    if (editQuiz?.course_id) {
-      ensureModules(editQuiz.course_id);
-    }
+    // keine Modul-Synchronisation notwendig (synthetische Modulnummern)
   }, [editQuiz?.course_id]);
 
   return (
