@@ -10,14 +10,25 @@ export default function AdminQuizzesPage() {
   const [error, setError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [seedMessage, setSeedMessage] = useState<string | null>(null);
+  const [courses, setCourses] = useState<{ id: string; title: string }[]>([]);
+  const [titleInput, setTitleInput] = useState('Neues Quiz');
+  const [courseId, setCourseId] = useState<string | null>(null);
   const router = useRouter();
 
   const load = async () => {
     setLoading(true);
-    const res = await fetch('/api/admin/quizzes');
-    const data = await res.json();
-    if (!res.ok) setError(data.error || 'Fehler beim Laden');
+    const [quizRes, courseRes] = await Promise.all([
+      fetch('/api/admin/quizzes'),
+      fetch('/api/admin/courses?minimal=1'),
+    ]);
+    const data = await quizRes.json();
+    if (!quizRes.ok) setError(data.error || 'Fehler beim Laden');
     else setQuizzes(data);
+    if (courseRes.ok) {
+      const c = await courseRes.json();
+      setCourses(c);
+      if (c.length && !courseId) setCourseId(c[0].id);
+    }
     setLoading(false);
   };
 
@@ -50,18 +61,13 @@ export default function AdminQuizzesPage() {
 
   const createQuick = async () => {
     setCreating(true);
-    const title = prompt('Quiz-Titel?');
-    if (!title) {
-      setCreating(false);
-      return;
-    }
-    const course_id = prompt('course_id? (für Schnelltest vorhandene ID einfügen)');
-    if (!course_id) {
+    if (!courseId) {
+      setError('Kein Kurs ausgewählt');
       setCreating(false);
       return;
     }
     const body = {
-      quiz: { title, course_id, is_published: false },
+      quiz: { title: titleInput || 'Neues Quiz', course_id: courseId, is_published: false },
       questions: [
         {
           prompt: 'Demo-Frage: Was ist die Paralleltonart von C-Dur?',
@@ -114,6 +120,40 @@ export default function AdminQuizzesPage() {
           Schnelles Demo-Quiz
         </button>
         {seedMessage && <span className="text-pink-200">{seedMessage}</span>}
+      </div>
+
+      <div className="rounded-2xl border border-white/10 bg-white/5 p-4 flex flex-col gap-3 text-sm text-slate-100">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+          <div className="flex-1">
+            <label className="text-xs uppercase tracking-[0.2em] text-pink-200">Titel</label>
+            <input
+              className="mt-1 w-full rounded-lg border border-white/20 bg-black/30 px-3 py-2 text-white"
+              value={titleInput}
+              onChange={(e) => setTitleInput(e.target.value)}
+              placeholder="Quiz-Titel"
+            />
+          </div>
+          <div className="flex-1">
+            <label className="text-xs uppercase tracking-[0.2em] text-pink-200">Kurs</label>
+            <select
+              className="mt-1 w-full rounded-lg border border-white/20 bg-black/30 px-3 py-2 text-white"
+              value={courseId ?? ''}
+              onChange={(e) => setCourseId(e.target.value || null)}
+            >
+              {courses.map((c) => (
+                <option key={c.id} value={c.id}>{c.title || c.id}</option>
+              ))}
+            </select>
+          </div>
+          <button
+            onClick={createQuick}
+            disabled={creating || !courseId}
+            className="rounded-lg bg-pink-600 px-4 py-2 font-semibold text-white shadow hover:bg-pink-500 disabled:opacity-50"
+          >
+            Anlegen
+          </button>
+        </div>
+        <p className="text-xs text-slate-400">Wähle Kurs und Titel, um schnell ein Demo-Quiz mit einer Frage anzulegen (Entwurf). Später Fragen/Antworten ergänzen.</p>
       </div>
 
       {error && <p className="text-sm text-red-300">{error}</p>}
