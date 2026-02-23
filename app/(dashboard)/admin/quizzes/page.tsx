@@ -110,6 +110,9 @@ export default function AdminQuizzesPage() {
       const res = await fetch(`/api/admin/quizzes?id=${id}`);
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Konnte Quiz nicht laden');
+      if (data.quiz?.course_id) {
+        await ensureModules(data.quiz.course_id);
+      }
       setEditQuiz(data.quiz);
       setEditQuestions(
         (data.questions || []).map((q: any) => ({
@@ -341,12 +344,6 @@ export default function AdminQuizzesPage() {
                 className="rounded-full border border-rose-400 px-3 py-1 text-rose-200 hover:bg-rose-500/10"
               >
                 Löschen
-              </button>
-              <button
-                onClick={() => openEditor(q.id)}
-                className="rounded-full border border-white/30 px-3 py-1 text-white hover:bg-white/10"
-              >
-                Bearbeiten
               </button>
               <button
                 onClick={() => router.push('/quizzes')}
