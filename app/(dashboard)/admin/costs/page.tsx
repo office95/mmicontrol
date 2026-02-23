@@ -182,8 +182,8 @@ export default function CostsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-xs uppercase tracking-[0.12em] text-slate-500">Admin</p>
-          <h1 className="text-2xl font-semibold text-ink">Kosten</h1>
+          <p className="text-xs uppercase tracking-[0.12em] text-pink-500 font-semibold">Admin</p>
+          <h1 className="text-2xl font-semibold text-white">Kosten</h1>
         </div>
         <div className="flex gap-2">
           <button
