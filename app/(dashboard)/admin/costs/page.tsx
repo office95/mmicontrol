@@ -429,57 +429,58 @@ export default function CostsPage() {
               <h2 className="text-lg font-semibold text-ink">{editing ? 'Kosten bearbeiten' : 'Kosten erfassen'}</h2>
               <button className="text-slate-500 hover:text-slate-700" onClick={() => { setModalOpen(false); resetForm(); }}>×</button>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
-              <div>
-                <label className="text-xs uppercase tracking-[0.12em] text-slate-500">Datum</label>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+              <div className="col-span-1">
+                <label className="text-[11px] uppercase tracking-[0.12em] text-slate-500">Datum</label>
                 <input type="date" className="input" value={date} onChange={(e) => setDate(e.target.value)} />
               </div>
               <div>
-                <label className="text-xs uppercase tracking-[0.12em] text-slate-500">Betrag (Brutto)</label>
+                <label className="text-[11px] uppercase tracking-[0.12em] text-slate-500">Betrag (Brutto)</label>
                 <input type="number" className="input" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0,00" />
               </div>
               <div>
-                <label className="text-xs uppercase tracking-[0.12em] text-slate-500">USt-Satz (%)</label>
+                <label className="text-[11px] uppercase tracking-[0.12em] text-slate-500">USt-Satz (%)</label>
                 <input type="number" className="input" value={vatRate} onChange={(e) => setVatRate(e.target.value)} placeholder="20" />
               </div>
+
               <div>
-                <label className="text-xs uppercase tracking-[0.12em] text-slate-500">Kategorie</label>
+                <label className="text-[11px] uppercase tracking-[0.12em] text-slate-500">Kategorie</label>
                 <select className="input" value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
                   <option value="">Bitte wählen</option>
                   {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
               </div>
               <div>
-                <label className="text-xs uppercase tracking-[0.12em] text-slate-500">Rechnungsnummer</label>
-                <input className="input" value={invoiceNumber} onChange={(e) => setInvoiceNumber(e.target.value)} placeholder="z. B. R-2024-123" />
+                <label className="text-[11px] uppercase tracking-[0.12em] text-slate-500">Partner (nur Honorarnote)</label>
+                <select className="input" value={partnerId} onChange={(e) => setPartnerId(e.target.value)} disabled={!showPartner}>
+                  <option value="">{showPartner ? 'Bitte wählen' : 'Nur bei Honorarnote'}</option>
+                  {partners.map((p) => <option key={p.id} value={p.id}>{p.name || p.id}</option>)}
+                </select>
               </div>
-              {showPartner && (
-                <div>
-                  <label className="text-xs uppercase tracking-[0.12em] text-slate-500">Partner (bei Honorarnote)</label>
-                  <select className="input" value={partnerId} onChange={(e) => setPartnerId(e.target.value)}>
-                    <option value="">Bitte wählen</option>
-                    {partners.map((p) => <option key={p.id} value={p.id}>{p.name || p.id}</option>)}
-                  </select>
-                </div>
-              )}
               <div>
-                <label className="text-xs uppercase tracking-[0.12em] text-slate-500">Lieferant</label>
+                <label className="text-[11px] uppercase tracking-[0.12em] text-slate-500">Lieferant</label>
                 <input className="input" value={vendor} onChange={(e) => setVendor(e.target.value)} placeholder="z. B. AWS, Druckerei" />
               </div>
+
               <div>
-                <label className="text-xs uppercase tracking-[0.12em] text-slate-500">Kurs/Projekt (optional)</label>
+                <label className="text-[11px] uppercase tracking-[0.12em] text-slate-500">Rechnungsnummer</label>
+                <input className="input" value={invoiceNumber} onChange={(e) => setInvoiceNumber(e.target.value)} placeholder="z. B. R-2024-123" />
+              </div>
+              <div>
+                <label className="text-[11px] uppercase tracking-[0.12em] text-slate-500">Kurs/Projekt (optional)</label>
                 <select className="input" value={courseId} onChange={(e) => setCourseId(e.target.value)}>
                   <option value="">Keiner</option>
                   {courses.map((c) => <option key={c.id} value={c.id}>{c.title || c.id}</option>)}
                 </select>
               </div>
-              <div className="md:col-span-3">
-                <label className="text-xs uppercase tracking-[0.12em] text-slate-500">Beschreibung</label>
-                <textarea className="input" value={description} onChange={(e) => setDescription(e.target.value)} rows={2} />
-              </div>
-              <div className="md:col-span-3">
-                <label className="text-xs uppercase tracking-[0.12em] text-slate-500">Beleg-Link (PDF/JPG)</label>
+              <div>
+                <label className="text-[11px] uppercase tracking-[0.12em] text-slate-500">Beleg-Link (PDF/JPG)</label>
                 <input className="input" value={attachment} onChange={(e) => setAttachment(e.target.value)} placeholder="https://..." />
+              </div>
+
+              <div className="md:col-span-3">
+                <label className="text-[11px] uppercase tracking-[0.12em] text-slate-500">Beschreibung</label>
+                <textarea className="input" value={description} onChange={(e) => setDescription(e.target.value)} rows={2} />
               </div>
             </div>
             <div className="flex justify-end gap-3">
