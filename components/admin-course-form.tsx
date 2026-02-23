@@ -10,6 +10,8 @@ type CourseInitial = {
   price_gross?: number | null;
   vat_rate?: number | null;
   deposit?: number | null;
+  price_net?: number | null;
+  saldo?: number | null;
   category?: string | null;
   status?: 'active' | 'inactive';
   course_link?: string | null;
