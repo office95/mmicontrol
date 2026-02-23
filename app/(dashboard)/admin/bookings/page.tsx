@@ -121,6 +121,7 @@ export default function BookingsPage() {
         id: selected.id,
         invoice_number: invoiceClean || null,
         due_date: selected.due_date || null,
+        booking_date: selected.booking_date || null,
       }),
     });
     setBasicsSaving(false);
@@ -451,6 +452,17 @@ export default function BookingsPage() {
                         value={(selected.due_date as string | null) ?? ''}
                         onChange={(e) =>
                           setSelected((prev) => (prev ? { ...prev, due_date: e.target.value || null } : prev))
+                        }
+                      />
+                    </div>
+                    <div className="rounded-lg border border-slate-200 bg-white px-3 py-2">
+                      <p className="text-[11px] uppercase tracking-[0.12em] text-slate-500 mb-1">Buchungsdatum</p>
+                      <input
+                        type="date"
+                        className="input"
+                        value={(selected.booking_date as string | null) ?? ''}
+                        onChange={(e) =>
+                          setSelected((prev) => (prev ? { ...prev, booking_date: e.target.value || null } : prev))
                         }
                       />
                     </div>
