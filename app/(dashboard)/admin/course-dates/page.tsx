@@ -15,6 +15,8 @@ type CourseDateListRow = {
   time_to: string | null;
   course_id: string | null;
   partner_id: string | null;
+  price_tier_id?: string | null;
+  price_tier?: { id: string; label: string } | null;
   course: { id: string; title: string } | null;
   partner: { id: string; name: string } | null;
   bookings_count?: number;
@@ -92,6 +94,7 @@ export default function CourseDatesPage() {
       code: t.code,
       course_id: t.course_id,
       partner_id: t.partner_id,
+      price_tier_id: t.price_tier_id ?? undefined,
       start_date: t.start_date,
       end_date: t.end_date,
       time_from: t.time_from,
