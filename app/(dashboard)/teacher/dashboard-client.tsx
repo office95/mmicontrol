@@ -120,7 +120,8 @@ export default function DashboardClient({
   const selectedFeedbacks = selectedCourseId ? feedbackByCourse.get(selectedCourseId) || [] : [];
 
   return (
-    <div className="space-y-4">
+    <div className="min-h-screen flex flex-col space-y-4">
+      <div className="flex-1 space-y-4">
       <nav className="sticky top-0 z-30 -mx-4 px-4 pt-3 pb-4 bg-slate-950/85 border-b border-white/10 backdrop-blur-lg shadow-lg">
         <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-sm font-semibold text-white/85">
           <button
@@ -316,7 +317,7 @@ export default function DashboardClient({
           </div>
         </div>
       )}
-
+      </div>
       <FooterLinks />
     </div>
   );
