@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createSupabaseServerClient } from '@/lib/supabase-server';
+import { sendMail } from '@/lib/mailer';
 
 export async function GET(req: Request, { params }: { params: { surveyId: string } }) {
   const supabase = createSupabaseServerClient();
@@ -83,6 +84,42 @@ export async function POST(req: Request, { params }: { params: { surveyId: strin
   if (payload.length) {
     const { error: ansErr } = await supabase.from('course_survey_answers').insert(payload);
     if (ansErr) return NextResponse.json({ error: ansErr.message }, { status: 400 });
+  }
+
+  // Notify zugehörige Dozenten per E-Mail
+  try {
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.SUPABASE_URL || '';
+    const { data: teachers } = await supabase
+      .from('course_members')
+      .select('user_id')
+      .eq('course_id', survey.course_id)
+      .eq('role', 'teacher');
+
+    const teacherIds = Array.from(new Set((teachers || []).map((t: any) => t.user_id).filter(Boolean)));
+
+    for (const tid of teacherIds) {
+      const userRes = await supabase.auth.admin.getUserById(tid);
+      const email = userRes.data?.user?.email;
+      if (!email) continue;
+      await sendMail({
+        to: email,
+        subject: 'Neuer Kursfragebogen eingereicht',
+        text: [
+          'Hallo,',
+          '',
+          'es wurde ein Kursfragebogen ausgefüllt.',
+          `Kurs-ID: ${survey.course_id}`,
+          `Booking-ID: ${booking_id}`,
+          '',
+          `Antworten ansehen: ${siteUrl}/teacher?tab=courses`,
+          '',
+          'Liebe Grüße',
+          'Music Mission Team',
+        ].join('\n'),
+      });
+    }
+  } catch (e) {
+    console.warn('survey teacher mail failed', e);
   }
 
   return NextResponse.json({ ok: true });
