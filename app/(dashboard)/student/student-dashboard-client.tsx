@@ -191,7 +191,7 @@ export default function StudentDashboardClient({
             <div className="relative min-h-[220px]">
               <div
                 className="absolute inset-0 bg-center bg-cover"
-                style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=1600&q=80)' }}
+                style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1485579149621-3123dd979885?auto=format&fit=crop&w=1600&q=80)' }}
               />
               <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/40 to-transparent" />
               <div className="relative h-full w-full p-6 flex flex-col justify-end">
