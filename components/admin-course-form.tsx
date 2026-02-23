@@ -58,7 +58,6 @@ export default function AdminCourseForm({
   const [coverUrl, setCoverUrl] = useState<string>(initial?.cover_url ?? '');
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState<string>(initial?.cover_url ?? '');
-  const [selectedModules, setSelectedModules] = useState<number[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -131,18 +130,6 @@ export default function AdminCourseForm({
   }, [initial]);
 
   useEffect(() => {
-    const loadModules = async () => {
-      if (!initial?.id) {
-        setSelectedModules([]);
-        return;
-      }
-      const res = await fetch(`/api/admin/modules?course_id=${initial.id}`);
-      if (res.ok) {
-        const data = await res.json();
-        setSelectedModules((data || []).map((m: any) => m.module_number).filter((n: number) => n != null));
-      }
-    };
-    loadModules();
   }, [initial?.id]);
 
   const vatValue = (() => {
@@ -233,7 +220,6 @@ export default function AdminCourseForm({
         cover_url: finalCoverUrl || null,
         default_price_tier_id: defaultTierId && defaultTierId.startsWith('tier-') ? null : defaultTierId,
         price_tiers: tiersPayload,
-        module_numbers: selectedModules,
       }),
     });
     const data = await res.json();
@@ -255,7 +241,6 @@ export default function AdminCourseForm({
         setCoverFile(null);
         setCoverPreview('');
         setSuccess('Kurs angelegt');
-        setSelectedModules([]);
       }
       onSaved?.();
     }
