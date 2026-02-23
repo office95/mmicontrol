@@ -128,6 +128,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
     { href: '/admin/course-dates', label: 'Kurstermine', roles: ['admin'], slug: 'course-dates' },
     { href: '/admin/benefits', label: 'Benefits', roles: ['admin'], slug: 'admin-benefits' },
     { href: '/admin/costs', label: 'Kosten', roles: ['admin'], slug: 'admin-costs' },
+    { href: '/admin/finance', label: 'Finanzen', roles: ['admin'], slug: 'admin-finance' },
     { href: '/admin/support', label: 'Support', roles: ['admin'], slug: 'admin-support' },
     { href: '/admin/partners', label: 'Partner', roles: ['admin'], slug: 'admin-partners' },
     { href: '/admin/leads', label: 'Leads', roles: ['admin'], slug: 'admin-leads' },
