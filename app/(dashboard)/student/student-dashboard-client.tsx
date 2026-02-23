@@ -192,16 +192,8 @@ export default function StudentDashboardClient({
             </div>
             <div className="p-6 sm:p-8 flex flex-col gap-4 justify-center bg-gradient-to-b from-slate-900 via-slate-900/90 to-slate-950">
               <div className="space-y-1">
-                <p className="text-[11px] uppercase tracking-[0.22em] text-pink-200">Neu · Lernquiz</p>
-                <h3 className="text-2xl font-semibold">{courseQuiz?.title || 'Teste dein Wissen vor dem Kurs'}</h3>
-                <p className="text-sm text-white/80 line-clamp-3">
-                  {courseQuiz?.description || 'Level, Zeitlimit und anonyme Bestenliste. Fragen je Modul und Kurs – ideal zur Vorbereitung.'}
-                </p>
-              </div>
-              <div className="flex flex-wrap gap-3 text-xs text-white/80">
-                <span className="px-3 py-1 rounded-full border border-white/20 bg-white/10">Module 1–20</span>
-                <span className="px-3 py-1 rounded-full border border-white/20 bg-white/10">Zeitlimit pro Frage</span>
-                <span className="px-3 py-1 rounded-full border border-white/20 bg-white/10">Anonyme Bestenliste</span>
+                <h3 className="text-2xl font-semibold">{courseQuiz?.title || 'Teste dein Wissen'}</h3>
+                <p className="text-sm text-white/80 line-clamp-3">{courseQuiz?.description || ''}</p>
               </div>
               <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
                 {courses.length > 1 && (
@@ -222,14 +214,6 @@ export default function StudentDashboardClient({
                   onClick={(e) => { if (!courseQuiz) e.preventDefault(); }}
                 >
                   {courseQuiz ? 'Zum Quiz' : 'Kein Quiz hinterlegt'}
-                </a>
-                <a
-                  href={courseQuiz ? `/quizzes?course_id=${courseQuiz.course_id}&quiz_id=${courseQuiz.id}` : '#'}
-                  className={`inline-flex items-center justify-center rounded-full border px-5 py-2.5 text-sm font-semibold transition ${courseQuiz ? 'border-white/30 text-white hover:bg-white/10' : 'border-white/10 text-slate-400 cursor-not-allowed'}`}
-                  aria-disabled={!courseQuiz}
-                  onClick={(e) => { if (!courseQuiz) e.preventDefault(); }}
-                >
-                  Bestenliste
                 </a>
               </div>
             </div>
