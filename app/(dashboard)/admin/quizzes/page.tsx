@@ -357,7 +357,7 @@ export default function AdminQuizzesPage() {
                 Löschen
               </button>
               <button
-                onClick={() => router.push('/quizzes')}
+                onClick={() => router.push(`/quizzes?preview=1${q.course_id ? `&course_id=${q.course_id}` : ''}`)}
                 className="rounded-full bg-pink-500 px-3 py-1 text-white hover:bg-pink-400"
               >
                 Als Teilnehmer ansehen
