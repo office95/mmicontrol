@@ -364,8 +364,8 @@ export default function CostsPage() {
                 <input
                   className="input mt-2"
                   placeholder="oder neue Kategorie"
-                  value={newCategory}
-                  onChange={(e) => { setNewCategory(e.target.value); if (e.target.value) setCategoryId(''); }}
+                  value={newCategoryName}
+                  onChange={(e) => { setNewCategoryName(e.target.value); if (e.target.value) setCategoryId(''); }}
                 />
               </div>
               {showPartner && (
