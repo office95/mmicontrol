@@ -11,9 +11,11 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const id = searchParams.get('id');
   const minimal = searchParams.get('minimal') === '1';
+  const tiersSelect =
+    'course_price_tiers:course_price_tiers(price_tier_id, price_gross, vat_rate, price_net, deposit, saldo, duration_hours, price_tier:price_tiers(id,label,position))';
   const select = minimal
-    ? 'id, title, price_gross, category, cover_url, course_link'
-    : 'id, title, description, status, created_at, duration_hours, price_gross, vat_rate, price_net, deposit, saldo, category, vat_amount, course_link, cover_url';
+    ? `id, title, price_gross, category, cover_url, course_link, default_price_tier_id, ${tiersSelect}`
+    : `id, title, description, status, created_at, duration_hours, price_gross, vat_rate, price_net, deposit, saldo, category, vat_amount, course_link, cover_url, default_price_tier_id, ${tiersSelect}`;
   if (id) {
     const { data, error } = await supabase
       .from('courses')
@@ -46,16 +48,46 @@ export async function POST(req: Request) {
     status = 'active',
     course_link,
     cover_url,
+    price_tiers = [],
+    default_price_tier_id,
   } = body;
 
   if (!title) return NextResponse.json({ error: 'title required' }, { status: 400 });
 
-  const grossNum = Number(price_gross) || 0;
-  const vatNum = Number(vat_rate) ?? 0;
-  const net = grossNum > 0 ? Number((grossNum / (1 + vatNum)).toFixed(2)) : 0;
-  const depNum = deposit ? Number(deposit) : 0;
-  const saldo = Number((grossNum - depNum).toFixed(2));
-  const vatAmount = Number((grossNum - net).toFixed(2));
+  // Preisstufen vorbereiten
+  const tierInputs = Array.isArray(price_tiers) ? price_tiers.filter((t: any) => t?.label) : [];
+  const tierLabels = Array.from(new Set(tierInputs.map((t: any) => String(t.label).trim()).filter(Boolean)));
+  let tierRows: { id: string; label: string }[] = [];
+  if (tierLabels.length) {
+    const { data: tiers, error: tierErr } = await supabase
+      .from('price_tiers')
+      .upsert(
+        tierLabels.map((label, idx) => ({ label, position: idx + 1 })),
+        { onConflict: 'label' }
+      )
+      .select('id,label');
+    if (tierErr) return NextResponse.json({ error: tierErr.message }, { status: 400 });
+    tierRows = tiers ?? [];
+  }
+
+  const firstTier = tierInputs[0];
+  const baseGross = firstTier?.price_gross ?? price_gross;
+  const baseVat = firstTier?.vat_rate ?? vat_rate ?? 0.2;
+  const baseDeposit = firstTier?.deposit ?? deposit;
+
+  const grossNum = baseGross != null ? Number(baseGross) : 0;
+  const vatNum = baseVat != null ? Number(baseVat) : 0;
+  const net = grossNum > 0 ? Number((grossNum / (1 + vatNum)).toFixed(2)) : null;
+  const depNum = baseDeposit != null ? Number(baseDeposit) : null;
+  const saldo = grossNum != null && depNum != null ? Number((grossNum - depNum).toFixed(2)) : null;
+  const vatAmount = grossNum != null && net != null ? Number((grossNum - net).toFixed(2)) : null;
+
+  const defaultTierId =
+    default_price_tier_id ||
+    (firstTier?.label
+      ? tierRows.find((t) => t.label === firstTier.label)?.id
+      : undefined) ||
+    undefined;
 
   const { data, error } = await supabase
     .from('courses')
@@ -66,17 +98,56 @@ export async function POST(req: Request) {
       price_gross: grossNum || null,
       vat_rate: vatNum,
       price_net: net,
-      deposit: deposit ? Number(deposit) : null,
-      saldo: isNaN(saldo) ? null : saldo,
-      vat_amount: isNaN(vatAmount) ? null : vatAmount,
+      deposit: depNum,
+      saldo: saldo,
+      vat_amount: vatAmount,
       category: category || null,
       status: status === 'inactive' ? 'inactive' : 'active',
       course_link: course_link || null,
       cover_url: cover_url || null,
+      default_price_tier_id: defaultTierId || null,
     })
     .select()
     .single();
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+
+  // Preisstufen speichern
+  if (data?.id && tierInputs.length && tierRows.length) {
+    const tierMap = Object.fromEntries(tierRows.map((t) => [t.label, t.id]));
+    const rows = tierInputs.map((t: any, idx: number) => {
+      const gross = t.price_gross != null ? Number(t.price_gross) : null;
+      const vat = t.vat_rate != null ? Number(t.vat_rate) : null;
+      const netVal =
+        t.price_net != null
+          ? Number(t.price_net)
+          : gross != null && vat != null
+            ? Number((gross / (1 + vat)).toFixed(2))
+            : null;
+      const depVal = t.deposit != null ? Number(t.deposit) : null;
+      const saldoVal =
+        gross != null && depVal != null ? Number((gross - depVal).toFixed(2)) : t.saldo != null ? Number(t.saldo) : null;
+      return {
+        course_id: data.id,
+        price_tier_id: t.price_tier_id || tierMap[t.label],
+        price_gross: gross,
+        vat_rate: vat,
+        price_net: netVal,
+        deposit: depVal,
+        saldo: saldoVal,
+        duration_hours: t.duration_hours != null ? Number(t.duration_hours) : null,
+      };
+    });
+    await supabase.from('course_price_tiers').upsert(rows, { onConflict: 'course_id,price_tier_id' });
+    const keepIds = rows.map((r) => r.price_tier_id).filter(Boolean) as string[];
+    if (keepIds.length) {
+      await supabase
+        .from('course_price_tiers')
+        .delete()
+        .eq('course_id', data.id)
+        .not('price_tier_id', 'in', `(${keepIds.join(',')})`);
+    }
+  }
+
   return NextResponse.json(data);
 }
 
@@ -97,6 +168,8 @@ export async function PATCH(req: Request) {
     status,
     course_link,
     cover_url,
+    price_tiers = [],
+    default_price_tier_id,
   } = body;
 
   const payload: Record<string, unknown> = {};
@@ -111,6 +184,7 @@ export async function PATCH(req: Request) {
   if (status !== undefined) payload.status = status === 'inactive' ? 'inactive' : 'active';
   if (course_link !== undefined) payload.course_link = course_link;
   if (cover_url !== undefined) payload.cover_url = cover_url;
+  if (default_price_tier_id !== undefined) payload.default_price_tier_id = default_price_tier_id || null;
 
   // recompute net, saldo, vat_amount if gross/vat/deposit provided
   const grossNum = price_gross !== undefined ? Number(price_gross) : undefined;
@@ -134,5 +208,61 @@ export async function PATCH(req: Request) {
     .select()
     .single();
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+
+  // Preisstufen aktualisieren
+  const tierInputs = Array.isArray(price_tiers) ? price_tiers.filter((t: any) => t?.label) : [];
+  if (tierInputs.length) {
+    const tierLabels = Array.from(new Set(tierInputs.map((t: any) => String(t.label).trim()).filter(Boolean)));
+    let tierRows: { id: string; label: string }[] = [];
+    if (tierLabels.length) {
+      const { data: tiers, error: tierErr } = await supabase
+        .from('price_tiers')
+        .upsert(
+          tierLabels.map((label, idx) => ({ label, position: idx + 1 })),
+          { onConflict: 'label' }
+        )
+        .select('id,label');
+      if (tierErr) return NextResponse.json({ error: tierErr.message }, { status: 400 });
+      tierRows = tiers ?? [];
+    }
+    const tierMap = Object.fromEntries(tierRows.map((t) => [t.label, t.id]));
+    const rows = tierInputs.map((t: any) => {
+      const gross = t.price_gross != null ? Number(t.price_gross) : null;
+      const vat = t.vat_rate != null ? Number(t.vat_rate) : null;
+      const netVal =
+        t.price_net != null
+          ? Number(t.price_net)
+          : gross != null && vat != null
+            ? Number((gross / (1 + vat)).toFixed(2))
+            : null;
+      const depVal = t.deposit != null ? Number(t.deposit) : null;
+      const saldoVal =
+        gross != null && depVal != null ? Number((gross - depVal).toFixed(2)) : t.saldo != null ? Number(t.saldo) : null;
+      return {
+        course_id: id,
+        price_tier_id: t.price_tier_id || tierMap[t.label],
+        price_gross: gross,
+        vat_rate: vat,
+        price_net: netVal,
+        deposit: depVal,
+        saldo: saldoVal,
+        duration_hours: t.duration_hours != null ? Number(t.duration_hours) : null,
+      };
+    });
+    await supabase.from('course_price_tiers').upsert(rows, { onConflict: 'course_id,price_tier_id' });
+    const keepIds = rows.map((r) => r.price_tier_id).filter(Boolean) as string[];
+    if (keepIds.length) {
+      await supabase
+        .from('course_price_tiers')
+        .delete()
+        .eq('course_id', id)
+        .not('price_tier_id', 'in', `(${keepIds.join(',')})`);
+    }
+    // Falls keine default_price_tier_id gesetzt, erste als Default übernehmen
+    if (payload.default_price_tier_id === undefined && keepIds.length) {
+      await supabase.from('courses').update({ default_price_tier_id: keepIds[0] }).eq('id', id);
+    }
+  }
+
   return NextResponse.json(data);
 }

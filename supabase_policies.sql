@@ -12,6 +12,17 @@ alter table if exists public.quiz_questions enable row level security;
 alter table if exists public.quiz_attempts enable row level security;
 alter table if exists public.course_dates enable row level security;
 alter table if exists public.bookings enable row level security;
+alter table if exists public.price_tiers enable row level security;
+alter table if exists public.course_price_tiers enable row level security;
+-- Zusatzfelder für Preisklassen
+alter table if exists public.courses add column if not exists default_price_tier_id uuid references public.price_tiers(id) on delete set null;
+alter table if exists public.course_dates add column if not exists price_tier_id uuid references public.price_tiers(id) on delete set null;
+alter table if exists public.course_dates add column if not exists price_gross numeric;
+alter table if exists public.course_dates add column if not exists vat_rate numeric;
+alter table if exists public.course_dates add column if not exists price_net numeric;
+alter table if exists public.course_dates add column if not exists deposit numeric;
+alter table if exists public.course_dates add column if not exists saldo numeric;
+alter table if exists public.course_dates add column if not exists duration_hours numeric;
 -- Rechnungsnummer (manuell aus Zoho), optional
 alter table if exists public.bookings add column if not exists invoice_number text;
 alter table if exists public.students enable row level security;
@@ -197,6 +208,15 @@ create policy bookings_partner_teacher_view on bookings for select using (
       and p.role = 'teacher'
   )
 );
+
+-- price_tiers & course_price_tiers (nur Admin)
+drop policy if exists price_tiers_admin_all on price_tiers;
+create policy price_tiers_admin_all on price_tiers
+  for all using (auth.uid() in (select id from v_admin));
+
+drop policy if exists course_price_tiers_admin_all on course_price_tiers;
+create policy course_price_tiers_admin_all on course_price_tiers
+  for all using (auth.uid() in (select id from v_admin));
 
 -- 11) storage.objects (materials bucket upload nur Admin)
 -- Hinweis: Policy nur anwenden, wenn Bucket 'materials' existiert und privat ist.

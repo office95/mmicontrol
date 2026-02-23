@@ -14,6 +14,17 @@ type CourseInitial = {
   status?: 'active' | 'inactive';
   course_link?: string | null;
   cover_url?: string | null;
+  default_price_tier_id?: string | null;
+  course_price_tiers?: {
+    price_tier_id: string;
+    price_gross?: number | null;
+    vat_rate?: number | null;
+    price_net?: number | null;
+    deposit?: number | null;
+    saldo?: number | null;
+    duration_hours?: number | null;
+    price_tier?: { id: string; label: string } | null;
+  }[];
 };
 
 export default function AdminCourseForm({
@@ -49,6 +60,36 @@ export default function AdminCourseForm({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [priceTiers, setPriceTiers] = useState<
+    { tempId: string; label: string; price_gross: string; vat_rate: string; deposit: string; duration_hours: string; price_net?: string; saldo?: string; price_tier_id?: string }[]
+  >(() => {
+    if (initial?.course_price_tiers?.length) {
+      return initial.course_price_tiers.map((t, idx) => ({
+        tempId: `tier-${idx}`,
+        label: t.price_tier?.label || `PKL${idx + 1}`,
+        price_gross: t.price_gross?.toString() ?? '',
+        vat_rate: t.vat_rate?.toString() ?? '0.2',
+        deposit: t.deposit?.toString() ?? '',
+        duration_hours: t.duration_hours?.toString() ?? '',
+        price_net: t.price_net?.toString(),
+        saldo: t.saldo?.toString(),
+        price_tier_id: t.price_tier_id,
+      }));
+    }
+    return [
+      {
+        tempId: 'tier-1',
+        label: 'PKL1',
+        price_gross: initial?.price_gross?.toString() ?? '',
+        vat_rate: initial?.vat_rate?.toString() ?? '0.2',
+        deposit: initial?.deposit?.toString() ?? '',
+        duration_hours: initial?.duration_hours?.toString() ?? '',
+        price_net: initial?.price_net?.toString(),
+        saldo: initial?.saldo?.toString(),
+      },
+    ];
+  });
+  const [defaultTierId, setDefaultTierId] = useState<string | null>(initial?.default_price_tier_id ?? null);
 
   // Sync when initial changes (e.g., edit another course)
   useEffect(() => {
@@ -69,6 +110,22 @@ export default function AdminCourseForm({
     setCoverPreview(initial?.cover_url ?? '');
     setSuccess(null);
     setError(null);
+    if (initial?.course_price_tiers?.length) {
+      setPriceTiers(
+        initial.course_price_tiers.map((t, idx) => ({
+          tempId: `tier-${idx}-${t.price_tier_id || Date.now()}`,
+          label: t.price_tier?.label || `PKL${idx + 1}`,
+          price_gross: t.price_gross?.toString() ?? '',
+          vat_rate: t.vat_rate?.toString() ?? '0.2',
+          deposit: t.deposit?.toString() ?? '',
+          duration_hours: t.duration_hours?.toString() ?? '',
+          price_net: t.price_net?.toString(),
+          saldo: t.saldo?.toString(),
+          price_tier_id: t.price_tier_id,
+        }))
+      );
+      setDefaultTierId(initial.default_price_tier_id ?? null);
+    }
   }, [initial]);
 
   useEffect(() => {
@@ -139,6 +196,24 @@ export default function AdminCourseForm({
     }
 
     const isEdit = Boolean(initial?.id);
+    const tiersOrdered = (() => {
+      if (!defaultTierId) return [...priceTiers];
+      const hitIdx = priceTiers.findIndex((t) => t.price_tier_id === defaultTierId || t.tempId === defaultTierId);
+      if (hitIdx <= 0) return [...priceTiers];
+      const arr = [...priceTiers];
+      const [hit] = arr.splice(hitIdx, 1);
+      arr.unshift(hit);
+      return arr;
+    })();
+    const tiersPayload = tiersOrdered.map((t) => ({
+      label: t.label || 'PKL',
+      price_tier_id: t.price_tier_id,
+      price_gross: t.price_gross ? Number(t.price_gross) : null,
+      vat_rate: t.vat_rate ? Number(t.vat_rate) : null,
+      deposit: t.deposit ? Number(t.deposit) : null,
+      duration_hours: t.duration_hours ? Number(t.duration_hours) : null,
+    }));
+
     const res = await fetch('/api/admin/courses', {
       method: isEdit ? 'PATCH' : 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -154,6 +229,8 @@ export default function AdminCourseForm({
         status,
         course_link: courseLink || null,
         cover_url: finalCoverUrl || null,
+        default_price_tier_id: defaultTierId && defaultTierId.startsWith('tier-') ? null : defaultTierId,
+        price_tiers: tiersPayload,
       }),
     });
     const data = await res.json();
@@ -339,6 +416,146 @@ export default function AdminCourseForm({
             <label className="text-sm font-medium text-slate-700">Saldo (Brutto - Anzahlung)</label>
             <input className="input bg-slate-100" value={saldo} readOnly />
           </div>
+        </div>
+      </div>
+
+      <div className="rounded-xl border border-slate-200 p-4 space-y-3 bg-white">
+        <div className="flex items-center justify-between">
+          <p className="text-sm font-semibold text-slate-800">Preisstaffeln (PKL)</p>
+          <button
+            type="button"
+            className="text-sm text-pink-600 hover:text-pink-700 font-semibold"
+            onClick={() =>
+              setPriceTiers((prev) => [
+                ...prev,
+                {
+                  tempId: `tier-${Date.now()}`,
+                  label: `PKL${prev.length + 1}`,
+                  price_gross: '',
+                  vat_rate: '0.2',
+                  deposit: '',
+                  duration_hours: '',
+                },
+              ])
+            }
+          >
+            + PKL hinzufügen
+          </button>
+        </div>
+        <p className="text-xs text-slate-500">Beispiel: PKL1 = 400 €, PKL2 = 549 € (z.B. anderes Bundesland).</p>
+        <div className="space-y-3">
+          {priceTiers.map((tier, idx) => {
+            const gross = parseFloat(tier.price_gross) || 0;
+            const vat = parseFloat(tier.vat_rate) || 0;
+            const dep = parseFloat(tier.deposit) || 0;
+            const net = gross ? (gross / (1 + vat)).toFixed(2) : '';
+            const saldoVal = (gross - dep).toFixed(2);
+            const isDefault = tier.price_tier_id === defaultTierId || (!defaultTierId && idx === 0);
+            return (
+              <div key={tier.tempId} className="rounded-lg border border-slate-200 p-3 bg-slate-50">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2">
+                    <label className="text-sm font-medium text-slate-700">Label</label>
+                    <input
+                      className="input"
+                      value={tier.label}
+                      onChange={(e) =>
+                        setPriceTiers((prev) =>
+                          prev.map((t) => (t.tempId === tier.tempId ? { ...t, label: e.target.value } : t))
+                        )
+                      }
+                    />
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <input
+                      type="radio"
+                      name="default-tier"
+                      checked={isDefault}
+                      onChange={() => setDefaultTierId(tier.price_tier_id || tier.tempId)}
+                    />
+                    <span className="text-slate-700">Standard</span>
+                  </div>
+                  {priceTiers.length > 1 && (
+                    <button
+                      type="button"
+                      className="text-xs text-red-600 hover:underline"
+                      onClick={() => setPriceTiers((prev) => prev.filter((t) => t.tempId !== tier.tempId))}
+                    >
+                      Entfernen
+                    </button>
+                  )}
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3">
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-slate-600">Brutto</label>
+                    <input
+                      className="input"
+                      type="number"
+                      step="0.01"
+                      value={tier.price_gross}
+                      onChange={(e) =>
+                        setPriceTiers((prev) =>
+                          prev.map((t) => (t.tempId === tier.tempId ? { ...t, price_gross: e.target.value } : t))
+                        )
+                      }
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-slate-600">USt</label>
+                    <input
+                      className="input"
+                      type="number"
+                      step="0.01"
+                      value={tier.vat_rate}
+                      onChange={(e) =>
+                        setPriceTiers((prev) =>
+                          prev.map((t) => (t.tempId === tier.tempId ? { ...t, vat_rate: e.target.value } : t))
+                        )
+                      }
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-slate-600">Anzahlung</label>
+                    <input
+                      className="input"
+                      type="number"
+                      step="0.01"
+                      value={tier.deposit}
+                      onChange={(e) =>
+                        setPriceTiers((prev) =>
+                          prev.map((t) => (t.tempId === tier.tempId ? { ...t, deposit: e.target.value } : t))
+                        )
+                      }
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3">
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-slate-600">Dauer (Std)</label>
+                    <input
+                      className="input"
+                      type="number"
+                      step="0.1"
+                      value={tier.duration_hours}
+                      onChange={(e) =>
+                        setPriceTiers((prev) =>
+                          prev.map((t) => (t.tempId === tier.tempId ? { ...t, duration_hours: e.target.value } : t))
+                        )
+                      }
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-slate-600">Netto (auto)</label>
+                    <input className="input bg-slate-100" value={net} readOnly />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-slate-600">Saldo (auto)</label>
+                    <input className="input bg-slate-100" value={isNaN(Number(saldoVal)) ? '' : saldoVal} readOnly />
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
 

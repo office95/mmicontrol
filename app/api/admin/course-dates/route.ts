@@ -7,7 +7,7 @@ const service = createClient(
 );
 
 const SELECT =
-  'id, code, status, start_date, end_date, time_from, time_to, course_id, partner_id, course:courses!course_dates_course_id_fkey(id,title,price_gross), partner:partners!course_dates_partner_id_fkey(id,name), bookings(count)';
+  'id, code, status, start_date, end_date, time_from, time_to, price_tier_id, price_gross, vat_rate, price_net, deposit, saldo, duration_hours, course_id, partner_id, price_tier:price_tiers!course_dates_price_tier_id_fkey(id,label), course:courses!course_dates_course_id_fkey(id,title,price_gross,default_price_tier_id), partner:partners!course_dates_partner_id_fkey(id,name), bookings(count)';
 
 export async function GET() {
   const { data, error } = await service
@@ -27,15 +27,54 @@ export async function GET() {
 
 export async function POST(req: Request) {
   const body = await req.json();
-  const { course_id, partner_id, start_date, end_date, time_from, time_to, status = 'offen' } = body;
+  const { course_id, partner_id, start_date, end_date, time_from, time_to, status = 'offen', price_tier_id } = body;
 
   if (!course_id || !start_date) {
     return NextResponse.json({ error: 'course_id und start_date sind erforderlich.' }, { status: 400 });
   }
 
+  const { data: course } = await service
+    .from('courses')
+    .select('id, price_gross, vat_rate, price_net, deposit, saldo, duration_hours, default_price_tier_id')
+    .eq('id', course_id)
+    .maybeSingle();
+
+  let appliedTierId = price_tier_id || course?.default_price_tier_id || null;
+  let priceFields: any = {};
+  if (appliedTierId) {
+    const { data: tierPrice } = await service
+      .from('course_price_tiers')
+      .select('price_gross, vat_rate, price_net, deposit, saldo, duration_hours')
+      .eq('course_id', course_id)
+      .eq('price_tier_id', appliedTierId)
+      .maybeSingle();
+    if (tierPrice) priceFields = tierPrice;
+  }
+  // Fallback auf Kurs-Basispreise
+  if (!priceFields.price_gross && course) {
+    priceFields = {
+      price_gross: course.price_gross,
+      vat_rate: course.vat_rate,
+      price_net: course.price_net,
+      deposit: course.deposit,
+      saldo: course.saldo,
+      duration_hours: course.duration_hours,
+    };
+  }
+
   const { data, error } = await service
     .from('course_dates')
-    .insert({ course_id, partner_id, start_date, end_date, time_from, time_to, status })
+    .insert({
+      course_id,
+      partner_id,
+      start_date,
+      end_date,
+      time_from,
+      time_to,
+      status,
+      price_tier_id: appliedTierId,
+      ...priceFields,
+    })
     .select(SELECT)
     .single();
 
@@ -45,12 +84,52 @@ export async function POST(req: Request) {
 
 export async function PATCH(req: Request) {
   const body = await req.json();
-  const { id, course_id, partner_id, start_date, end_date, time_from, time_to, status } = body;
+  const { id, course_id, partner_id, start_date, end_date, time_from, time_to, status, price_tier_id } = body;
   if (!id) return NextResponse.json({ error: 'id fehlt' }, { status: 400 });
+
+  let priceFields: any = {};
+  let appliedTierId = price_tier_id;
+  if (course_id) {
+    const { data: course } = await service
+      .from('courses')
+      .select('id, price_gross, vat_rate, price_net, deposit, saldo, duration_hours, default_price_tier_id')
+      .eq('id', course_id)
+      .maybeSingle();
+    if (!appliedTierId) appliedTierId = course?.default_price_tier_id ?? null;
+    if (appliedTierId) {
+      const { data: tierPrice } = await service
+        .from('course_price_tiers')
+        .select('price_gross, vat_rate, price_net, deposit, saldo, duration_hours')
+        .eq('course_id', course_id)
+        .eq('price_tier_id', appliedTierId)
+        .maybeSingle();
+      if (tierPrice) priceFields = tierPrice;
+    }
+    if (!priceFields.price_gross && course) {
+      priceFields = {
+        price_gross: course.price_gross,
+        vat_rate: course.vat_rate,
+        price_net: course.price_net,
+        deposit: course.deposit,
+        saldo: course.saldo,
+        duration_hours: course.duration_hours,
+      };
+    }
+  }
 
   const { data, error } = await service
     .from('course_dates')
-    .update({ course_id, partner_id, start_date, end_date, time_from, time_to, status })
+    .update({
+      course_id,
+      partner_id,
+      start_date,
+      end_date,
+      time_from,
+      time_to,
+      status,
+      price_tier_id: appliedTierId,
+      ...priceFields,
+    })
     .eq('id', id)
     .select(SELECT)
     .single();

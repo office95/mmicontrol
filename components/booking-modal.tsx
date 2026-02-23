@@ -9,6 +9,14 @@ type CourseDate = {
   start_date: string | null;
   course_id: string | null;
   partner_id: string | null;
+  price_tier_id?: string | null;
+  price_gross?: number | null;
+  vat_rate?: number | null;
+  price_net?: number | null;
+  deposit?: number | null;
+  saldo?: number | null;
+  duration_hours?: number | null;
+  price_tier?: { id: string; label: string } | null;
   course: { id: string; title: string; price_gross: number | null } | null;
   partner: { id: string; name: string } | null;
 };
@@ -52,6 +60,7 @@ export default function BookingModal({
   useEffect(() => {
     async function syncPrice() {
       const price =
+        (selected as any)?.price_gross ??
         (selected as any)?.course?.price_gross ??
         (selected as any)?.courses?.price_gross ??
         null;
@@ -141,7 +150,8 @@ export default function BookingModal({
                 {dates.map((d) => (
                   <option key={d.id} value={d.id}>
                     {d.course?.title ?? 'Unbekannter Kurs'} {d.code ? `(${d.code})` : ''} · {d.start_date ?? ''}
-                    {d.course?.price_gross != null ? ` · ${d.course.price_gross} €` : ''}
+                    {d.price_tier?.label ? ` · ${d.price_tier.label}` : ''}
+                    {d.price_gross != null ? ` · ${d.price_gross} €` : d.course?.price_gross != null ? ` · ${d.course.price_gross} €` : ''}
                   </option>
                 ))}
               </select>

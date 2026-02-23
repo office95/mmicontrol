@@ -20,14 +20,23 @@ async function fillAmounts(rows: any | any[]) {
 
   const { data: cdData } = await service
     .from('course_dates')
-    .select('id, course_id, course:courses(price_gross)')
+    .select('id, course_id, price_gross, course:courses(price_gross)')
     .in('id', dateIds.length ? dateIds : ['00000000-0000-0000-0000-000000000000']);
   const { data: courseData } = await service
     .from('courses')
     .select('id, price_gross')
     .in('id', courseIds.length ? courseIds : ['00000000-0000-0000-0000-000000000000']);
 
-  const mapDate = Object.fromEntries(((cdData ?? []) as any[]).map((d) => [d.id, d.course?.price_gross != null ? Number(d.course.price_gross) : null]));
+  const mapDate = Object.fromEntries(
+    ((cdData ?? []) as any[]).map((d) => [
+      d.id,
+      d.price_gross != null
+        ? Number(d.price_gross)
+        : d.course?.price_gross != null
+          ? Number(d.course.price_gross)
+          : null,
+    ])
+  );
   const mapCourse = Object.fromEntries(((courseData ?? []) as any[]).map((d) => [d.id, d.price_gross != null ? Number(d.price_gross) : null]));
 
   const toUpdate: { id: string; amount: number | null }[] = [];
@@ -57,7 +66,7 @@ export async function POST(req: Request) {
   // Infos holen
   const { data: cd } = await service
     .from('course_dates')
-    .select('course_id, start_date, partner_id, course:courses(price_gross,title), partner:partners(name)')
+    .select('course_id, start_date, partner_id, price_gross, course:courses(price_gross,title), partner:partners(name)')
     .eq('id', body.course_date_id)
     .maybeSingle();
   const { data: stu } = await service.from('students').select('name,email').eq('id', body.student_id).maybeSingle();
@@ -65,7 +74,7 @@ export async function POST(req: Request) {
   // Falls amount fehlt, Kursbeitrag aus Kurs laden
   let amount = body.amount;
   if (amount === undefined || amount === null || amount === '') {
-    const coursePrice = (cd as any)?.course?.price_gross;
+    const coursePrice = (cd as any)?.price_gross ?? (cd as any)?.course?.price_gross;
     amount = coursePrice != null ? Number(coursePrice) : null;
   }
 

@@ -2,7 +2,29 @@
 
 import { useEffect, useMemo, useState } from 'react';
 
-type Course = { id: string; title: string; price_gross?: number | null; vat_rate?: number | null; price_net?: number | null; deposit?: number | null; saldo?: number | null; duration_hours?: number | null };
+type CoursePriceTier = {
+  price_tier_id: string;
+  price_gross?: number | null;
+  vat_rate?: number | null;
+  price_net?: number | null;
+  deposit?: number | null;
+  saldo?: number | null;
+  duration_hours?: number | null;
+  price_tier?: { id: string; label: string } | null;
+};
+
+type Course = {
+  id: string;
+  title: string;
+  price_gross?: number | null;
+  vat_rate?: number | null;
+  price_net?: number | null;
+  deposit?: number | null;
+  saldo?: number | null;
+  duration_hours?: number | null;
+  default_price_tier_id?: string | null;
+  course_price_tiers?: CoursePriceTier[];
+};
 type Partner = { id: string; name: string };
 
 export type CourseDateRow = {
@@ -35,6 +57,7 @@ export default function CourseDateModal({
 
   const [courseId, setCourseId] = useState<string | ''>('');
   const [partnerId, setPartnerId] = useState<string | ''>('');
+  const [priceTierId, setPriceTierId] = useState<string | ''>('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [timeFrom, setTimeFrom] = useState('');
@@ -65,6 +88,7 @@ export default function CourseDateModal({
     if (!initial) return;
     setCourseId(initial.course_id || '');
     setPartnerId(initial.partner_id || '');
+    setPriceTierId((initial as any).price_tier_id || '');
     setStartDate(initial.start_date || '');
     setEndDate(initial.end_date || '');
     setTimeFrom(initial.time_from || '');
@@ -89,6 +113,7 @@ export default function CourseDateModal({
         time_from: timeFrom || null,
         time_to: timeTo || null,
         status,
+        price_tier_id: priceTierId || null,
         price_gross: price ? Number(price) : null,
         vat_rate: vat ? Number(vat) : null,
         price_net: priceNet ? Number(priceNet) : null,
@@ -115,13 +140,37 @@ export default function CourseDateModal({
   useEffect(() => {
     const course = courses.find((c) => c.id === courseId);
     if (!course) return;
+    // Bei Kurswechsel Standard-PKL vorbelegen
+    if (!priceTierId) {
+      const defaultTier = course.course_price_tiers?.find((t) => t.price_tier_id === course.default_price_tier_id);
+      const firstTier = course.course_price_tiers?.[0];
+      const appliedTier = defaultTier || firstTier;
+      if (appliedTier?.price_tier_id) {
+        setPriceTierId(appliedTier.price_tier_id);
+      } else {
+        setPriceTierId('');
+      }
+    }
     if (course.price_gross != null) setPrice(String(course.price_gross));
     if (course.vat_rate != null) setVat(String(course.vat_rate));
     if (course.price_net != null) setPriceNet(String(course.price_net));
     if (course.deposit != null) setDeposit(String(course.deposit));
     if (course.saldo != null) setSaldo(String(course.saldo));
     if (course.duration_hours != null) setDuration(String(course.duration_hours));
-  }, [courseId, courses]);
+  }, [courseId, courses, priceTierId]);
+
+  useEffect(() => {
+    const course = courses.find((c) => c.id === courseId);
+    if (!course || !priceTierId) return;
+    const tier = course.course_price_tiers?.find((t) => t.price_tier_id === priceTierId);
+    if (!tier) return;
+    if (tier.price_gross != null) setPrice(String(tier.price_gross));
+    if (tier.vat_rate != null) setVat(String(tier.vat_rate));
+    if (tier.price_net != null) setPriceNet(String(tier.price_net));
+    if (tier.deposit != null) setDeposit(String(tier.deposit));
+    if (tier.saldo != null) setSaldo(String(tier.saldo));
+    if (tier.duration_hours != null) setDuration(String(tier.duration_hours));
+  }, [priceTierId, courseId, courses]);
   const partnerOptions = useMemo(
     () => {
       const seen = new Set<string>();
@@ -187,6 +236,21 @@ export default function CourseDateModal({
                   {partnerOptions.map((p) => (
                     <option key={p.id} value={p.id}>
                       {p.name}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+              <Field label="Preisklasse (PKL)">
+                <select
+                  className="input"
+                  value={priceTierId}
+                  onChange={(e) => setPriceTierId(e.target.value)}
+                  disabled={!courseId}
+                >
+                  <option value="">Standard</option>
+                  {(courses.find((c) => c.id === courseId)?.course_price_tiers ?? []).map((t) => (
+                    <option key={t.price_tier_id} value={t.price_tier_id}>
+                      {t.price_tier?.label ?? 'PKL'}{t.price_tier_id === courses.find((c) => c.id === courseId)?.default_price_tier_id ? ' (Default)' : ''}
                     </option>
                   ))}
                 </select>
