@@ -450,13 +450,15 @@ export default function CostsPage() {
                   {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
               </div>
-              <div>
-                <label className="text-[11px] uppercase tracking-[0.12em] text-slate-500">Partner (nur Honorarnote)</label>
-                <select className="input" value={partnerId} onChange={(e) => setPartnerId(e.target.value)} disabled={!showPartner}>
-                  <option value="">{showPartner ? 'Bitte wählen' : 'Nur bei Honorarnote'}</option>
-                  {partners.map((p) => <option key={p.id} value={p.id}>{p.name || p.id}</option>)}
-                </select>
-              </div>
+              {showPartner && (
+                <div>
+                  <label className="text-[11px] uppercase tracking-[0.12em] text-slate-500">Partner (nur Honorarnote)</label>
+                  <select className="input" value={partnerId} onChange={(e) => setPartnerId(e.target.value)}>
+                    <option value="">Bitte wählen</option>
+                    {partners.map((p) => <option key={p.id} value={p.id}>{p.name || p.id}</option>)}
+                  </select>
+                </div>
+              )}
               <div>
                 <label className="text-[11px] uppercase tracking-[0.12em] text-slate-500">Lieferant</label>
                 <input className="input" value={vendor} onChange={(e) => setVendor(e.target.value)} placeholder="z. B. AWS, Druckerei" />
