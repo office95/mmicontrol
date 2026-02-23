@@ -12,7 +12,10 @@ export default function TopNav({ links }: { links: NavLink[] }) {
   const isActive = (href: string) => {
     const [path, query] = href.split('?');
     if (pathname !== path) return false;
-    if (!query) return true;
+    if (!query) {
+      // Nur aktiv, wenn keine Tab-Parameter gesetzt sind
+      return !searchParams.has('tab');
+    }
     const target = new URLSearchParams(query);
     for (const [k, v] of target.entries()) {
       if (searchParams.get(k) !== v) return false;
