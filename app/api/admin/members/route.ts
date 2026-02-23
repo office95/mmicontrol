@@ -49,7 +49,7 @@ export async function PATCH(req: Request) {
     const name = (user.data?.user?.user_metadata as any)?.full_name || 'Music Mission Nutzer';
     if (email) {
       const statusTxt = approved === false ? 'ist noch nicht freigeschaltet.' : 'wurde freigeschaltet.';
-      await sendMail({
+      const res = await sendMail({
         to: email,
         subject: 'Dein Music Mission Dashboard Zugriff',
         text: [
@@ -62,6 +62,9 @@ export async function PATCH(req: Request) {
           'Music Mission Team'
         ].join('\n'),
       });
+      if (!res.ok) {
+        console.warn('roles mail not sent', res);
+      }
     }
   } catch (e) {
     console.warn('roles mail failed', e);
