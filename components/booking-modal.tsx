@@ -35,6 +35,8 @@ export default function BookingModal({
   const [status, setStatus] = useState<(typeof STATUSES)[number]>('offen');
   const [amount, setAmount] = useState('');
   const [code, setCode] = useState(`BU-${Date.now()}`);
+  const [invoice, setInvoice] = useState('');
+  const [dueDate, setDueDate] = useState('');
 
   useEffect(() => {
     async function loadDates() {
@@ -87,6 +89,8 @@ export default function BookingModal({
         amount: amount ? Number(amount) : null,
         status,
         booking_date: bookingDate || null,
+        invoice_number: invoice || null,
+        due_date: dueDate || null,
       }),
     });
     const data = await res.json();
@@ -122,6 +126,12 @@ export default function BookingModal({
               </Field>
               <Field label="Buchungsdatum">
                 <input type="date" className="input" value={bookingDate} onChange={(e) => setBookingDate(e.target.value)} />
+              </Field>
+              <Field label="Rechnungsnummer (optional)">
+                <input className="input" value={invoice} onChange={(e) => setInvoice(e.target.value)} />
+              </Field>
+              <Field label="Fälligkeit">
+                <input type="date" className="input" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
               </Field>
             </div>
 

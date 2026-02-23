@@ -25,6 +25,8 @@ type Booking = {
   course_start: string | null;
   partner_name: string | null;
   course_id?: string | null;
+  invoice_number?: string | null;
+  due_date?: string | null;
 };
 
 export default function BookingEditPage({ params }: { params: { id: string } }) {
@@ -224,6 +226,17 @@ export default function BookingEditPage({ params }: { params: { id: string } }) 
                 </option>
               ))}
             </select>
+          </Field>
+          <Field label="Rechnungsnummer">
+            <input className="input" value={form.invoice_number ?? ''} onChange={(e) => setField('invoice_number', e.target.value || null)} />
+          </Field>
+          <Field label="Fälligkeit">
+            <input
+              type="date"
+              className="input"
+              value={form.due_date ?? ''}
+              onChange={(e) => setField('due_date', e.target.value || null)}
+            />
           </Field>
         </div>
 
