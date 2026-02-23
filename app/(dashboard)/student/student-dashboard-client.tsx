@@ -293,7 +293,7 @@ export default function StudentDashboardClient({
             <h3 className="text-lg font-semibold text-white">Benefits für dich</h3>
             <p className="text-sm text-white/70">Members Card vorzeigen und Vorteile nutzen.</p>
             <div className="overflow-hidden relative">
-              <div className="flex gap-4 py-2 min-w-full animate-marquee whitespace-nowrap" style={{ animationDuration: '35s' }}>
+              <div className="flex gap-4 py-2 min-w-full animate-marquee whitespace-nowrap" style={{ animation: 'marquee 28s linear infinite' }}>
                 {marqueeBenefits.map((b, idx) => (
                   <div key={`${b.id}-${idx}`} className="min-w-[210px] max-w-[220px] rounded-2xl bg-white text-ink border border-slate-200 shadow-md overflow-hidden flex flex-col">
                     <div className="relative h-24 bg-slate-100">
