@@ -27,6 +27,7 @@ create table if not exists public.quiz_questions (
   id uuid primary key default gen_random_uuid(),
   quiz_id uuid not null references public.quizzes(id) on delete cascade,
   module_id uuid references public.modules(id) on delete set null,
+  module_number int,
   difficulty quiz_difficulty not null default 'medium',
   qtype quiz_question_type not null default 'single',
   prompt text not null,

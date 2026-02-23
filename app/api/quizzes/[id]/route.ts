@@ -49,7 +49,7 @@ export async function GET(_req: Request, ctx: { params: { id: string } }) {
 
   const { data: questions, error: qsErr } = await supa
     .from('quiz_questions')
-    .select('id,quiz_id,module_id,difficulty,qtype,prompt,media_url,explanation,order_index,quiz_answer_options(id,label,is_correct,order_index)')
+    .select('id,quiz_id,module_id,module_number,difficulty,qtype,prompt,media_url,explanation,order_index,quiz_answer_options(id,label,is_correct,order_index)')
     .eq('quiz_id', quizId)
     .order('order_index', { ascending: true })
     .order('created_at', { ascending: true });
@@ -60,6 +60,7 @@ export async function GET(_req: Request, ctx: { params: { id: string } }) {
     questions: (questions || []).map((q: any) => ({
       id: q.id,
       module_id: q.module_id,
+      module_number: q.module_number,
       difficulty: q.difficulty,
       type: q.qtype,
       prompt: q.prompt,

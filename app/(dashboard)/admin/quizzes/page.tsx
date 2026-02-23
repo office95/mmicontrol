@@ -16,7 +16,7 @@ export default function AdminQuizzesPage() {
   const [courses, setCourses] = useState<{ id: string; title: string }[]>([]);
   const [titleInput, setTitleInput] = useState('Neues Quiz');
   const [courseId, setCourseId] = useState<string | null>(null);
-  const [modules, setModules] = useState<{ id: string; title: string | null; course_id: string | null; cover_url: string | null; module_number: number | null }[]>([]);
+  const moduleNumbers = Array.from({ length: 20 }, (_, i) => i + 1);
   const [editOpen, setEditOpen] = useState(false);
   const [editQuiz, setEditQuiz] = useState<QuizDetail | null>(null);
   const [editQuestions, setEditQuestions] = useState<any[]>([]);
@@ -38,7 +38,7 @@ export default function AdminQuizzesPage() {
       setCourses(c);
       if (c.length && !courseId) setCourseId(c[0].id);
     }
-    if (modRes.ok) setModules(await modRes.json());
+    // Module werden hier nicht mehr benötigt (künstliche Modulnummern 1-20)
     setLoading(false);
   };
 
@@ -367,19 +367,20 @@ export default function AdminQuizzesPage() {
     setSaving(true);
     setError(null);
     try {
-      const body = {
-        quiz: editQuiz,
-        questions: editQuestions.map((q, idx) => ({
-          id: q.id,
-          prompt: q.prompt,
-          difficulty: q.difficulty,
-          qtype: q.qtype,
-          media_url: q.media_url,
-          explanation: q.explanation,
-          module_id: q.module_id || editQuiz.module_id || null,
-          order_index: idx,
-          options: (q.options || []).map((o: any, j: number) => ({
-            id: o.id,
+    const body = {
+      quiz: { ...editQuiz, module_id: null },
+      questions: editQuestions.map((q, idx) => ({
+        id: q.id,
+        prompt: q.prompt,
+        difficulty: q.difficulty,
+        qtype: q.qtype,
+        media_url: q.media_url,
+        explanation: q.explanation,
+        module_id: null,
+        module_number: q.module_number ?? editQuiz.module_number ?? null,
+        order_index: idx,
+        options: (q.options || []).map((o: any, j: number) => ({
+          id: o.id,
             label: o.label,
             is_correct: !!o.is_correct,
             order_index: j,
@@ -596,18 +597,16 @@ export default function AdminQuizzesPage() {
                     <label className="text-xs text-slate-300">Modul</label>
                     <select
                       className="min-w-[180px] rounded border border-white/20 bg-black/30 px-2 py-2 text-white"
-                      value={editQuiz.module_id || ''}
-                      onChange={(e) => setEditQuiz({ ...editQuiz, module_id: e.target.value || null })}
+                      value={editQuiz.module_number ?? ''}
+                      onChange={(e) => {
+                        const n = e.target.value ? Number(e.target.value) : null;
+                        setEditQuiz({ ...editQuiz, module_number: n, module_id: null });
+                      }}
                     >
                       <option value="">(kein Modul)</option>
-                      {modules
-                        .slice()
-                        .sort((a, b) => (a.module_number || 0) - (b.module_number || 0))
-                        .map((m) => (
-                          <option key={m.id} value={m.id}>
-                            {m.module_number ? `Modul ${m.module_number}` : 'Modul'} — {m.title || m.id}
-                          </option>
-                        ))}
+                      {moduleNumbers.map((n) => (
+                        <option key={n} value={n}>{`Modul ${n}`}</option>
+                      ))}
                     </select>
                   </div>
                   <label className="flex items-center gap-2 text-xs text-slate-200">

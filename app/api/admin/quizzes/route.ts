@@ -26,7 +26,7 @@ export async function GET(req: Request) {
   if (id) {
   const { data: quiz, error: qErr } = await supa
     .from('quizzes')
-    .select('id,title,description,cover_url,course_id,module_id,is_published,level_count,time_per_question,created_at')
+    .select('id,title,description,cover_url,course_id,module_id,module_number,is_published,level_count,time_per_question,created_at')
     .eq('id', id)
     .maybeSingle();
     if (qErr) return NextResponse.json({ error: qErr.message }, { status: 400 });
@@ -34,7 +34,7 @@ export async function GET(req: Request) {
 
     const { data: questions, error: qsErr } = await supa
       .from('quiz_questions')
-      .select('id,quiz_id,module_id,difficulty,qtype,prompt,media_url,explanation,order_index,quiz_answer_options(id,label,is_correct,order_index)')
+      .select('id,quiz_id,module_id,module_number,difficulty,qtype,prompt,media_url,explanation,order_index,quiz_answer_options(id,label,is_correct,order_index)')
       .eq('quiz_id', id)
       .order('order_index', { ascending: true });
     if (qsErr) return NextResponse.json({ error: qsErr.message }, { status: 400 });
@@ -43,6 +43,7 @@ export async function GET(req: Request) {
       quiz,
       questions: (questions || []).map((q: any) => ({
         ...q,
+        module_number: q.module_number ?? null,
         options: (q.quiz_answer_options || []).sort((a: any, b: any) => (a.order_index ?? 0) - (b.order_index ?? 0)),
       })),
     });
@@ -96,7 +97,8 @@ export async function POST(req: Request) {
     const qPayload = questions.map((q: any, idx: number) => {
       const base: any = {
         quiz_id: quizRow.id,
-        module_id: q.module_id ?? quizRow.module_id,
+        module_id: null, // keine echten Module verlinken
+        module_number: q.module_number ?? null,
         difficulty: q.difficulty ?? 'medium',
         qtype: q.qtype ?? 'single',
         prompt: q.prompt,
