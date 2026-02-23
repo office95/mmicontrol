@@ -229,28 +229,6 @@ export default function CourseDateModal({
               )}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Field label="Kursbeitrag Brutto">
-                <input className="input" value={price} onChange={(e) => setPrice(e.target.value)} />
-              </Field>
-              <Field label="USt-Satz">
-                <input className="input" value={vat} onChange={(e) => setVat(e.target.value)} />
-              </Field>
-              <Field label="Kursbeitrag Netto">
-                <input className="input" value={priceNet} onChange={(e) => setPriceNet(e.target.value)} />
-              </Field>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Field label="Anzahlung">
-                <input className="input" value={deposit} onChange={(e) => setDeposit(e.target.value)} />
-              </Field>
-              <Field label="Saldo">
-                <input className="input" value={saldo} onChange={(e) => setSaldo(e.target.value)} />
-              </Field>
-              <Field label="Dauer (Stunden)">
-                <input className="input" value={duration} onChange={(e) => setDuration(e.target.value)} />
-              </Field>
-            </div>
           </section>
         </form>
       </div>
