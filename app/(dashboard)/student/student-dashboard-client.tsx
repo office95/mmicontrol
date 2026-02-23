@@ -97,6 +97,7 @@ export default function StudentDashboardClient({
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(courses[0]?.id || null);
   const courseTitle = (cid: string | null) => courses.find((c) => c.id === cid)?.title ?? 'Kurs';
   const scrollRef = useRef<HTMLDivElement | null>(null);
+  const benefitsRef = useRef<HTMLDivElement | null>(null);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [reminderVisible, setReminderVisible] = useState<boolean>(!!feedbackReminder);
@@ -142,6 +143,28 @@ export default function StudentDashboardClient({
   }, [recommended, tab]);
 
   const marqueeBenefits = benefits.length ? [...benefits, ...benefits] : [];
+
+  // JS-Marquee für Benefits (scrollLeft Loop)
+  useEffect(() => {
+    const el = benefitsRef.current;
+    if (!el || !marqueeBenefits.length || tab !== 'bookings') return;
+    let raf: number;
+    let last = performance.now();
+    const speed = 40; // px pro Sekunde
+
+    const tick = (ts: number) => {
+      const dt = ts - last;
+      last = ts;
+      el.scrollLeft += (speed * dt) / 1000;
+      if (el.scrollLeft >= el.scrollWidth - el.clientWidth) {
+        el.scrollLeft = 0;
+      }
+      raf = requestAnimationFrame(tick);
+    };
+
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [marqueeBenefits.length, tab]);
 
   return (
     <div className="min-h-screen flex flex-col space-y-6">
@@ -292,8 +315,8 @@ export default function StudentDashboardClient({
           <div className="mt-4 space-y-2">
             <h3 className="text-lg font-semibold text-white">Benefits für dich</h3>
             <p className="text-sm text-white/70">Members Card vorzeigen und Vorteile nutzen.</p>
-            <div className="overflow-hidden relative">
-              <div className="flex gap-4 py-2 min-w-full animate-marquee whitespace-nowrap" style={{ animation: 'marquee 28s linear infinite' }}>
+            <div className="overflow-hidden relative" ref={benefitsRef}>
+              <div className="flex gap-4 py-2 min-w-full whitespace-nowrap">
                 {marqueeBenefits.map((b, idx) => (
                   <div key={`${b.id}-${idx}`} className="min-w-[210px] max-w-[220px] rounded-2xl bg-white text-ink border border-slate-200 shadow-md overflow-hidden flex flex-col">
                     <div className="relative h-24 bg-slate-100">
