@@ -4,6 +4,7 @@ import { createSupabaseServerClient } from '@/lib/supabase-server';
 import { getPermissions, ensureSlugs } from '@/lib/permissions';
 import { createClient } from '@supabase/supabase-js';
 import MobileNav from '@/components/mobile-nav';
+import TopNav from '@/components/top-nav';
 
 const PAGES = [
   'admin-dashboard',
@@ -209,18 +210,26 @@ export default async function DashboardLayout({ children }: { children: ReactNod
         {/* Horizontale Menüleiste für Teacher/Student */}
         {(isTeacher || isStudent) && (
           <div className="w-full max-w-6xl mx-auto mb-4">
-            <div className="flex flex-wrap gap-2 rounded-2xl border border-white/10 bg-white/5 px-3 py-3 shadow-lg">
-              {(() => {
+            <TopNav
+              links={(() => {
                 const filtered = links.filter((l) => l.roles.includes(roleLabel as string));
                 let ordered = filtered;
                 if (isStudent) {
-                  // Custom Reihenfolge und Ausblendung für Studenten
                   const order: string[] = [
-                    '/student',                // Dashboard (Mein Überblick)
-                    '/student?tab=materials',  // Kursunterlagen
-                    '/student?tab=feedback',   // Kurs Bewertung
-                    '/student/support',        // Support
-                    '/student?tab=profile',    // Profil
+                    '/student',
+                    '/student?tab=materials',
+                    '/student?tab=feedback',
+                    '/student/support',
+                    '/student?tab=profile',
+                  ];
+                  ordered = order
+                    .map((href) => filtered.find((l) => l.href === href))
+                    .filter(Boolean) as typeof filtered;
+                } else if (isTeacher) {
+                  const order: string[] = [
+                    '/teacher',
+                    '/teacher/materials',
+                    '/quizzes',
                   ];
                   ordered = order
                     .map((href) => filtered.find((l) => l.href === href))
@@ -228,18 +237,9 @@ export default async function DashboardLayout({ children }: { children: ReactNod
                 } else {
                   ordered = filtered.sort((a, b) => a.label.localeCompare(b.label, 'de'));
                 }
-
-                return ordered.map((l) => (
-                  <a
-                    key={l.href}
-                    href={l.href}
-                    className="inline-flex items-center rounded-full border border-white/15 bg-white/5 px-3 py-2 text-sm font-semibold text-white hover:border-pink-300 hover:bg-white/10 transition"
-                  >
-                    {l.label}
-                  </a>
-                ));
+                return ordered.map((l) => ({ href: l.href, label: l.label }));
               })()}
-            </div>
+            />
           </div>
         )}
 
