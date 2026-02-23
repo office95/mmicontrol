@@ -69,33 +69,23 @@ export default function StudentSupportPage() {
 
   return (
     <div className="min-h-screen bg-transparent text-white px-4 sm:px-6 lg:px-10 py-6 space-y-6">
-      {/* Top-Navigation wie Dashboard */}
+      {/* Tabs wie im Dashboard (gleicher Stil) */}
       <nav className="sticky top-0 z-30 -mx-4 px-4 pt-1 pb-3 bg-slate-950/85 border-b border-white/10 backdrop-blur-lg shadow-lg">
         <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-sm font-semibold text-white/85">
-          <a
-            href="/student"
-            className="px-3 py-2 rounded-full border border-white/15 bg-white/5 hover:border-pink-300 hover:text-white transition"
-          >
-            Meine Buchungen
-          </a>
-          <a
-            href="/student?tab=materials"
-            className="px-3 py-2 rounded-full border border-white/15 bg-white/5 hover:border-pink-300 hover:text-white transition"
-          >
-            Kursunterlagen
-          </a>
-          <a
-            href="/student?tab=profile"
-            className="px-3 py-2 rounded-full border border-white/15 bg-white/5 hover:border-pink-300 hover:text-white transition"
-          >
-            Profil
-          </a>
-          <a
-            href="/student?tab=feedback"
-            className="px-3 py-2 rounded-full border border-white/15 bg-white/5 hover:border-pink-300 hover:text-white transition"
-          >
-            Kurs Bewertung
-          </a>
+          {[
+            { href: '/student', label: 'Dashboard' },
+            { href: '/student?tab=materials', label: 'Kursunterlagen' },
+            { href: '/student?tab=feedback', label: 'Kurs Bewertung' },
+            { href: '/student?tab=profile', label: 'Profil' },
+          ].map((l) => (
+            <a
+              key={l.href}
+              href={l.href}
+              className="px-3 py-2 rounded-full border border-white/15 bg-white/5 hover:border-pink-300 hover:text-white transition"
+            >
+              {l.label}
+            </a>
+          ))}
           <a
             href="/student/support"
             className="relative px-3 py-2 rounded-full border border-pink-400 bg-pink-500/20 text-white shadow-pink-500/20 shadow-sm"
