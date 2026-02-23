@@ -847,14 +847,17 @@ export default async function TeacherPage() {
 
       <div className="rounded-2xl border border-white/10 bg-gradient-to-r from-slate-900 via-slate-800 to-pink-900/60 text-white overflow-hidden shadow-2xl">
         <div className="grid md:grid-cols-[1.3fr,1fr] gap-0">
-          <div className="relative">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="https://images.unsplash.com/photo-1507878866276-a947ef722fee?auto=format&fit=crop&w=1600&q=80"
-              alt="Music Mission Quiz"
-              className="h-full w-full object-cover"
+          <div className="relative min-h-[220px]">
+            <div
+              className="absolute inset-0 bg-center bg-cover"
+              style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=1600&q=80)' }}
             />
-            <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/35 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/35 to-transparent" />
+            <div className="relative h-full w-full p-6 flex flex-col justify-end">
+              <p className="text-[11px] uppercase tracking-[0.24em] text-pink-200 mb-2">Music Mission Quiz</p>
+              <h2 className="text-3xl sm:text-4xl font-bold leading-tight">Music Mission Quiz</h2>
+              <p className="text-sm text-white/80">Studio- und Live-Module trainieren – jetzt mit Zeitlimit & Levels.</p>
+            </div>
           </div>
           <div className="p-6 sm:p-8 flex flex-col gap-4 justify-center">
             <div className="space-y-1">
