@@ -37,6 +37,7 @@ export default function CostsPage() {
   const [filterCourse, setFilterCourse] = useState('');
 
   const [modalOpen, setModalOpen] = useState(false);
+  const [catModalOpen, setCatModalOpen] = useState(false);
   const [editing, setEditing] = useState<CostRow | null>(null);
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [amount, setAmount] = useState('');
@@ -105,6 +106,10 @@ export default function CostsPage() {
   const openNew = () => {
     resetForm();
     setModalOpen(true);
+  };
+
+  const openCategories = () => {
+    setCatModalOpen(true);
   };
 
   const openEdit = (row: CostRow) => {
@@ -221,6 +226,12 @@ export default function CostsPage() {
         <div className="flex gap-2">
           <button
             className="inline-flex items-center justify-center h-11 px-5 rounded-lg bg-slate-900 text-white font-semibold hover:bg-slate-800 transition"
+            onClick={openCategories}
+          >
+            Kategorien verwalten
+          </button>
+          <button
+            className="inline-flex items-center justify-center h-11 px-5 rounded-lg bg-slate-900 text-white font-semibold hover:bg-slate-800 transition"
             onClick={openNew}
           >
             Kosten erfassen
@@ -240,44 +251,6 @@ export default function CostsPage() {
       </div>
 
       <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm space-y-3">
-        <div className="rounded-lg border border-slate-200 bg-slate-50/60 p-3">
-          <div className="flex items-center justify-between mb-3">
-            <div>
-              <p className="text-xs uppercase tracking-[0.12em] text-slate-500">Kategorien verwalten</p>
-              <p className="text-sm text-slate-600">Hier anlegen/löschen, erscheinen sofort im Dropdown.</p>
-            </div>
-            <div className="flex gap-2 items-end">
-              <div className="flex gap-2">
-                <input
-                  className="input"
-                  placeholder="Neue Kategorie"
-                  value={newCategoryName}
-                  onChange={(e) => setNewCategoryName(e.target.value)}
-                />
-                <input
-                  className="input"
-                  placeholder="Beschreibung (optional)"
-                  value={newCategoryDesc}
-                  onChange={(e) => setNewCategoryDesc(e.target.value)}
-                />
-              </div>
-              <button className="rounded-lg bg-slate-900 text-white px-3 py-2 text-sm" onClick={addCategory}>Anlegen</button>
-            </div>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {categories
-              .slice()
-              .sort((a, b) => a.name.localeCompare(b.name, 'de'))
-              .map((c) => (
-                <span key={c.id} className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-slate-200 text-sm text-slate-700">
-                  {c.name}
-                  <button className="text-red-600 text-xs" onClick={() => deleteCategory(c.id)}>✕</button>
-                </span>
-              ))}
-            {categories.length === 0 && <span className="text-sm text-slate-500">Noch keine Kategorien.</span>}
-          </div>
-        </div>
-
         <div className="grid grid-cols-1 md:grid-cols-5 gap-3 text-sm">
           <div>
             <label className="text-xs uppercase tracking-[0.12em] text-slate-500">Von</label>
@@ -406,6 +379,49 @@ export default function CostsPage() {
               >
                 {saving ? 'Speichern...' : 'Speichern'}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {catModalOpen && (
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-start justify-center pt-10 px-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-3xl w-full p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-ink">Kategorien verwalten</h2>
+              <button className="text-slate-500 hover:text-slate-700" onClick={() => setCatModalOpen(false)}>×</button>
+            </div>
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-col md:flex-row gap-2">
+                <input
+                  className="input flex-1"
+                  placeholder="Neue Kategorie"
+                  value={newCategoryName}
+                  onChange={(e) => setNewCategoryName(e.target.value)}
+                />
+                <input
+                  className="input flex-1"
+                  placeholder="Beschreibung (optional)"
+                  value={newCategoryDesc}
+                  onChange={(e) => setNewCategoryDesc(e.target.value)}
+                />
+                <button className="rounded-lg bg-slate-900 text-white px-3 py-2 text-sm" onClick={addCategory}>Anlegen</button>
+              </div>
+              <div className="rounded-lg border border-slate-200 divide-y divide-slate-100 max-h-[400px] overflow-auto">
+                {categories
+                  .slice()
+                  .sort((a, b) => a.name.localeCompare(b.name, 'de'))
+                  .map((c) => (
+                    <div key={c.id} className="flex items-center justify-between px-3 py-2 text-sm">
+                      <div>
+                        <p className="font-semibold text-ink">{c.name}</p>
+                        {c.description && <p className="text-xs text-slate-500">{c.description}</p>}
+                      </div>
+                      <button className="text-red-600 text-xs" onClick={() => deleteCategory(c.id)}>Löschen</button>
+                    </div>
+                  ))}
+                {categories.length === 0 && <p className="p-3 text-sm text-slate-500">Noch keine Kategorien.</p>}
+              </div>
             </div>
           </div>
         </div>
