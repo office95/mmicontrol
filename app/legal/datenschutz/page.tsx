@@ -8,8 +8,8 @@ export default function DatenschutzPage() {
     <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-8 text-slate-100">
       <header className="space-y-2">
         <p className="text-xs uppercase tracking-[0.28em] text-pink-200">Datenschutzerklärung</p>
-        <h1 className="text-3xl font-bold text-white">für „Music Mission Control“</h1>
-        <p className="text-sm text-white/70">Stand: März 2026</p>
+        <h1 className="text-3xl font-bold text-slate-200">für „Music Mission Control“</h1>
+        <p className="text-sm text-slate-300">Stand: März 2026</p>
       </header>
 
       <Section title="1. Verantwortlicher">
@@ -118,7 +118,7 @@ export default function DatenschutzPage() {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="space-y-3 rounded-2xl border border-white/10 bg-slate-900/60 p-4 shadow-lg backdrop-blur">
-      <h2 className="text-xl font-semibold text-white">{title}</h2>
+      <h2 className="text-xl font-semibold text-slate-200">{title}</h2>
       <div className="text-sm text-white/85 space-y-2 leading-relaxed">{children}</div>
     </section>
   );
