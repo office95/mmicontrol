@@ -85,6 +85,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
     .from('role_permissions')
     .upsert(
       [
+        { role: 'student', page_slug: 'student-dashboard', allowed: true },
         { role: 'student', page_slug: 'student-materials', allowed: true },
         { role: 'student', page_slug: 'student-profile', allowed: true },
         { role: 'admin', page_slug: 'student-materials', allowed: true },
@@ -175,14 +176,18 @@ export default async function DashboardLayout({ children }: { children: ReactNod
             </form>
             {/* Hamburger fürs Handy rechts neben Logout */}
             <MobileNav
-              links={(roleLabel
-                ? links.filter((l) => l.roles.includes(roleLabel as string) && (permissions[l.slug] ?? false))
-                : []
-              ).map((l) => ({
-                href: l.href,
-                label: l.label,
-                badge: l.slug === 'admin-support' ? supportOpen : undefined,
-              }))}
+              links={(() => {
+                if (!roleLabel) return [];
+                const filtered =
+                  roleLabel === 'student'
+                    ? links.filter((l) => l.roles.includes('student'))
+                    : links.filter((l) => l.roles.includes(roleLabel as string) && (permissions[l.slug] ?? false));
+                return filtered.map((l) => ({
+                  href: l.href,
+                  label: l.label,
+                  badge: l.slug === 'admin-support' ? supportOpen : undefined,
+                }));
+              })()}
             />
           </div>
         </div>
