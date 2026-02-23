@@ -123,7 +123,16 @@ export default function CourseDateModal({
     if (course.duration_hours != null) setDuration(String(course.duration_hours));
   }, [courseId, courses]);
   const partnerOptions = useMemo(
-    () => partners.sort((a, b) => (a.name || '').localeCompare(b.name || '')),
+    () => {
+      const seen = new Set<string>();
+      const unique = partners.filter((p) => {
+        const key = (p.name || '').trim().toLowerCase();
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+      return unique.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+    },
     [partners]
   );
 
