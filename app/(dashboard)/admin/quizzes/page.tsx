@@ -126,24 +126,61 @@ export default function AdminQuizzesPage() {
     }
   };
 
-  const addQuestion = () => {
-    setEditQuestions((prev) => [
-      ...prev,
-      {
-        prompt: 'Neue Frage',
-        difficulty: 'medium',
-        qtype: 'single',
-        options: [
-          { label: 'Antwort 1', is_correct: true },
-          { label: 'Antwort 2', is_correct: false },
-        ],
-      },
-    ]);
-  };
+const addQuestion = () => {
+  setEditQuestions((prev) => [
+    ...prev,
+    {
+      prompt: 'Neue Frage',
+      difficulty: 'medium',
+      qtype: 'single',
+      options: [
+        { label: 'Antwort 1', is_correct: true },
+        { label: 'Antwort 2', is_correct: false },
+      ],
+    },
+  ]);
+};
 
-  const updateQuestion = (idx: number, changes: any) => {
-    setEditQuestions((prev) => prev.map((q, i) => (i === idx ? { ...q, ...changes } : q)));
-  };
+const updateQuestion = (idx: number, changes: any) => {
+  setEditQuestions((prev) =>
+    prev.map((q, i) => {
+      if (i !== idx) return q;
+      // Wenn Fragetyp geändert wird, Option-Set sinnvoll anpassen
+      if (changes.qtype && changes.qtype !== q.qtype) {
+        if (changes.qtype === 'boolean') {
+          return {
+            ...q,
+            ...changes,
+            options: [
+              { label: 'Wahr', is_correct: true },
+              { label: 'Falsch', is_correct: false },
+            ],
+          };
+        }
+        if (changes.qtype === 'text') {
+          return {
+            ...q,
+            ...changes,
+            options: [{ label: 'Antwort', is_correct: true }],
+          };
+        }
+        // Für andere Typen mindestens zwei Optionen vorhalten
+        return {
+          ...q,
+          ...changes,
+          options:
+            (q.options && q.options.length >= 2)
+              ? q.options
+              : [
+                  { label: 'Antwort 1', is_correct: true },
+                  { label: 'Antwort 2', is_correct: false },
+                ],
+        };
+      }
+      return { ...q, ...changes };
+    })
+  );
+};
 
   const removeQuestion = (idx: number) => {
     setEditQuestions((prev) => prev.filter((_, i) => i !== idx));
@@ -478,11 +515,11 @@ export default function AdminQuizzesPage() {
                       Löschen
                     </button>
                   </div>
-                  <div className="flex flex-wrap gap-3 text-xs text-slate-200">
-                    <select
-                      className="rounded border border-white/20 bg-black/30 px-2 py-1"
-                      value={q.difficulty}
-                      onChange={(e) => updateQuestion(idx, { difficulty: e.target.value })}
+              <div className="flex flex-wrap gap-3 text-xs text-slate-200">
+                <select
+                  className="rounded border border-white/20 bg-black/30 px-2 py-1"
+                  value={q.difficulty}
+                  onChange={(e) => updateQuestion(idx, { difficulty: e.target.value })}
                     >
                       <option value="easy">easy</option>
                       <option value="medium">medium</option>
@@ -491,11 +528,11 @@ export default function AdminQuizzesPage() {
                     <select
                       className="rounded border border-white/20 bg-black/30 px-2 py-1"
                       value={q.qtype}
-                      onChange={(e) => updateQuestion(idx, { qtype: e.target.value })}
-                    >
-                      <option value="single">single</option>
-                      <option value="multiple">multiple</option>
-                      <option value="boolean">boolean</option>
+                  onChange={(e) => updateQuestion(idx, { qtype: e.target.value })}
+                >
+                  <option value="single">single</option>
+                  <option value="multiple">multiple</option>
+                  <option value="boolean">boolean</option>
                       <option value="order">order</option>
                       <option value="match">match</option>
                       <option value="text">text</option>
@@ -503,50 +540,128 @@ export default function AdminQuizzesPage() {
                     </select>
                     <input
                       className="flex-1 min-w-[200px] rounded border border-white/20 bg-black/20 px-2 py-1 text-white"
-                      placeholder="Media URL (optional)"
-                      value={q.media_url || ''}
-                      onChange={(e) => updateQuestion(idx, { media_url: e.target.value })}
-                    />
-                  </div>
-                  <textarea
-                    className="w-full rounded border border-white/20 bg-black/20 px-2 py-2 text-sm text-white"
-                    placeholder="Erklärung (optional)"
-                    value={q.explanation || ''}
-                    onChange={(e) => updateQuestion(idx, { explanation: e.target.value })}
-                  />
-                  <div className="space-y-2">
-                    {(q.options || []).map((o: any, oIdx: number) => (
-                      <div key={oIdx} className="flex items-center gap-2">
-                        <input
-                          className="flex-1 rounded border border-white/20 bg-black/20 px-2 py-1 text-white"
-                          value={o.label}
-                          onChange={(e) => updateOption(idx, oIdx, { label: e.target.value })}
-                        />
-                        <label className="flex items-center gap-1 text-xs text-slate-200">
-                          <input
-                            type="checkbox"
-                            checked={!!o.is_correct}
-                            onChange={(e) => updateOption(idx, oIdx, { is_correct: e.target.checked })}
-                          />
-                          korrekt
-                        </label>
-                        <button
-                          className="text-xs text-rose-300 hover:text-rose-200"
-                          onClick={() => removeOption(idx, oIdx)}
-                        >
-                          ✕
-                        </button>
-                      </div>
-                    ))}
-                    <button
-                      className="text-xs text-pink-200 hover:text-pink-100"
-                      onClick={() => addOption(idx)}
-                    >
-                      + Option
-                    </button>
-                  </div>
+                  placeholder="Media URL (optional)"
+                  value={q.media_url || ''}
+                  onChange={(e) => updateQuestion(idx, { media_url: e.target.value })}
+                />
+              </div>
+              <textarea
+                className="w-full rounded border border-white/20 bg-black/20 px-2 py-2 text-sm text-white"
+                placeholder="Erklärung (optional)"
+                value={q.explanation || ''}
+                onChange={(e) => updateQuestion(idx, { explanation: e.target.value })}
+              />
+              {/* Optionen je nach Fragetyp */}
+              {q.qtype === 'text' ? (
+                <div className="space-y-2">
+                  <p className="text-[11px] uppercase tracking-[0.14em] text-slate-400">Gültige Antworten</p>
+                  {(q.options || []).map((o: any, oIdx: number) => (
+                    <div key={oIdx} className="flex items-center gap-2">
+                      <input
+                        className="flex-1 rounded border border-white/20 bg-black/20 px-2 py-1 text-white"
+                        value={o.label}
+                        onChange={(e) => updateOption(idx, oIdx, { label: e.target.value, is_correct: true })}
+                        placeholder="Akzeptierte Antwort"
+                      />
+                      <button
+                        className="text-xs text-rose-300 hover:text-rose-200"
+                        onClick={() => removeOption(idx, oIdx)}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    className="text-xs text-pink-200 hover:text-pink-100"
+                    onClick={() => addOption(idx)}
+                  >
+                    + Antwort hinzufügen
+                  </button>
                 </div>
-              ))}
+              ) : q.qtype === 'boolean' ? (
+                <div className="space-y-2">
+                  <p className="text-[11px] uppercase tracking-[0.14em] text-slate-400">Richtig / Falsch</p>
+                  {(q.options || []).map((o: any, oIdx: number) => (
+                    <label key={oIdx} className="flex items-center gap-2 text-xs text-slate-200">
+                      <input
+                        type="radio"
+                        name={`bool-${idx}`}
+                        checked={!!o.is_correct}
+                        onChange={() =>
+                          setEditQuestions((prev) =>
+                            prev.map((qq, i) =>
+                              i === idx
+                                ? {
+                                    ...qq,
+                                    options: (qq.options || []).map((oo: any, j: number) => ({
+                                      ...oo,
+                                      is_correct: j === oIdx,
+                                    })),
+                                  }
+                                : qq
+                            )
+                          )
+                        }
+                      />
+                      {o.label}
+                    </label>
+                  ))}
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <p className="text-[11px] uppercase tracking-[0.14em] text-slate-400">Antwortoptionen</p>
+                  {(q.options || []).map((o: any, oIdx: number) => (
+                    <div key={oIdx} className="flex items-center gap-2">
+                      <input
+                        className="flex-1 rounded border border-white/20 bg-black/20 px-2 py-1 text-white"
+                        value={o.label}
+                        onChange={(e) => updateOption(idx, oIdx, { label: e.target.value })}
+                      />
+                      <label className="flex items-center gap-1 text-xs text-slate-200">
+                        <input
+                          type={q.qtype === 'single' ? 'radio' : 'checkbox'}
+                          name={`corr-${idx}`}
+                          checked={!!o.is_correct}
+                          onChange={(e) => {
+                            if (q.qtype === 'single') {
+                              setEditQuestions((prev) =>
+                                prev.map((qq, i) =>
+                                  i === idx
+                                    ? {
+                                        ...qq,
+                                        options: (qq.options || []).map((oo: any, j: number) => ({
+                                          ...oo,
+                                          is_correct: j === oIdx,
+                                        })),
+                                      }
+                                    : qq
+                                )
+                              );
+                            } else {
+                              updateOption(idx, oIdx, { is_correct: e.target.checked });
+                            }
+                          }}
+                        />
+                        korrekt
+                      </label>
+                      <button
+                        className="text-xs text-rose-300 hover:text-rose-200"
+                        onClick={() => removeOption(idx, oIdx)}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    className="text-xs text-pink-200 hover:text-pink-100"
+                    onClick={() => addOption(idx)}
+                  >
+                    + Option
+                  </button>
+                </div>
+              )}
+            </div>
+          ))}
               <button
                 className="rounded border border-dashed border-white/30 px-3 py-2 text-sm text-white hover:bg-white/10"
                 onClick={addQuestion}
