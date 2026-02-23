@@ -233,6 +233,7 @@ export default function AdminCourseForm({
         cover_url: finalCoverUrl || null,
         default_price_tier_id: defaultTierId && defaultTierId.startsWith('tier-') ? null : defaultTierId,
         price_tiers: tiersPayload,
+        module_numbers: selectedModules,
       }),
     });
     const data = await res.json();
@@ -241,13 +242,6 @@ export default function AdminCourseForm({
       setSuccess(null);
     } else {
       const savedCourseId = (data?.id as string) || initial?.id;
-      if (savedCourseId && selectedModules.length) {
-        await fetch('/api/admin/modules', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ course_id: savedCourseId, module_numbers: selectedModules }),
-        });
-      }
       if (isEdit) {
         setSuccess('Kurs gespeichert');
       } else {

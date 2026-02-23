@@ -50,6 +50,7 @@ export async function POST(req: Request) {
     cover_url,
     price_tiers = [],
     default_price_tier_id,
+    module_numbers = [],
   } = body;
 
   if (!title) return NextResponse.json({ error: 'title required' }, { status: 400 });
@@ -148,6 +149,25 @@ export async function POST(req: Request) {
     }
   }
 
+  // Module (optional)
+  if (data?.id && Array.isArray(module_numbers)) {
+    const nums = module_numbers.filter((n: any) => typeof n === 'number');
+    if (nums.length) {
+      const modulesPayload = nums.map((n: number) => ({
+        course_id: data.id,
+        module_number: n,
+        title: `Modul ${n}`,
+      }));
+      await supabase.from('modules').upsert(modulesPayload, { onConflict: 'course_id,module_number' });
+      // Lösche nicht mehr ausgewählte Module
+      await supabase
+        .from('modules')
+        .delete()
+        .eq('course_id', data.id)
+        .not('module_number', 'in', `(${nums.join(',')})`);
+    }
+  }
+
   return NextResponse.json(data);
 }
 
@@ -170,6 +190,7 @@ export async function PATCH(req: Request) {
     cover_url,
     price_tiers = [],
     default_price_tier_id,
+    module_numbers = null,
   } = body;
 
   const payload: Record<string, unknown> = {};
@@ -261,6 +282,27 @@ export async function PATCH(req: Request) {
     // Falls keine default_price_tier_id gesetzt, erste als Default übernehmen
     if (payload.default_price_tier_id === undefined && keepIds.length) {
       await supabase.from('courses').update({ default_price_tier_id: keepIds[0] }).eq('id', id);
+    }
+  }
+
+  // Module aktualisieren (wenn mitgesendet)
+  if (Array.isArray(module_numbers)) {
+    const nums = module_numbers.filter((n: any) => typeof n === 'number');
+    if (nums.length) {
+      const modulesPayload = nums.map((n: number) => ({
+        course_id: id,
+        module_number: n,
+        title: `Modul ${n}`,
+      }));
+      await supabase.from('modules').upsert(modulesPayload, { onConflict: 'course_id,module_number' });
+      await supabase
+        .from('modules')
+        .delete()
+        .eq('course_id', id)
+        .not('module_number', 'in', `(${nums.join(',')})`);
+    } else {
+      // wenn leere Liste geschickt: alle Module des Kurses löschen
+      await supabase.from('modules').delete().eq('course_id', id);
     }
   }
 
