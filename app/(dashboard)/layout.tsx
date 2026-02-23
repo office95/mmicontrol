@@ -214,13 +214,13 @@ export default async function DashboardLayout({ children }: { children: ReactNod
                 .filter((l) => l.roles.includes(roleLabel as string))
                 .sort((a, b) => a.label.localeCompare(b.label, 'de'))
                 .map((l) => (
-                  <Link
+                  <a
                     key={l.href}
-                    href={l.href as any}
+                    href={l.href}
                     className="inline-flex items-center rounded-full border border-white/15 bg-white/5 px-3 py-2 text-sm font-semibold text-white hover:border-pink-300 hover:bg-white/10 transition"
                   >
                     {l.label}
-                  </Link>
+                  </a>
                 ))}
             </div>
           </div>
