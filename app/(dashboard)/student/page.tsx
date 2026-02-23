@@ -389,6 +389,62 @@ export default async function StudentPage({ searchParams }: { searchParams: Reco
     });
   }
 
+  // Offene Kursfragebögen (Survey) ermitteln
+  let surveysOpen: {
+    survey_id: string;
+    course_id: string;
+    course_title?: string | null;
+    booking_id: string;
+    title: string;
+    instructions?: string | null;
+    start_date?: string | null;
+    open_days_before_start?: number | null;
+  }[] = [];
+
+  {
+    const courseIdsForSurveys = Array.from(new Set((bookings || []).map((b) => b.course_id).filter(Boolean))) as string[];
+    if (courseIdsForSurveys.length) {
+      const { data: surveys } = await service
+        .from('course_surveys')
+        .select('id, course_id, title, instructions, open_days_before_start')
+        .in('course_id', courseIdsForSurveys);
+
+      if (surveys?.length) {
+        const surveyIds = surveys.map((s) => s.id);
+        const { data: responses } = await service
+          .from('course_survey_responses')
+          .select('survey_id, booking_id')
+          .eq('student_id', user?.id || '');
+        const responded = new Set((responses || []).map((r) => `${r.survey_id}_${r.booking_id}`));
+
+        const today = new Date();
+        (bookings || []).forEach((b) => {
+          if (!b.course_id) return;
+          const survey = surveys.find((s) => s.course_id === b.course_id);
+          if (!survey) return;
+          const startStr = (b as any).course_start || null;
+          const start = startStr ? new Date(startStr) : null;
+          if (!start) return;
+          const openDays = survey.open_days_before_start ?? 7;
+          const openDate = new Date(start);
+          openDate.setDate(openDate.getDate() - openDays);
+          if (today < openDate) return;
+          if (responded.has(`${survey.id}_${b.id}`)) return;
+          surveysOpen.push({
+            survey_id: survey.id,
+            course_id: b.course_id,
+            course_title: b.course_title,
+            booking_id: b.id,
+            title: survey.title,
+            instructions: survey.instructions ?? undefined,
+            start_date: startStr,
+            open_days_before_start: survey.open_days_before_start,
+          });
+        });
+      }
+    }
+  }
+
   return (
     <div className="space-y-8">
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 bg-white/10 border border-white/15 rounded-xl p-4 sm:p-6 shadow-lg relative overflow-hidden">
@@ -423,6 +479,7 @@ export default async function StudentPage({ searchParams }: { searchParams: Reco
         materials={materials}
         recommended={recommended}
         feedbacks={feedbacks}
+        surveysOpen={surveysOpen}
         profile={
         student
           ? {

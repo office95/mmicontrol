@@ -82,6 +82,7 @@ export default function StudentDashboardClient({
   benefits,
   feedbackReminder,
   feedbacks,
+  surveysOpen,
 }: {
   bookings: Booking[];
   courses: Course[];
@@ -93,6 +94,7 @@ export default function StudentDashboardClient({
   benefits: Benefit[];
   feedbackReminder?: boolean;
   feedbacks: Record<string, any>;
+  surveysOpen?: { survey_id: string; course_id: string; course_title?: string | null; booking_id: string; title: string; instructions?: string | null; start_date?: string | null }[];
 }) {
   const [tab, setTab] = useState<'bookings' | 'materials' | 'profile' | 'feedback'>(initialTab || 'bookings');
   const [unread, setUnread] = useState(0);
@@ -219,7 +221,28 @@ export default function StudentDashboardClient({
         </div>
       </nav>
 
-      {tab === 'bookings' && <BookingsClient bookings={bookings} />}
+      {tab === 'bookings' && (
+        <>
+          {(surveysOpen || []).length > 0 && (
+            <div className="rounded-2xl border border-amber-300/60 bg-amber-900/30 p-4 text-amber-100">
+              <h3 className="text-lg font-semibold">Kursfragebogen offen</h3>
+              <p className="text-sm text-amber-50 mb-2">Bitte vor Kursstart ausfüllen.</p>
+              <div className="flex flex-col gap-2">
+                {(surveysOpen || []).map((s) => (
+                  <a
+                    key={`${s.survey_id}_${s.booking_id}`}
+                    href={`/surveys/${s.survey_id}?booking_id=${s.booking_id}`}
+                    className="rounded-lg border border-amber-300/60 bg-amber-800/40 px-3 py-2 text-sm text-amber-50 hover:bg-amber-700/40"
+                  >
+                    {s.title} · {s.course_title || s.course_id}
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+          <BookingsClient bookings={bookings} />
+        </>
+      )}
 
       {tab === 'bookings' && (
         <div className="rounded-2xl border border-white/10 bg-slate-950 text-white overflow-hidden shadow-2xl">
