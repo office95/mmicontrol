@@ -171,6 +171,7 @@ export default async function StudentPage({ searchParams }: { searchParams: Reco
   });
 
   const bookingId = typeof searchParams?.booking === 'string' ? searchParams.booking : null;
+  const showProfile = searchParams?.profile === '1';
   const initialTab =
     typeof searchParams?.tab === 'string' &&
     ['bookings', 'materials', 'profile', 'feedback'].includes(searchParams.tab)
@@ -179,8 +180,6 @@ export default async function StudentPage({ searchParams }: { searchParams: Reco
   const selectedBooking = bookingId
     ? bookings?.find((b) => b.id === bookingId) || null
     : null;
-
-  const showProfile = searchParams?.profile === '1';
 
   // Bereits abgegebene Feedbacks laden (pro Buchung / User)
   let feedbacks: Record<string, any> = {};
