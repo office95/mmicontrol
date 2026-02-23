@@ -364,11 +364,7 @@ export default function DashboardClient({
           </div>
           <div className="p-6 sm:p-8 flex flex-col gap-4 justify-center">
             <div className="space-y-1">
-              <p className="text-[11px] uppercase tracking-[0.22em] text-pink-200">Neu · Lernquiz</p>
               <h3 className="text-2xl font-semibold">Modul-Quiz für deine Kurse</h3>
-              <p className="text-sm text-white/80">
-                Prüfe Theorie je Modul, Level-basiert mit Zeitlimit. Teile den Link mit deinen Teilnehmern oder spiele selbst.
-              </p>
             </div>
             <div className="flex flex-wrap gap-3 text-xs text-white/80">
               <span className="px-3 py-1 rounded-full border border-white/20 bg-white/10">Module 1–20</span>
@@ -395,12 +391,6 @@ export default function DashboardClient({
                   className="inline-flex items-center justify-center rounded-full bg-pink-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg hover:bg-pink-500 transition"
                 >
                   Quiz öffnen
-                </a>
-                <a
-                  href="/admin/quizzes"
-                  className="inline-flex items-center justify-center rounded-full border border-white/30 px-5 py-2.5 text-sm font-semibold text-white hover:bg-white/10 transition"
-                >
-                  Quiz verwalten
                 </a>
               </div>
             </div>
