@@ -41,8 +41,15 @@ export async function ensureSlugs(slugs: string[]) {
     rows.push({ role: 'teacher', page_slug: slug, allowed: false });
     rows.push({ role: 'student', page_slug: slug, allowed: false });
   });
-  // nur fehlende Einträge anlegen, bestehende nicht überschreiben
-  await supabase.from('role_permissions').upsert(rows, {
-    onConflict: 'role,page_slug',
-  });
+  // Nur fehlende Einträge anlegen, bestehende nicht überschreiben.
+  // Falls der Unique-Constraint (role,page_slug) noch nicht existiert, werfen wir keinen Fehler,
+  // damit das Dashboard nicht bricht. Der Constraint sollte in der DB angelegt werden,
+  // kann aber hier zur Laufzeit fehlen.
+  try {
+    await supabase.from('role_permissions').upsert(rows, {
+      onConflict: 'role,page_slug',
+    });
+  } catch (e) {
+    console.error('ensureSlugs upsert skipped (missing unique constraint?):', e);
+  }
 }
