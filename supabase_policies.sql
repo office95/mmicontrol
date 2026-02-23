@@ -320,3 +320,91 @@ create policy support_messages_owner_insert on public.support_messages
         and t.created_by = auth.uid()
     )
   );
+
+-- 13) Quiz – zusätzliche Tabellen
+alter table if exists public.quiz_answer_options enable row level security;
+alter table if exists public.quiz_attempt_answers enable row level security;
+
+-- Quizzes & Fragen: Admin alles, Kurs-Mitglieder lesen
+drop policy if exists quiz_admin_all on public.quizzes;
+drop policy if exists quiz_members_select on public.quizzes;
+create policy quiz_admin_all on public.quizzes for all using (auth.uid() in (select id from public.v_admin));
+create policy quiz_members_select on public.quizzes for select using (
+  auth.uid() in (
+    select user_id from public.course_members cm where cm.course_id = public.quizzes.course_id
+  )
+);
+
+-- Fragen
+drop policy if exists quizq_admin_all on public.quiz_questions;
+drop policy if exists quizq_members_select on public.quiz_questions;
+create policy quizq_admin_all on public.quiz_questions for all using (auth.uid() in (select id from public.v_admin));
+create policy quizq_members_select on public.quiz_questions for select using (
+  exists (
+    select 1 from public.quizzes q
+    join public.course_members cm on cm.course_id = q.course_id
+    where q.id = public.quiz_questions.quiz_id and cm.user_id = auth.uid()
+  )
+);
+
+-- Antwortoptionen
+drop policy if exists quiza_admin_all on public.quiz_answer_options;
+drop policy if exists quiza_members_select on public.quiz_answer_options;
+create policy quiza_admin_all on public.quiz_answer_options for all using (auth.uid() in (select id from public.v_admin));
+create policy quiza_members_select on public.quiz_answer_options for select using (
+  exists (
+    select 1 from public.quiz_questions qq
+    join public.quizzes q on q.id = qq.quiz_id
+    join public.course_members cm on cm.course_id = q.course_id
+    where qq.id = public.quiz_answer_options.question_id and cm.user_id = auth.uid()
+  )
+);
+
+-- Attempts
+alter table if exists public.quiz_attempts enable row level security;
+drop policy if exists quiz_attempts_admin_all on public.quiz_attempts;
+drop policy if exists quiz_attempts_self_select on public.quiz_attempts;
+drop policy if exists quiz_attempts_course_teacher on public.quiz_attempts;
+drop policy if exists quiz_attempts_self_insert on public.quiz_attempts;
+create policy quiz_attempts_admin_all on public.quiz_attempts for all using (auth.uid() in (select id from public.v_admin));
+create policy quiz_attempts_self_select on public.quiz_attempts for select using (user_id = auth.uid());
+create policy quiz_attempts_course_teacher on public.quiz_attempts for select using (
+  exists (
+    select 1 from public.quizzes q
+    join public.course_members cm on cm.course_id = q.course_id
+    where q.id = public.quiz_attempts.quiz_id and cm.user_id = auth.uid() and cm.role = 'teacher'
+  )
+);
+create policy quiz_attempts_self_insert on public.quiz_attempts for insert with check (
+  auth.uid() = user_id
+  and exists (
+    select 1 from public.quizzes q
+    join public.course_members cm on cm.course_id = q.course_id
+    where q.id = public.quiz_attempts.quiz_id and cm.user_id = auth.uid()
+  )
+);
+
+-- Attempt-Details
+drop policy if exists qa_answers_admin_all on public.quiz_attempt_answers;
+drop policy if exists qa_answers_self_select on public.quiz_attempt_answers;
+drop policy if exists qa_answers_teacher_select on public.quiz_attempt_answers;
+drop policy if exists qa_answers_self_insert on public.quiz_attempt_answers;
+create policy qa_answers_admin_all on public.quiz_attempt_answers for all using (auth.uid() in (select id from public.v_admin));
+create policy qa_answers_self_select on public.quiz_attempt_answers for select using (
+  exists (
+    select 1 from public.quiz_attempts a where a.id = public.quiz_attempt_answers.attempt_id and a.user_id = auth.uid()
+  )
+);
+create policy qa_answers_teacher_select on public.quiz_attempt_answers for select using (
+  exists (
+    select 1 from public.quiz_attempts a
+    join public.quizzes q on q.id = a.quiz_id
+    join public.course_members cm on cm.course_id = q.course_id
+    where a.id = public.quiz_attempt_answers.attempt_id and cm.user_id = auth.uid() and cm.role = 'teacher'
+  )
+);
+create policy qa_answers_self_insert on public.quiz_attempt_answers for insert with check (
+  exists (
+    select 1 from public.quiz_attempts a where a.id = public.quiz_attempt_answers.attempt_id and a.user_id = auth.uid()
+  )
+);
