@@ -206,14 +206,15 @@ export default async function DashboardLayout({ children }: { children: ReactNod
 
       {/* Content area below header */}
       <div className="pt-28 pb-12 px-3 md:px-6">
-        <div className={`w-full ${isTeacher || isStudent ? 'max-w-6xl' : 'max-w-[85vw]'} mx-auto flex gap-8`}>
-          {!isTeacher && !isStudent && (
+        <div className={`w-full ${isTeacher || isStudent ? 'max-w-6xl' : 'max-w-[85vw]'} mx-auto flex gap-8 ${roleLabel ? 'md:pl-72' : ''}`}>
+          {roleLabel && (
             <aside className="hidden md:flex fixed top-28 bottom-6 left-4 w-64 flex-col rounded-2xl border border-white/15 bg-white/10 backdrop-blur-xl text-white shadow-2xl text-[17px]">
               <nav className="flex-1 px-4 py-6 space-y-2">
                 {(roleLabel
                   ? (() => {
-                      const allowed = links.filter(
-                        (l) => l.roles.includes(roleLabel as string) && (permissions[l.slug] ?? false)
+                      const allowed = links.filter((l) =>
+                        l.roles.includes(roleLabel as string) &&
+                        (roleLabel === 'student' || roleLabel === 'teacher' ? true : (permissions[l.slug] ?? false))
                       );
                       const top = allowed.filter((l) => l.pin === 'top'); // Dashboard fix oben
                       const bottom = allowed
