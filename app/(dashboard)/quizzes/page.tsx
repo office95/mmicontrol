@@ -57,9 +57,11 @@ export default async function QuizzesPage({ searchParams }: { searchParams?: Rec
   return (
     <main className="space-y-6">
       {showTabs && tabLinks.length > 0 && (
-        <div className="-mx-2 sm:mx-0">
-          <TopNav links={tabLinks} />
-        </div>
+        <nav className="sticky top-0 z-30 -mx-4 px-4 pt-1 pb-3 bg-slate-950/85 border-b border-white/10 backdrop-blur-lg shadow-lg">
+          <div className="max-w-6xl mx-auto">
+            <TopNav links={tabLinks} />
+          </div>
+        </nav>
       )}
       {error && <p className="text-sm text-red-300">{error.message}</p>}
       {includeDrafts && <p className="text-xs text-amber-200">Vorschau zeigt auch unveröffentlichte Quizze.</p>}
