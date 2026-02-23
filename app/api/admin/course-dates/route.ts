@@ -88,14 +88,15 @@ export async function PATCH(req: Request) {
   if (!id) return NextResponse.json({ error: 'id fehlt' }, { status: 400 });
 
   let priceFields: any = {};
-  let appliedTierId = price_tier_id;
+  // Nur dann auf Default zurückfallen, wenn price_tier_id gar nicht mitgesendet wurde
+  let appliedTierId = price_tier_id === undefined ? undefined : price_tier_id || null;
   if (course_id) {
     const { data: course } = await service
       .from('courses')
       .select('id, price_gross, vat_rate, price_net, deposit, saldo, duration_hours, default_price_tier_id')
       .eq('id', course_id)
       .maybeSingle();
-    if (!appliedTierId) appliedTierId = course?.default_price_tier_id ?? null;
+    if (appliedTierId === undefined) appliedTierId = course?.default_price_tier_id ?? null;
     if (appliedTierId) {
       const { data: tierPrice } = await service
         .from('course_price_tiers')
