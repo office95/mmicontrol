@@ -213,6 +213,60 @@ export default function CostsPage() {
     [items]
   );
 
+  // KPIs und Breakdowns
+  const metrics = useMemo(() => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = today.getMonth(); // 0-11
+    const lastMonthDate = new Date(year, month - 1, 1);
+    const lmYear = lastMonthDate.getFullYear();
+    const lmMonth = lastMonthDate.getMonth();
+
+    const inMonth = items.filter((r) => {
+      const d = r.cost_date ? new Date(r.cost_date) : null;
+      return d && d.getFullYear() === year && d.getMonth() === month;
+    });
+    const inLastMonth = items.filter((r) => {
+      const d = r.cost_date ? new Date(r.cost_date) : null;
+      return d && d.getFullYear() === lmYear && d.getMonth() === lmMonth;
+    });
+    const inYear = items.filter((r) => {
+      const d = r.cost_date ? new Date(r.cost_date) : null;
+      return d && d.getFullYear() === year;
+    });
+    const last30 = items.filter((r) => {
+      const d = r.cost_date ? new Date(r.cost_date) : null;
+      if (!d) return false;
+      const diff = (today.getTime() - d.getTime()) / (1000 * 60 * 60 * 24);
+      return diff <= 30;
+    });
+
+    const sum = (arr: CostRow[]) => arr.reduce((s, r) => s + Number(r.amount_gross || 0), 0);
+    const sumMonth = sum(inMonth);
+    const sumLastMonth = sum(inLastMonth);
+    const deltaMonth = sumLastMonth === 0 ? null : ((sumMonth - sumLastMonth) / sumLastMonth) * 100;
+    const avgPerDay30 = last30.length ? sum(last30) / 30 : 0;
+
+    // Top Kategorien und Partner (basierend auf aktuellem Item-Set / Filter)
+    const byCat = new Map<string, { name: string; sum: number }>();
+    items.forEach((r) => {
+      const key = r.cost_categories?.name || 'Ohne Kategorie';
+      byCat.set(key, { name: key, sum: (byCat.get(key)?.sum || 0) + Number(r.amount_gross || 0) });
+    });
+    const topCat = Array.from(byCat.values()).sort((a, b) => b.sum - a.sum).slice(0, 3);
+
+    const byPartner = new Map<string, { name: string; sum: number }>();
+    items.forEach((r) => {
+      if (!r.partner_id) return;
+      const key = r.partner_id;
+      const name = r.partners?.name || partners.find((p) => p.id === key)?.name || key;
+      byPartner.set(key, { name: name || key, sum: (byPartner.get(key)?.sum || 0) + Number(r.amount_gross || 0) });
+    });
+    const topPartner = Array.from(byPartner.values()).sort((a, b) => b.sum - a.sum).slice(0, 5);
+
+    return { sumMonth, sumLastMonth, deltaMonth, avgPerDay30, topCat, topPartner, yearSum: sum(inYear) };
+  }, [items, partners]);
+
   const showPartner = (() => {
     const selectedCat = categories.find((c) => c.id === categoryId);
     return (selectedCat?.name || '').toLowerCase() === 'honorarnote';
@@ -249,6 +303,53 @@ export default function CostsPage() {
         <div className="card p-4">
           <p className="text-xs uppercase tracking-[0.12em] text-slate-500">Einträge</p>
           <p className="text-2xl font-semibold text-ink">{items.length}</p>
+        </div>
+        <div className="card p-4">
+          <p className="text-xs uppercase tracking-[0.12em] text-slate-500">Kosten Monat</p>
+          <p className="text-2xl font-semibold text-ink">{(metrics?.sumMonth ?? 0).toFixed(2)} €</p>
+          {metrics?.deltaMonth !== null && (
+            <p className={`text-xs ${metrics.deltaMonth! >= 0 ? 'text-rose-600' : 'text-emerald-600'}`}>
+              vs. Vormonat {metrics.deltaMonth! >= 0 ? '+' : ''}{(metrics.deltaMonth || 0).toFixed(1)}%
+            </p>
+          )}
+        </div>
+        <div className="card p-4">
+          <p className="text-xs uppercase tracking-[0.12em] text-slate-500">Ø / Tag (30T)</p>
+          <p className="text-2xl font-semibold text-ink">{(metrics?.avgPerDay30 ?? 0).toFixed(2)} €</p>
+        </div>
+      </div>
+
+      {/* Breakdowns */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-xs uppercase tracking-[0.12em] text-slate-500">Top Kategorien (Filter)</p>
+            <span className="text-xs text-slate-500">Top 3</span>
+          </div>
+          <div className="space-y-2">
+            {(metrics?.topCat || []).map((c) => (
+              <div key={c.name} className="flex justify-between text-sm">
+                <span className="text-slate-700">{c.name}</span>
+                <span className="font-semibold text-ink">{c.sum.toFixed(2)} €</span>
+              </div>
+            ))}
+            {!metrics?.topCat?.length && <p className="text-sm text-slate-500">Keine Daten.</p>}
+          </div>
+        </div>
+        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-xs uppercase tracking-[0.12em] text-slate-500">Top Partner (Filter)</p>
+            <span className="text-xs text-slate-500">Top 5</span>
+          </div>
+          <div className="space-y-2">
+            {(metrics?.topPartner || []).map((p) => (
+              <div key={p.name} className="flex justify-between text-sm">
+                <span className="text-slate-700">{p.name}</span>
+                <span className="font-semibold text-ink">{p.sum.toFixed(2)} €</span>
+              </div>
+            ))}
+            {!metrics?.topPartner?.length && <p className="text-sm text-slate-500">Keine Daten.</p>}
+          </div>
         </div>
       </div>
 
