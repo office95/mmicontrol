@@ -68,18 +68,25 @@ export async function POST(req: Request, { params }: { params: { surveyId: strin
     .maybeSingle();
   if (!survey || survey.course_id !== booking.course_id) return NextResponse.json({ error: 'survey/course mismatch' }, { status: 400 });
 
-  // Create response (unique per booking)
+  // Create/Update response (unique per booking + survey)
   const { data: response, error: respErr } = await supabase
     .from('course_survey_responses')
-    .insert({ survey_id: survey.id, student_id: studentId, booking_id })
+    .upsert(
+      { survey_id: survey.id, student_id: studentId, booking_id, submitted_at: new Date().toISOString() },
+      { onConflict: 'survey_id,booking_id' }
+    )
     .select('id')
     .single();
   if (respErr) return NextResponse.json({ error: respErr.message }, { status: 400 });
+
+  // Alte Antworten überschreiben
+  await supabase.from('course_survey_answers').delete().eq('response_id', response.id);
 
   const payload = (answers || []).map((a: any) => ({
     response_id: response.id,
     question_id: a.question_id,
     value: a.value ?? '',
+    extra_text: a.extra_text ?? null,
   }));
   if (payload.length) {
     const { error: ansErr } = await supabase.from('course_survey_answers').insert(payload);
