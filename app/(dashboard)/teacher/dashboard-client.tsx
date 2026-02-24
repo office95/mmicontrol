@@ -118,14 +118,21 @@ export default function DashboardClient({
     {
       id: 'attendance',
       title: 'Teilnehmer & Anwesenheit',
-      desc: 'Im Kurs-Tab klickst du auf „Teilnehmer“ oder „Anwesenheitsliste“, um Check-ins zu verwalten.',
+      desc: 'Im Kurs-Tab zeigt „Teilnehmer“ alle angemeldeten Personen mit Name, Telefon & E-Mail. Über „Anwesenheitsliste“ (öffnet ein Popup) trägst du pro Kurstag die Anwesenheit ein.',
       location: 'Kurskarte · Buttons Teilnehmer / Anwesenheitsliste',
       tab: 'courses',
     },
     {
+      id: 'materials',
+      title: 'Kursunterlagen',
+      desc: 'Im Tab „Kursunterlagen“ findest du immer die aktuellen Materialien zu deinen Kursen, sortiert nach Kurs.',
+      location: 'Navigation · Kursunterlagen',
+      tab: 'materials',
+    },
+    {
       id: 'surveys',
       title: 'Fragebogen-Antworten',
-      desc: 'Auf der Kurskarte den Button „Fragebogen-Antworten“ öffnen – dort siehst du alle Antworten.',
+      desc: 'Auf der Kurskarte „Fragebogen-Antworten“ öffnen: Hier siehst du die Antworten, die Teilnehmer vor Kursbeginn ausfüllen, damit du dich perfekt vorbereiten kannst.',
       location: 'Kurskarte · Button Fragebogen-Antworten',
       tab: 'courses',
     },
@@ -139,8 +146,22 @@ export default function DashboardClient({
     {
       id: 'support',
       title: 'Support & Hilfe',
-      desc: 'Oben rechts in der Navigation auf „Support“ klicken, um Tickets zu schreiben oder Antworten zu lesen.',
+      desc: 'Probleme, Wünsche, Anregungen? Über „Support“ schickst du uns eine Nachricht – wir antworten rasch auf dein Anliegen.',
       location: 'Navigation · Support',
+    },
+    {
+      id: 'feedback',
+      title: 'Kurs-Feedback',
+      desc: 'Im Tab „Kurs-Feedback“ siehst du offene Feedbacks und die Rückmeldungen deiner Teilnehmer – hier erkennst du, was noch ausständig ist.',
+      location: 'Navigation · Kurs-Feedback',
+      tab: 'feedback',
+    },
+    {
+      id: 'benefits',
+      title: 'Benefits',
+      desc: 'Im Tab „Benefits“ zeigen wir Partner mit Specials für MMI Members Card Besitzer – alle Aktionen auf einen Blick.',
+      location: 'Navigation · Benefits',
+      tab: 'benefits',
     },
   ];
   useEffect(() => {
