@@ -92,12 +92,10 @@ export async function POST(req: Request) {
   if (qErr) return NextResponse.json({ error: qErr.message }, { status: 400 });
 
   if (Array.isArray(questions) && questions.length) {
-    // delete existing questions for quiz to keep it simple
-    await supa.from('quiz_questions').delete().eq('quiz_id', quizRow.id);
     const qPayload = questions.map((q: any, idx: number) => {
       const base: any = {
         quiz_id: quizRow.id,
-        module_id: null, // keine echten Module verlinken
+        module_id: null,
         module_number: q.module_number ?? null,
         difficulty: q.difficulty ?? 'medium',
         qtype: q.qtype ?? 'single',
@@ -106,15 +104,40 @@ export async function POST(req: Request) {
         explanation: q.explanation ?? null,
         order_index: q.order_index ?? idx,
       };
-      if (q.id) base.id = q.id; // nur setzen, wenn vorhanden, sonst Default greift
+      if (q.id) base.id = q.id;
       return base;
     });
-    const { data: insertedQs, error: insQErr } = await supa.from('quiz_questions').insert(qPayload).select();
+
+    // upsert Fragen
+    const { data: upsertedQs, error: insQErr } = await supa
+      .from('quiz_questions')
+      .upsert(qPayload, { onConflict: 'id' })
+      .select();
     if (insQErr) return NextResponse.json({ error: insQErr.message }, { status: 400 });
 
+    const newQuestionIds = (upsertedQs || []).map((r) => r.id);
+
+    // alte Fragen entfernen, die nicht mehr existieren
+    if (newQuestionIds.length) {
+      await supa
+        .from('quiz_questions')
+        .delete()
+        .eq('quiz_id', quizRow.id)
+        .not('id', 'in', `(${newQuestionIds.join(',')})`);
+    }
+
+    // Optionen neu aufbauen: erst alte Optionen der betroffenen Fragen löschen
+    if (newQuestionIds.length) {
+      await supa.from('quiz_answer_options').delete().in('question_id', newQuestionIds);
+    }
+
+    // Mapping: sortiere nach order_index, damit Optionen den richtigen Fragen zugeordnet werden
+    const sortedQs = [...(upsertedQs || [])].sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0));
+    const sortedInputQs = [...questions].sort((a: any, b: any) => (a.order_index ?? 0) - (b.order_index ?? 0));
+
     const optPayload: any[] = [];
-    insertedQs.forEach((row, i) => {
-      const opts = questions[i]?.options || [];
+    sortedQs.forEach((row, i) => {
+      const opts = sortedInputQs[i]?.options || [];
       opts.forEach((o: any, j: number) => {
         optPayload.push({
           question_id: row.id,
