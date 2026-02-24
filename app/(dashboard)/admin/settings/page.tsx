@@ -23,8 +23,53 @@ type Company = {
   logo_path?: string | null;
 };
 
+const automations: {
+  id: string;
+  title: string;
+  when: string;
+  action: string;
+  data: string;
+  status: 'aktiv' | 'geplant';
+  notes?: string;
+}[] = [
+  {
+    id: 'survey-reminder',
+    title: 'Fragebogen-Erinnerung',
+    when: 'X Tage vor Kursstart (Einstellung am Survey: „Öffnen ab … Tage“)',
+    action: 'E-Mail an Teilnehmer + Banner im Student-Dashboard',
+    data: 'Buchung, Kursstart, offener Kursfragebogen, booking_id',
+    status: 'aktiv',
+    notes: 'Nur einmal pro Booking/Survey (Tabelle course_survey_reminders).',
+  },
+  {
+    id: 'survey-submitted-mail',
+    title: 'Benachrichtigung bei eingereichtem Fragebogen',
+    when: 'Sofort nach Absenden eines Kursfragebogens',
+    action: 'E-Mail an zuständige Dozenten des Kurses',
+    data: 'course_members.role=teacher, course_id, survey_id, booking_id',
+    status: 'aktiv',
+  },
+  {
+    id: 'quiz-save-idempotent',
+    title: 'Quiz-Verwaltung (Admin)',
+    when: 'Beim Speichern eines Quizzes im Admin-Dashboard',
+    action: 'Fragen/Antworten werden per Upsert gespeichert, alte Fragen entfernt, die nicht mehr gesendet wurden',
+    data: 'quizzes, quiz_questions, quiz_answer_options',
+    status: 'aktiv',
+    notes: 'Keine komplette Löschung mehr – verhindert leere Tabellen.',
+  },
+  {
+    id: 'survey-open-banner',
+    title: 'Banner offener Fragebogen (Student)',
+    when: 'Wenn Survey offen ist und noch keine Response zur Booking-ID existiert',
+    action: 'Banner mit Button zum Fragebogen im Student-Dashboard',
+    data: 'course_surveys, course_survey_responses, bookings',
+    status: 'aktiv',
+  },
+];
+
 export default function SettingsPage() {
-  const [tab, setTab] = useState<'company' | 'bank' | 'tax' | 'legal' | 'media'>('company');
+  const [tab, setTab] = useState<'company' | 'bank' | 'tax' | 'legal' | 'media' | 'automations'>('company');
   const [contacts, setContacts] = useState<Contact[]>([{ name: '', role: '', phone: '', email: '' }]);
   const [taxContacts, setTaxContacts] = useState<Contact[]>([{ name: '', role: '', phone: '', email: '' }]);
   const [opening, setOpening] = useState(defaultOpening);
@@ -140,6 +185,7 @@ export default function SettingsPage() {
         <TabButton label="Steuerberater" active={tab === 'tax'} onClick={() => setTab('tax')} />
         <TabButton label="Recht" active={tab === 'legal'} onClick={() => setTab('legal')} />
         <TabButton label="Medien" active={tab === 'media'} onClick={() => setTab('media')} />
+        <TabButton label="Automationen" active={tab === 'automations'} onClick={() => setTab('automations')} />
       </div>
 
       <div className="flex items-center gap-3">
@@ -345,6 +391,45 @@ export default function SettingsPage() {
             <input type="file" accept="application/pdf,image/png,image/jpeg" className="input" multiple />
             <p className="text-xs text-slate-500 mt-1">PDF, JPG, PNG hochladen und verwalten (Speicherung folgt).</p>
           </Section>
+        </div>
+      )}
+
+      {tab === 'automations' && (
+        <div className="card p-6 shadow-xl text-slate-900 space-y-6">
+          <Section title="Automationen & Benachrichtigungen">
+            <p className="text-sm text-slate-700">
+              Übersicht aller automatischen Abläufe. Bitte ergänzen, sobald neue Automationen hinzukommen.
+            </p>
+          </Section>
+
+          <div className="grid gap-4">
+            {automations.map((a) => (
+              <div key={a.id} className="rounded-lg border border-slate-200 bg-white/90 p-4 shadow-sm">
+                <div className="flex flex-wrap items-center gap-3 justify-between">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.14em] text-slate-500">Automation</p>
+                    <h3 className="text-lg font-semibold text-ink">{a.title}</h3>
+                  </div>
+                  <span
+                    className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold border"
+                    style={{
+                      color: a.status === 'aktiv' ? '#047857' : '#92400e',
+                      borderColor: a.status === 'aktiv' ? '#04785733' : '#92400e33',
+                      backgroundColor: a.status === 'aktiv' ? '#ecfdf3' : '#fff7ed',
+                    }}
+                  >
+                    {a.status === 'aktiv' ? 'Aktiv' : 'Geplant'}
+                  </span>
+                </div>
+                <div className="mt-3 space-y-2 text-sm text-slate-700">
+                  <p><strong>Wann:</strong> {a.when}</p>
+                  <p><strong>Was passiert:</strong> {a.action}</p>
+                  <p><strong>Welche Daten:</strong> {a.data}</p>
+                  {a.notes && <p className="text-slate-500"><strong>Hinweis:</strong> {a.notes}</p>}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>
