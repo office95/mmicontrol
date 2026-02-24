@@ -227,14 +227,15 @@ export default function StudentDashboardClient({
             {bookings.length > 1 ? 'Deine aktuellen Buchungen' : 'Deine aktuelle Buchung'}
           </div>
           <BookingsClient bookings={bookings} />
-          {(surveysOpen || []).length > 0 && (
-            <div className="relative overflow-hidden rounded-2xl border border-white/12 bg-gradient-to-r from-sky-900/70 via-indigo-900/60 to-fuchsia-900/70 p-5 sm:p-6 text-white shadow-2xl">
-              <div className="absolute -right-10 -top-16 h-40 w-40 rounded-full bg-fuchsia-500/25 blur-3xl" />
-              <div className="absolute -left-16 -bottom-16 h-48 w-48 rounded-full bg-sky-500/20 blur-3xl" />
-              <div className="shine" aria-hidden />
-              <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                <div className="space-y-2 max-w-xl">
-                  <p className="text-[11px] uppercase tracking-[0.22em] text-white/70">Kursfragebogen offen</p>
+      {(surveysOpen || []).length > 0 && (
+        <div className="relative overflow-hidden rounded-2xl border border-white/12 bg-gradient-to-r from-sky-900/70 via-indigo-900/60 to-fuchsia-900/70 p-5 sm:p-6 text-white shadow-2xl spotlight">
+          <div className="absolute -right-10 -top-16 h-40 w-40 rounded-full bg-fuchsia-500/25 blur-3xl" />
+          <div className="absolute -left-16 -bottom-16 h-48 w-48 rounded-full bg-sky-500/20 blur-3xl" />
+          <div className="shine" aria-hidden />
+          <span className="badge" aria-hidden>Neu</span>
+          <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <div className="space-y-2 max-w-xl">
+              <p className="text-[11px] uppercase tracking-[0.22em] text-white/70">Kursfragebogen offen</p>
                   <h3 className="text-2xl font-bold">Bitte vor Kursstart ausfüllen</h3>
                   <p className="text-sm text-white/80">Deine Antworten helfen uns, den Kurs perfekt vorzubereiten.</p>
                 </div>
@@ -277,6 +278,35 @@ export default function StudentDashboardClient({
           15% { opacity: 1; }
           50% { left: 120%; opacity: 1; }
           100% { left: 120%; opacity: 0; }
+        }
+        .spotlight {
+          animation: pulse-border 2.6s ease-in-out infinite;
+        }
+        .spotlight:hover { animation-play-state: paused; }
+        @keyframes pulse-border {
+          0% { box-shadow: 0 0 0px rgba(255,255,255,0.0); }
+          50% { box-shadow: 0 0 35px rgba(255,255,255,0.28); }
+          100% { box-shadow: 0 0 0px rgba(255,255,255,0.0); }
+        }
+        .badge {
+          position: absolute;
+          top: 10px;
+          right: 10px;
+          padding: 4px 10px;
+          border-radius: 9999px;
+          background: linear-gradient(120deg, #ff8ad4, #7ddaff);
+          color: #0b0b12;
+          font-size: 11px;
+          font-weight: 800;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          animation: badge-pulse 2.4s ease-in-out infinite;
+        }
+        .badge:hover { animation-play-state: paused; }
+        @keyframes badge-pulse {
+          0% { opacity: 0.7; transform: scale(0.98); }
+          50% { opacity: 1; transform: scale(1.04); }
+          100% { opacity: 0.7; transform: scale(0.98); }
         }
       `}</style>
 
