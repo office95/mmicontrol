@@ -306,50 +306,50 @@ export default function DashboardClient({
             <button
               className={`px-3 py-2 rounded-full border transition ${tab === 'perf' ? 'border-pink-400 bg-pink-500/15 text-white shadow-pink-500/20 shadow-sm' : 'border-white/15 bg-white/5 hover:border-pink-300 hover:text-white'}`}
               onClick={() => setTab('perf')}
-          >
-            Performance-Übersicht
-          </button>
-          <button
-            className={`px-3 py-2 rounded-full border transition ${tab === 'courses' ? 'border-pink-400 bg-pink-500/15 text-white shadow-pink-500/20 shadow-sm' : 'border-white/15 bg-white/5 hover:border-pink-300 hover:text-white'}`}
-            onClick={() => setTab('courses')}
-          >
-            Meine Kurse & Teilnehmer
-          </button>
-          <button
-            className={`px-3 py-2 rounded-full border transition ${tab === 'materials' ? 'border-pink-400 bg-pink-500/15 text-white shadow-pink-500/20 shadow-sm' : 'border-white/15 bg-white/5 hover:border-pink-300 hover:text-white'}`}
-            onClick={() => setTab('materials')}
-          >
-            Kursunterlagen
-          </button>
-          <button
-            className={`px-3 py-2 rounded-full border transition ${tab === 'feedback' ? 'border-pink-400 bg-pink-500/15 text-white shadow-pink-500/20 shadow-sm' : 'border-white/15 bg-white/5 hover:border-pink-300 hover:text-white'}`}
-            onClick={() => setTab('feedback')}
-          >
-            Kurs-Feedback
-          </button>
-          <button
-            className={`px-3 py-2 rounded-full border transition ${tab === 'benefits' ? 'border-pink-400 bg-pink-500/15 text-white shadow-pink-500/20 shadow-sm' : 'border-white/15 bg-white/5 hover:border-pink-300 hover:text-white'}`}
-            onClick={() => setTab('benefits')}
-          >
-            Benefits
-          </button>
-          <a
-            href="/teacher/support"
-            className="relative px-3 py-2 rounded-full border border-white/15 bg-white/5 hover:border-pink-300 hover:text-white flex items-center gap-2 transition"
-          >
-            Support
-            {unread > 0 && (
-              <span className="inline-flex h-5 px-2 items-center justify-center rounded-full bg-rose-500 text-white text-xs font-bold">
-                {unread}
-              </span>
-            )}
-          </a>
-          <button
-            className="ml-auto px-3 py-2 rounded-full border border-pink-300/60 text-pink-50 hover:bg-pink-500/15 transition"
-            onClick={startTour}
-          >
-            ? Hilfe / Tour
-          </button>
+            >
+              Performance-Übersicht
+            </button>
+            <button
+              className={`px-3 py-2 rounded-full border transition ${tab === 'courses' ? 'border-pink-400 bg-pink-500/15 text-white shadow-pink-500/20 shadow-sm' : 'border-white/15 bg-white/5 hover:border-pink-300 hover:text-white'}`}
+              onClick={() => setTab('courses')}
+            >
+              Meine Kurse & Teilnehmer
+            </button>
+            <button
+              className={`px-3 py-2 rounded-full border transition ${tab === 'materials' ? 'border-pink-400 bg-pink-500/15 text-white shadow-pink-500/20 shadow-sm' : 'border-white/15 bg-white/5 hover:border-pink-300 hover:text-white'}`}
+              onClick={() => setTab('materials')}
+            >
+              Kursunterlagen
+            </button>
+            <button
+              className={`px-3 py-2 rounded-full border transition ${tab === 'feedback' ? 'border-pink-400 bg-pink-500/15 text-white shadow-pink-500/20 shadow-sm' : 'border-white/15 bg-white/5 hover:border-pink-300 hover:text-white'}`}
+              onClick={() => setTab('feedback')}
+            >
+              Kurs-Feedback
+            </button>
+            <button
+              className={`px-3 py-2 rounded-full border transition ${tab === 'benefits' ? 'border-pink-400 bg-pink-500/15 text-white shadow-pink-500/20 shadow-sm' : 'border-white/15 bg-white/5 hover:border-pink-300 hover:text-white'}`}
+              onClick={() => setTab('benefits')}
+            >
+              Benefits
+            </button>
+            <a
+              href="/teacher/support"
+              className="relative px-3 py-2 rounded-full border border-white/15 bg-white/5 hover:border-pink-300 hover:text-white flex items-center gap-2 transition"
+            >
+              Support
+              {unread > 0 && (
+                <span className="inline-flex h-5 px-2 items-center justify-center rounded-full bg-rose-500 text-white text-xs font-bold">
+                  {unread}
+                </span>
+              )}
+            </a>
+            <button
+              className="ml-auto px-3 py-2 rounded-full border border-pink-300/60 text-pink-50 hover:bg-pink-500/15 transition"
+              onClick={startTour}
+            >
+              ? Hilfe / Tour
+            </button>
           </div>
         </nav>
 
