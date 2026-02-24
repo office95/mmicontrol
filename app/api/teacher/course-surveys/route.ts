@@ -75,7 +75,14 @@ export async function GET(req: Request) {
     .order('submitted_at', { ascending: false });
 
   const surveysMap = new Map<string, { id: string; course_id: string; title: string; created_at: string | null }>();
-  const responsesMap = new Map<string, { id: string; survey_id: string; booking_id: string | null; student_id: string | null; submitted_at: string | null; answers: any[] }>();
+  const responsesMap = new Map<string, {
+    id: string;
+    survey_id: string;
+    booking_id: string | null;
+    student_id: string | null;
+    submitted_at: string | null;
+    answers: { question_id: string; value: any; extra_text: any }[];
+  }>();
 
   (viewRows || []).forEach((r) => {
     if (!surveysMap.has(r.survey_id)) {

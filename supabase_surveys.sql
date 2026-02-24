@@ -45,6 +45,10 @@ create table if not exists public.course_survey_answers (
   created_at timestamptz default now()
 );
 
+-- falls extra_text in bestehenden DBs noch fehlt, ergänzen
+alter table if exists public.course_survey_answers
+  add column if not exists extra_text text;
+
 -- Erinnerungen (damit E-Mails nur einmal pro Buchung/Survey rausgehen)
 create table if not exists public.course_survey_reminders (
   survey_id uuid not null references public.course_surveys(id) on delete cascade,
