@@ -332,13 +332,12 @@ export default async function TeacherPage() {
       .in('course_id', courseIdsAll)
       .order('created_at', { ascending: false });
 
-    const surveyByCourse = new Map<string, string>();
+    const surveysByCourse = new Map<string, { id: string; created_at: string | null }[]>();
     (courseSurveys || []).forEach((s) => {
       if (!s.course_id) return;
-      // neueste Survey pro Kurs bevorzugen
-      if (!surveyByCourse.has(s.course_id)) {
-        surveyByCourse.set(s.course_id, s.id);
-      }
+      const list = surveysByCourse.get(s.course_id) || [];
+      list.push({ id: s.id, created_at: s.created_at ?? null });
+      surveysByCourse.set(s.course_id, list);
     });
 
     const surveyIds = (courseSurveys || []).map((s) => s.id);
@@ -348,15 +347,29 @@ export default async function TeacherPage() {
           .select('survey_id')
           .in('survey_id', surveyIds)
       : { data: [] };
-    const responseCount = new Map<string, number>();
-    (responses || []).forEach((r) => responseCount.set(r.survey_id, (responseCount.get(r.survey_id) || 0) + 1));
+    const responsesPerSurvey = new Map<string, number>();
+    (responses || []).forEach((r) => responsesPerSurvey.set(r.survey_id, (responsesPerSurvey.get(r.survey_id) || 0) + 1));
 
     courses = courses.map((c) => {
-      const sid = surveyByCourse.get(c.id) || null;
+      const list = surveysByCourse.get(c.id) || [];
+      let chosenSurvey: string | null = null;
+      // 1) Survey mit Antworten bevorzugen (ältester oder beliebiger mit Antworten)
+      for (const s of list) {
+        if ((responsesPerSurvey.get(s.id) || 0) > 0) {
+          chosenSurvey = s.id;
+          break;
+        }
+      }
+      // 2) Fallback: neueste Survey
+      if (!chosenSurvey && list.length) {
+        chosenSurvey = list[0].id;
+      }
+
+      const totalResponses = list.reduce((acc, s) => acc + (responsesPerSurvey.get(s.id) || 0), 0);
       return {
         ...c,
-        survey_id: sid,
-        survey_responses_count: sid ? responseCount.get(sid) || 0 : 0,
+        survey_id: chosenSurvey,
+        survey_responses_count: totalResponses,
       };
     });
   }

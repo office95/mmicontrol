@@ -51,14 +51,26 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: 'forbidden' }, { status: 403 });
   }
 
-  const { data: survey } = await service
+  const { data: surveys } = await service
     .from('course_surveys')
     .select('id, title, created_at')
     .eq('course_id', courseId)
-    .order('created_at', { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  if (!survey) return NextResponse.json({ responses: [] });
+    .order('created_at', { ascending: false });
+
+  if (!surveys?.length) return NextResponse.json({ responses: [] });
+
+  const surveyIds = surveys.map((s) => s.id);
+
+  // Alle Responses laden, damit auch ältere Surveys angezeigt werden können
+  const { data: responsesAll } = await service
+    .from('course_survey_responses')
+    .select('id, survey_id, booking_id, student_id, submitted_at, course_survey_answers(question_id, value, extra_text)')
+    .in('survey_id', surveyIds)
+    .order('submitted_at', { ascending: false });
+
+  // Welche Survey zeigen? Priorität: die erste Survey mit Antworten, sonst die neueste
+  const surveyWithAnswers = surveys.find((s) => (responsesAll || []).some((r) => r.survey_id === s.id));
+  const survey = surveyWithAnswers ?? surveys[0];
 
   const { data: questions } = await service
     .from('course_survey_questions')
@@ -68,11 +80,8 @@ export async function GET(req: Request) {
   const qMap = new Map<string, any>();
   (questions || []).forEach((q) => qMap.set(q.id, q));
 
-  const { data: responses } = await service
-    .from('course_survey_responses')
-    .select('id, survey_id, booking_id, student_id, submitted_at, course_survey_answers(question_id, value, extra_text)')
-    .eq('survey_id', survey.id)
-    .order('submitted_at', { ascending: false });
+  // Responses auf ausgewählte Survey filtern
+  const responses = (responsesAll || []).filter((r) => r.survey_id === survey.id);
 
   // Teilnehmerdaten anreichern
   const studentIds = Array.from(new Set((responses || []).map((r) => r.student_id).filter(Boolean))) as string[];
