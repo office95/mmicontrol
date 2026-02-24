@@ -115,35 +115,31 @@ export async function POST(req: Request) {
       .select();
     if (insQErr) return NextResponse.json({ error: insQErr.message }, { status: 400 });
 
-    // IDs zuverlässig mappen: frisch gespeicherte Fragen neu laden, nach order_index sortieren
-    const { data: savedQuestions, error: refetchErr } = await supa
-      .from('quiz_questions')
-      .select('id, order_index')
-      .eq('quiz_id', quizRow.id)
-      .order('order_index', { ascending: true });
-    if (refetchErr) return NextResponse.json({ error: refetchErr.message }, { status: 400 });
-
-    // Mapping von order_index -> question_id zur sicheren Zuordnung
-    const savedByOrder = new Map<number, string>();
-    (savedQuestions || []).forEach((q) => savedByOrder.set(q.order_index ?? 0, q.id));
+    // Mapping per Position und per Schlüssel (order_index + prompt), um neue Fragen sicher zu treffen
+    const keyed = new Map<string, string>();
+    (upsertedQs || []).forEach((r, i) => {
+      const orderKey = (r.order_index ?? i).toString();
+      keyed.set(`${orderKey}::${(questions[i]?.prompt || '').trim()}`, r.id);
+      keyed.set(`${orderKey}`, r.id);
+    });
 
     const sortedInputQs = [...(questions || [])].sort((a: any, b: any) => (a.order_index ?? 0) - (b.order_index ?? 0));
-
-    // Ziel-IDs in gleicher Länge wie Eingabe, mit Fallback auf Positionszuordnung
-    const questionIdsInOrder = (savedQuestions || []).map((q) => q.id);
     const targetIds = sortedInputQs.map((q: any, i: number) => {
-      const key = q.order_index ?? i;
-      return savedByOrder.get(key) ?? questionIdsInOrder[i];
+      const orderKey = (q.order_index ?? i).toString();
+      const promptKey = `${orderKey}::${(q.prompt || '').trim()}`;
+      return keyed.get(promptKey) || keyed.get(orderKey) || (upsertedQs?.[i]?.id ?? null);
     });
 
     // Optionen neu aufbauen: nur für die Fragen, die wir tatsächlich erhalten haben
-    if (targetIds.length) {
-      await supa.from('quiz_answer_options').delete().in('question_id', targetIds);
+    const validTargetIds = targetIds.filter(Boolean) as string[];
+    if (validTargetIds.length) {
+      await supa.from('quiz_answer_options').delete().in('question_id', validTargetIds);
     }
 
     const optPayload: any[] = [];
     sortedInputQs.forEach((q: any, i: number) => {
       const targetId = targetIds[i];
+      if (!targetId) return;
       const opts = q.options || [];
       opts.forEach((o: any, j: number) => {
         optPayload.push({
