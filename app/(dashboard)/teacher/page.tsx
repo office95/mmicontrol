@@ -323,6 +323,37 @@ export default async function TeacherPage() {
 
   const cDate = (d: string | null) => (d ? new Date(d) : null);
 
+  // Kurs-Fragebögen und Antwort-Zahlen anreichern
+  if (courses && courses.length) {
+    const courseIdsAll = courses.map((c) => c.id);
+    const { data: courseSurveys } = await service
+      .from('course_surveys')
+      .select('id, course_id')
+      .in('course_id', courseIdsAll);
+
+    const surveyByCourse = new Map<string, string>();
+    (courseSurveys || []).forEach((s) => s.course_id && surveyByCourse.set(s.course_id, s.id));
+
+    const surveyIds = (courseSurveys || []).map((s) => s.id);
+    const { data: responses } = surveyIds.length
+      ? await service
+          .from('course_survey_responses')
+          .select('survey_id')
+          .in('survey_id', surveyIds)
+      : { data: [] };
+    const responseCount = new Map<string, number>();
+    (responses || []).forEach((r) => responseCount.set(r.survey_id, (responseCount.get(r.survey_id) || 0) + 1));
+
+    courses = courses.map((c) => {
+      const sid = surveyByCourse.get(c.id) || null;
+      return {
+        ...c,
+        survey_id: sid,
+        survey_responses_count: sid ? responseCount.get(sid) || 0 : 0,
+      };
+    });
+  }
+
   // Nächster Kurs für Countdown
   const nowTs = Date.now();
   const datedCourses = (courses || []).filter((c) => c.start_date);
