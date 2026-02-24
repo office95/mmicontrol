@@ -117,21 +117,18 @@ export async function POST(req: Request) {
 
     const newQuestionIds = (upsertedQs || []).map((r) => r.id);
 
-    // Optionen neu aufbauen: erst alte Optionen der betroffenen Fragen löschen
+    // Optionen neu aufbauen: nur für die übergebenen Fragen, aber ohne andere Fragen zu löschen
     if (newQuestionIds.length) {
       await supa.from('quiz_answer_options').delete().in('question_id', newQuestionIds);
     }
 
-    // Mapping: sortiere nach order_index, damit Optionen den richtigen Fragen zugeordnet werden
-    const sortedQs = [...(upsertedQs || [])].sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0));
-    const sortedInputQs = [...questions].sort((a: any, b: any) => (a.order_index ?? 0) - (b.order_index ?? 0));
-
     const optPayload: any[] = [];
-    sortedQs.forEach((row, i) => {
-      const opts = sortedInputQs[i]?.options || [];
+    (questions || []).forEach((q: any, i: number) => {
+      const targetId = newQuestionIds[i]; // Reihenfolge wie upsertedQs bei identischer Sortierung
+      const opts = q.options || [];
       opts.forEach((o: any, j: number) => {
         optPayload.push({
-          question_id: row.id,
+          question_id: targetId,
           label: o.label,
           is_correct: !!o.is_correct,
           order_index: o.order_index ?? j,
