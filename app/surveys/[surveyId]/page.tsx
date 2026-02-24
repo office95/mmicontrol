@@ -1,6 +1,7 @@
 import { createSupabaseServerClient } from '@/lib/supabase-server';
 import SurveyForm from './survey-form';
 import { redirect } from 'next/navigation';
+import { cookies } from 'next/headers';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,8 +23,9 @@ export default async function SurveyPage({ params, searchParams }: { params: { s
     if (surveyErr || qErr || !survey) return <div className="text-white p-6">Vorschau nicht möglich.</div>;
     data = { survey, questions, booking: { course_title: survey.course_id } };
   } else {
+    const cookieHeader = cookies().toString();
     const res = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || ''}/api/student/surveys/${params.surveyId}?booking_id=${bookingId}`, {
-      headers: { cookie: '' }, // handled server-side in route
+      headers: { cookie: cookieHeader },
       cache: 'no-store',
     }).catch(() => null);
     if (!res || !res.ok) return <div className="text-white p-6">Nicht gefunden oder keine Berechtigung.</div>;
