@@ -174,33 +174,6 @@ export default function StudentDashboardClient({
   return (
     <div className="min-h-screen flex flex-col space-y-10">
       <div className="flex-1 space-y-10">
-      {(surveysOpen || []).length > 0 && (
-        <div className="rounded-2xl border border-amber-200/50 bg-gradient-to-r from-amber-900/60 via-amber-800/50 to-amber-900/60 p-4 sm:p-5 text-amber-50 shadow-xl ring-1 ring-amber-300/30">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div>
-              <p className="text-[11px] uppercase tracking-[0.22em] text-amber-200">Kursfragebogen offen</p>
-              <h3 className="text-xl font-semibold">Bitte vor Kursstart ausfüllen</h3>
-              <p className="text-sm text-amber-100/80">Hilft uns, den Kurs optimal vorzubereiten.</p>
-            </div>
-          </div>
-          <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-            {(surveysOpen || []).map((s) => (
-              <a
-                key={`${s.survey_id}_${s.booking_id}`}
-                href={`/surveys/${s.survey_id}?booking_id=${s.booking_id}`}
-                className="flex items-center justify-between rounded-lg border border-amber-200/60 bg-amber-800/40 px-3 py-2 text-sm text-amber-50 hover:bg-amber-700/40 transition"
-              >
-                <div>
-                  <div className="font-semibold line-clamp-1">{s.title}</div>
-                  <div className="text-amber-100/80 text-xs line-clamp-1">{s.course_title || s.course_id}</div>
-                </div>
-                <span className="text-[11px] uppercase tracking-[0.14em] text-amber-200">Start</span>
-              </a>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* Tabs innerhalb des Student-Dashboards */}
       <nav className="sticky top-0 z-30 -mx-4 px-4 pt-3 pb-4 bg-slate-950/85 border-b border-white/10 backdrop-blur-lg shadow-lg">
         <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-sm font-semibold text-white/85">
@@ -247,6 +220,35 @@ export default function StudentDashboardClient({
           })}
         </div>
       </nav>
+
+      {(surveysOpen || []).length > 0 && (
+        <div className="relative overflow-hidden rounded-2xl border border-white/12 bg-gradient-to-r from-sky-900/70 via-indigo-900/60 to-fuchsia-900/70 p-5 sm:p-6 text-white shadow-2xl">
+          <div className="absolute -right-10 -top-16 h-40 w-40 rounded-full bg-fuchsia-500/25 blur-3xl" />
+          <div className="absolute -left-16 -bottom-16 h-48 w-48 rounded-full bg-sky-500/20 blur-3xl" />
+          <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <div className="space-y-2 max-w-xl">
+              <p className="text-[11px] uppercase tracking-[0.22em] text-white/70">Kursfragebogen offen</p>
+              <h3 className="text-2xl font-bold">Bitte vor Kursstart ausfüllen</h3>
+              <p className="text-sm text-white/80">Deine Antworten helfen uns, den Kurs perfekt vorzubereiten.</p>
+            </div>
+            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 w-full lg:w-auto">
+              {(surveysOpen || []).map((s) => (
+                <a
+                  key={`${s.survey_id}_${s.booking_id}`}
+                  href={`/surveys/${s.survey_id}?booking_id=${s.booking_id}`}
+                  className="group rounded-xl border border-white/15 bg-white/5 px-3 py-3 text-sm backdrop-blur hover:border-pink-300/60 hover:bg-white/10 transition"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="font-semibold line-clamp-1 group-hover:text-pink-200">{s.title}</div>
+                    <span className="text-[11px] uppercase tracking-[0.14em] text-pink-200">Start</span>
+                  </div>
+                  <div className="text-white/75 text-xs line-clamp-1">{s.course_title || s.course_id}</div>
+                </a>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {tab === 'bookings' && <BookingsClient bookings={bookings} />}
 
