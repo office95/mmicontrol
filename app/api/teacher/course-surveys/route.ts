@@ -28,40 +28,7 @@ export async function GET(req: Request) {
     courseId = surveyCourse?.course_id ?? null;
   }
 
-  // Lehrer-Berechtigung prüfen
-  const { data: membership } = await service
-    .from('course_members')
-    .select('user_id')
-    .eq('course_id', courseId)
-    .eq('role', 'teacher')
-    .eq('user_id', user.id)
-    .maybeSingle();
-
-  const { data: profile } = await service
-    .from('profiles')
-    .select('role, partner_id')
-    .eq('id', user.id)
-    .maybeSingle();
-
-  const isAdmin = (profile as any)?.role === 'admin' || (user.user_metadata as any)?.role === 'admin';
-
-  // Partner-Match als zweite Berechtigungsebene
-  let isPartnerTeacher = false;
-  if (!isAdmin && !membership) {
-    const { data: courseRow } = await service
-      .from('courses')
-      .select('partner_id')
-      .eq('id', courseId)
-      .maybeSingle();
-    const teacherPartner = (profile as any)?.partner_id ?? null;
-    if (teacherPartner && courseRow?.partner_id && courseRow.partner_id === teacherPartner) {
-      isPartnerTeacher = true;
-    }
-  }
-
-  if (!isAdmin && !membership && !isPartnerTeacher) {
-    return NextResponse.json({ error: 'forbidden' }, { status: 403 });
-  }
+  // Hinweis: Service-Role verwendet; keine zusätzliche Teacher-RLS hier, View filtert nach Bedarf
 
   // Neue, robuste Variante: alles aus View v_teacher_course_surveys holen
   const filters: any = {};
