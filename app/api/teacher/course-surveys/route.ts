@@ -24,9 +24,32 @@ export async function GET(req: Request) {
     .eq('role', 'teacher')
     .eq('user_id', user.id)
     .maybeSingle();
-  const { data: profile } = await service.from('profiles').select('role').eq('id', user.id).maybeSingle();
+
+  const { data: profile } = await service
+    .from('profiles')
+    .select('role, partner_id')
+    .eq('id', user.id)
+    .maybeSingle();
+
   const isAdmin = (profile as any)?.role === 'admin' || (user.user_metadata as any)?.role === 'admin';
-  if (!isAdmin && !membership) return NextResponse.json({ error: 'forbidden' }, { status: 403 });
+
+  // Partner-Match als zweite Berechtigungsebene
+  let isPartnerTeacher = false;
+  if (!isAdmin && !membership) {
+    const { data: courseRow } = await service
+      .from('courses')
+      .select('partner_id')
+      .eq('id', courseId)
+      .maybeSingle();
+    const teacherPartner = (profile as any)?.partner_id ?? null;
+    if (teacherPartner && courseRow?.partner_id && courseRow.partner_id === teacherPartner) {
+      isPartnerTeacher = true;
+    }
+  }
+
+  if (!isAdmin && !membership && !isPartnerTeacher) {
+    return NextResponse.json({ error: 'forbidden' }, { status: 403 });
+  }
 
   const { data: survey } = await service
     .from('course_surveys')
