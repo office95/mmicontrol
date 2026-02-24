@@ -58,7 +58,7 @@ export async function POST(req: Request, { params }: { params: { surveyId: strin
   if (!booking || !((booking.student_id && booking.student_id === user.id) || (booking.student_email || '').toLowerCase() === email)) {
     return NextResponse.json({ error: 'forbidden' }, { status: 403 });
   }
-  if (!booking.student_id) return NextResponse.json({ error: 'student_id fehlt in booking' }, { status: 400 });
+  const studentId = booking.student_id || user.id;
 
   // Check survey belongs to course
   const { data: survey } = await supabase
@@ -71,7 +71,7 @@ export async function POST(req: Request, { params }: { params: { surveyId: strin
   // Create response (unique per booking)
   const { data: response, error: respErr } = await supabase
     .from('course_survey_responses')
-    .insert({ survey_id: survey.id, student_id: booking.student_id, booking_id })
+    .insert({ survey_id: survey.id, student_id: studentId, booking_id })
     .select('id')
     .single();
   if (respErr) return NextResponse.json({ error: respErr.message }, { status: 400 });

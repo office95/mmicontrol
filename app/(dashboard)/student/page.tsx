@@ -411,10 +411,17 @@ export default async function StudentPage({ searchParams }: { searchParams: Reco
 
       if (surveys?.length) {
         const surveyIds = surveys.map((s) => s.id);
-        const { data: responses } = await service
-          .from('course_survey_responses')
-          .select('survey_id, booking_id')
-          .eq('student_id', user?.id || '');
+        const bookingIds = (bookings || []).map((b) => b.id).filter(Boolean) as string[];
+
+        // Responses zählen nur pro Booking, damit der Banner verschwindet, auch wenn die student_id im Response null ist.
+        const { data: responses } = bookingIds.length
+          ? await service
+              .from('course_survey_responses')
+              .select('survey_id, booking_id')
+              .in('survey_id', surveyIds)
+              .in('booking_id', bookingIds)
+          : { data: [] };
+
         const responded = new Set((responses || []).map((r) => `${r.survey_id}_${r.booking_id}`));
 
         const today = new Date();
