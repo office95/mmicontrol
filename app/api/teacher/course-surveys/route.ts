@@ -10,7 +10,8 @@ const service = createClient(
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const courseId = searchParams.get('course_id');
-  if (!courseId) return NextResponse.json({ error: 'course_id required' }, { status: 400 });
+  const surveyIdParam = searchParams.get('survey_id');
+  if (!courseId && !surveyIdParam) return NextResponse.json({ error: 'course_id or survey_id required' }, { status: 400 });
 
   const supabase = createSupabaseServerClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -54,15 +55,21 @@ export async function GET(req: Request) {
   // Kurs-Surveys holen
   const { data: surveysBase } = await service
     .from('course_surveys')
-    .select('id, title, created_at')
-    .eq('course_id', courseId)
+    .select('id, title, created_at, course_id')
+    .match(
+      surveyIdParam
+        ? { id: surveyIdParam }
+        : { course_id: courseId }
+    )
     .order('created_at', { ascending: false });
 
   // Buchungen des Kurses holen, um Responses über booking_id abzufangen
-  const { data: bookings } = await service
-    .from('bookings')
-    .select('id')
-    .eq('course_id', courseId);
+  const { data: bookings } = courseId
+    ? await service
+        .from('bookings')
+        .select('id')
+        .eq('course_id', courseId)
+    : { data: [] };
   const bookingIds = (bookings || []).map((b) => b.id);
 
   const surveyIdsBase = surveysBase?.map((s) => s.id) || [];

@@ -182,7 +182,10 @@ export default function CourseListClient({ courses }: { courses: CourseCard[] })
       )}
 
       {surveyCourse && (
-        <SurveyModal course={surveyCourse} onClose={() => setSurveyCourse(null)} />
+        <SurveyModal
+          course={surveyCourse}
+          onClose={() => setSurveyCourse(null)}
+        />
       )}
     </div>
   );
@@ -197,7 +200,7 @@ function SurveyModal({ course, onClose }: { course: CourseCard; onClose: () => v
     let ignore = false;
     const load = async () => {
       setLoading(true);
-      const res = await fetch(`/api/teacher/course-surveys?course_id=${course.id}`);
+      const res = await fetch(`/api/teacher/course-surveys?course_id=${course.id}${course.survey_id ? `&survey_id=${course.survey_id}` : ''}`);
       const json = await res.json().catch(() => ({}));
       if (ignore) return;
       if (!res.ok) setError(json.error || 'Fehler beim Laden');
