@@ -75,14 +75,17 @@ export async function GET(req: Request) {
     .order('submitted_at', { ascending: false });
 
   const surveysMap = new Map<string, { id: string; course_id: string; title: string; created_at: string | null }>();
-  const responsesMap = new Map<string, {
+  type AnswerEntry = { question_id: string | null; value: any; extra_text: any };
+  type ResponseEntry = {
     id: string;
     survey_id: string;
     booking_id: string | null;
     student_id: string | null;
     submitted_at: string | null;
-    answers: { question_id: string; value: any; extra_text: any }[];
-  }>();
+    answers: AnswerEntry[];
+  };
+
+  const responsesMap = new Map<string, ResponseEntry>();
 
   (viewRows || []).forEach((r) => {
     if (!surveysMap.has(r.survey_id)) {
@@ -94,13 +97,13 @@ export async function GET(req: Request) {
       });
     }
     if (r.response_id) {
-      const resp = responsesMap.get(r.response_id) || {
+      const resp: ResponseEntry = responsesMap.get(r.response_id) || {
         id: r.response_id,
         survey_id: r.survey_id,
         booking_id: r.booking_id,
         student_id: r.student_id,
         submitted_at: r.submitted_at,
-        answers: [],
+        answers: [] as AnswerEntry[],
       };
       if (r.question_id) {
         resp.answers.push({
