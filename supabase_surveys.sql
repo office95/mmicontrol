@@ -118,8 +118,16 @@ create policy if not exists course_survey_responses_student_select on public.cou
   for select using (auth.uid() = student_id);
 create policy if not exists course_survey_answers_student_select on public.course_survey_answers
   for select using (exists (select 1 from public.course_survey_responses r where r.id = course_survey_answers.response_id and r.student_id = auth.uid()));
-create policy if not exists course_survey_responses_student_insert on public.course_survey_responses
-  for insert with check (auth.uid() = student_id);
+drop policy if exists course_survey_responses_student_insert on public.course_survey_responses;
+create policy course_survey_responses_student_insert on public.course_survey_responses
+  for insert with check (
+    student_id = auth.uid()
+    or booking_id in (
+      select b.id from public.bookings b
+      where b.id = course_survey_responses.booking_id
+        and lower(b.student_email) = lower(auth.email())
+    )
+  );
 drop policy if exists course_survey_answers_student_insert on public.course_survey_answers;
 create policy course_survey_answers_student_insert on public.course_survey_answers
   for insert with check (
