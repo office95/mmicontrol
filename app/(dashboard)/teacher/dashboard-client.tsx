@@ -92,47 +92,55 @@ export default function DashboardClient({
     id: string;
     title: string;
     desc: string;
+    location: string;
     tab?: 'perf' | 'courses' | 'materials' | 'feedback' | 'benefits';
   }[] = [
     {
       id: 'tabs',
       title: 'Navigation',
-      desc: 'Oben in der Navigation kannst du zwischen Performance, Kursen, Unterlagen, Feedback und Benefits wechseln.',
+      desc: 'Oben in der Hauptleiste liegen alle Bereiche: Performance, Kurse, Unterlagen, Feedback, Benefits.',
+      location: 'Oben – Button-Leiste',
     },
     {
       id: 'charts',
       title: 'Performance & Charts',
-      desc: 'Im Tab „Performance-Übersicht“ siehst du KPIs, Trends und Diagramme zu Buchungen und Teilnehmern.',
+      desc: 'Im Tab „Performance-Übersicht“ (erster Button) siehst du KPIs, Trends und Diagramme zu Buchungen und Teilnehmern.',
+      location: 'Navigation · Performance-Übersicht',
       tab: 'perf',
     },
     {
       id: 'courses',
       title: 'Kurse & Teilnehmer',
-      desc: 'Im Tab „Meine Kurse & Teilnehmer“ findest du deine Kurskarten mit Startdatum, Dauer und Teilnehmerzahl.',
+      desc: 'Im Tab „Meine Kurse & Teilnehmer“ (zweiter Button) findest du Kurskarten mit Start, Dauer und TN-Zahl.',
+      location: 'Navigation · Meine Kurse & Teilnehmer',
       tab: 'courses',
     },
     {
       id: 'attendance',
       title: 'Teilnehmer & Anwesenheit',
-      desc: 'Innerhalb des Kurs-Tabs erreichst du über „Teilnehmer“ und „Anwesenheitsliste“ die Check-ins.',
+      desc: 'Im Kurs-Tab klickst du auf „Teilnehmer“ oder „Anwesenheitsliste“, um Check-ins zu verwalten.',
+      location: 'Kurskarte · Buttons Teilnehmer / Anwesenheitsliste',
       tab: 'courses',
     },
     {
       id: 'surveys',
       title: 'Fragebogen-Antworten',
-      desc: 'Im Kurs-Tab führt der Button „Fragebogen-Antworten“ direkt zu allen eingereichten Kursfragebögen.',
+      desc: 'Auf der Kurskarte den Button „Fragebogen-Antworten“ öffnen – dort siehst du alle Antworten.',
+      location: 'Kurskarte · Button Fragebogen-Antworten',
       tab: 'courses',
     },
     {
       id: 'export',
       title: 'PDF / Export',
-      desc: 'Im Fragebogen-Modal findest du oben „PDF / Drucken“, um Antworten pro Fragebogen zu exportieren.',
+      desc: 'Im Fragebogen-Modal oben auf „PDF / Drucken“ – jede Einreichung als eigene Seite/PDF.',
+      location: 'Fragebogen-Modal · PDF / Drucken',
       tab: 'courses',
     },
     {
       id: 'support',
       title: 'Support & Hilfe',
-      desc: 'Oben rechts führt dich der „Support“-Button zum Hilfebereich und Tickets.',
+      desc: 'Oben rechts in der Navigation auf „Support“ klicken, um Tickets zu schreiben oder Antworten zu lesen.',
+      location: 'Navigation · Support',
     },
   ];
   useEffect(() => {
@@ -481,7 +489,7 @@ export default function DashboardClient({
     </div> {/* end flex-1 */}
 
       {showTour && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-[2px] flex items-center justify-center px-4">
+        <div className="fixed inset-0 z-50 bg-black/55 flex items-center justify-center px-4">
           <div className="max-w-lg w-full rounded-2xl bg-white text-ink p-5 shadow-2xl">
             <div className="flex items-start justify-between gap-3">
               <div>
@@ -493,8 +501,9 @@ export default function DashboardClient({
             <p className="text-sm text-slate-700 mt-3">{tourSteps[tourStep].desc}</p>
 
             <div className="flex flex-wrap items-center gap-2 mt-4">
-              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-xs border border-slate-200">
-                Tipp: Schau oben in die Navigation / Buttons.
+              <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-xs border border-slate-200">
+                <span className="inline-flex h-2 w-2 rounded-full bg-pink-500 animate-pulse" />
+                Ort: {tourSteps[tourStep].location}
               </span>
               {tourSteps[tourStep].tab && (
                 <button
