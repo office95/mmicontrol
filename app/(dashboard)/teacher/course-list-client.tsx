@@ -239,10 +239,14 @@ function SurveyModal({ course, onClose }: { course: CourseCard; onClose: () => v
         {error && <p className="text-sm text-rose-600">{error}</p>}
         {data && (
           <div className="space-y-4">
-            {(data.surveys || []).map((s) => {
+            {(data.surveys || []).map((s, sIdx) => {
               const rForSurvey = (data.responses || []).filter((r) => r.survey_id === s.id);
               return (
-                <div key={s.id} className="rounded-xl border border-slate-200 bg-slate-50 p-3 space-y-3">
+                <div
+                  key={s.id}
+                  className="rounded-xl border border-slate-200 bg-slate-50 p-3 space-y-3"
+                  style={sIdx > 0 ? { pageBreakBefore: 'always' } : undefined}
+                >
                   <div className="flex items-center justify-between gap-3">
                     <p className="text-sm font-semibold text-slate-800">{s.title || 'Fragebogen'}</p>
                     <span className="text-xs inline-flex items-center gap-1 px-2 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-700">
@@ -255,8 +259,7 @@ function SurveyModal({ course, onClose }: { course: CourseCard; onClose: () => v
                   {rForSurvey.map((r: any, idx: number) => (
                     <div
                       key={idx}
-                      className="border border-slate-200 rounded-lg bg-white px-3 py-2 space-y-1 print:page-break-after-always"
-                      style={{ pageBreakAfter: 'always' }}
+                      className="border border-slate-200 rounded-lg bg-white px-3 py-2 space-y-1"
                     >
                       <p className="text-sm text-slate-700">
                         Teilnehmer: {r.student_name || r.student_email || '—'} ·{' '}
