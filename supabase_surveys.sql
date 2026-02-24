@@ -141,3 +141,33 @@ create policy course_survey_answers_student_insert on public.course_survey_answe
         )
     )
   );
+
+-- View: Kursfragebögen aus Sicht des Lehrers (alles fertig gejoint)
+create or replace view public.v_teacher_course_surveys as
+select
+  cm.user_id      as teacher_id,
+  cs.id           as survey_id,
+  cs.course_id,
+  cs.title        as survey_title,
+  cs.created_at   as survey_created_at,
+  csr.id          as response_id,
+  csr.booking_id,
+  csr.student_id,
+  csr.submitted_at,
+  ans.question_id,
+  ans.value,
+  ans.extra_text
+from public.course_members cm
+join public.courses c on c.id = cm.course_id
+join public.course_surveys cs on cs.course_id = c.id
+left join public.course_survey_responses csr on csr.survey_id = cs.id
+left join public.course_survey_answers   ans on ans.response_id = csr.id
+where cm.role = 'teacher';
+
+-- RLS für View
+alter view public.v_teacher_course_surveys set (security_invoker = false);
+grant select on public.v_teacher_course_surveys to authenticated, service_role, anon;
+
+drop policy if exists v_teacher_course_surveys_select on public.v_teacher_course_surveys;
+create policy v_teacher_course_surveys_select on public.v_teacher_course_surveys
+  for select using (auth.uid() = teacher_id);

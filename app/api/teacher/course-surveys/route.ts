@@ -63,125 +63,86 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: 'forbidden' }, { status: 403 });
   }
 
-  // Kurs-Surveys holen
-  const { data: surveysBase } = await service
-    .from('course_surveys')
-    .select('id, title, created_at, course_id')
-    .match(
-      surveyIdParam
-        ? { id: surveyIdParam }
-        : { course_id: courseId }
-    )
-    .order('created_at', { ascending: false });
+  // Neue, robuste Variante: alles aus View v_teacher_course_surveys holen
+  const filters: any = {};
+  if (courseId) filters.course_id = courseId;
+  if (surveyIdParam) filters.survey_id = surveyIdParam;
 
-  // Buchungen des Kurses holen, um Responses über booking_id abzufangen
-  const { data: bookings } = courseId
-    ? await service
-        .from('bookings')
-        .select('id')
-        .eq('course_id', courseId)
-    : { data: [] };
-  const bookingIds = (bookings || []).map((b) => b.id);
+  const { data: viewRows } = await service
+    .from('v_teacher_course_surveys')
+    .select('survey_id, course_id, survey_title, survey_created_at, response_id, booking_id, student_id, submitted_at, question_id, value, extra_text')
+    .match(filters)
+    .order('submitted_at', { ascending: false });
 
-  const surveyIdsBase = surveysBase?.map((s) => s.id) || [];
-  const surveyIdsInitial = surveyIdsBase;
+  const surveysMap = new Map<string, { id: string; course_id: string; title: string; created_at: string | null }>();
+  const responsesMap = new Map<string, { id: string; survey_id: string; booking_id: string | null; student_id: string | null; submitted_at: string | null; answers: any[] }>();
 
-  // Responses holen: Variante A über Survey-IDs, Variante B über bookings→course_id (redundant, aber robust)
-  let responses: any[] = [];
-
-  if (surveyIdsInitial.length) {
-    const { data: responsesBySurvey } = await service
-      .from('course_survey_responses')
-      .select('id, survey_id, booking_id, student_id, submitted_at, course_survey_answers(question_id, value, extra_text)')
-      .in('survey_id', surveyIdsInitial)
-      .order('submitted_at', { ascending: false });
-    responses = responsesBySurvey || [];
-  }
-
-  if (courseId) {
-    const { data: responsesByCourse } = await service
-      .from('course_survey_responses')
-      .select('id, survey_id, booking_id, student_id, submitted_at, course_survey_answers(question_id, value, extra_text), bookings!inner(course_id)')
-      .eq('bookings.course_id', courseId)
-      .order('submitted_at', { ascending: false });
-    if (responsesByCourse?.length) {
-      const seen = new Set(responses.map((r) => r.id));
-      responsesByCourse.forEach((r) => {
-        if (!seen.has(r.id)) responses.push(r);
+  (viewRows || []).forEach((r) => {
+    if (!surveysMap.has(r.survey_id)) {
+      surveysMap.set(r.survey_id, {
+        id: r.survey_id,
+        course_id: r.course_id,
+        title: r.survey_title,
+        created_at: r.survey_created_at,
       });
     }
-  }
+    if (r.response_id) {
+      const resp = responsesMap.get(r.response_id) || {
+        id: r.response_id,
+        survey_id: r.survey_id,
+        booking_id: r.booking_id,
+        student_id: r.student_id,
+        submitted_at: r.submitted_at,
+        answers: [],
+      };
+      if (r.question_id) {
+        resp.answers.push({
+          question_id: r.question_id,
+          value: r.value,
+          extra_text: r.extra_text,
+        });
+      }
+      responsesMap.set(r.response_id, resp);
+    }
+  });
 
-  // Falls explizit response_id gefordert
-  if (responseIdParam && !responses.some((r) => r.id === responseIdParam)) {
-    const { data: respSingle } = await service
-      .from('course_survey_responses')
-      .select('id, survey_id, booking_id, student_id, submitted_at, course_survey_answers(question_id, value, extra_text)')
-      .eq('id', responseIdParam)
-      .maybeSingle();
-    if (respSingle) responses = [respSingle, ...responses];
-  }
+  const surveys = Array.from(surveysMap.values());
+  const responses = Array.from(responsesMap.values());
 
-  // Falls explizites response_id noch nicht enthalten, nachladen
-  if (responseIdParam && !responses.some((r) => r.id === responseIdParam)) {
-    const { data: respSingle } = await service
-      .from('course_survey_responses')
-      .select('id, survey_id, booking_id, student_id, submitted_at, course_survey_answers(question_id, value, extra_text)')
-      .eq('id', responseIdParam)
-      .maybeSingle();
-    if (respSingle) responses = [respSingle, ...(responses || [])];
-  }
-
-  // Survey-IDs um die aus Responses erweitern (falls Responses existieren, aber Survey nicht über course_id geholt wurde)
-  const surveyIds = Array.from(new Set([
-    ...surveyIdsBase,
-    ...((responses || []).map((r) => r.survey_id).filter(Boolean) as string[]),
-  ]));
-
-  if (!surveyIds.length) return NextResponse.json({ surveys: [], responses: [] });
-
-  // Surveys nachladen für alle IDs (falls durch Responses ergänzt)
-  const { data: surveys } = await service
-    .from('course_surveys')
-    .select('id, title, created_at, course_id')
-    .in('id', surveyIds)
-    .order('created_at', { ascending: false });
-
-  // Alle Fragen aller Surveys laden
-  const { data: questionsAll } = await service
-    .from('course_survey_questions')
-    .select('id, survey_id, prompt, qtype, options, required, position, extra_text_label')
-    .in('survey_id', surveyIds)
-    .order('position', { ascending: true });
+  // Fragen für die Surveys laden, um Prompts zu ergänzen
+  const questionIds = Array.from(new Set((viewRows || []).map((r) => r.question_id).filter(Boolean) as string[]));
+  const { data: questionsAll } = questionIds.length
+    ? await service
+        .from('course_survey_questions')
+        .select('id, survey_id, prompt, qtype, options, required, position, extra_text_label')
+        .in('id', questionIds)
+    : { data: [] };
+  const qMap = new Map<string, any>();
+  (questionsAll || []).forEach((q) => qMap.set(q.id, q));
 
   // Teilnehmerdaten anreichern
-  const studentIds = Array.from(new Set((responses || []).map((r) => r.student_id).filter(Boolean))) as string[];
+  const studentIds = Array.from(new Set(responses.map((r) => r.student_id).filter(Boolean))) as string[];
   const studentMap = new Map<string, any>();
   if (studentIds.length) {
     const { data: studs } = await service.from('students').select('id, name, email').in('id', studentIds);
     studs?.forEach((s) => studentMap.set(s.id, s));
   }
 
-  const qMap = new Map<string, any>();
-  (questionsAll || []).forEach((q) => qMap.set(q.id, q));
-
-  const enriched = (responses || []).map((r) => {
-    return {
-      ...r,
-      student_name: studentMap.get(r.student_id || '')?.name || studentMap.get(r.student_id || '')?.email || '—',
-      student_email: studentMap.get(r.student_id || '')?.email || '—',
-      answers: (r as any).course_survey_answers?.map((a: any) => {
-        const q = qMap.get(a.question_id);
-        return {
-          prompt: q?.prompt || 'Frage',
-          qtype: q?.qtype,
-          value: a.value,
-          extra_text_label: q?.extra_text_label,
-          extra_text: a.extra_text,
-        };
-      }) || [],
-    };
-  });
+  const enriched = responses.map((r) => ({
+    ...r,
+    student_name: studentMap.get(r.student_id || '')?.name || studentMap.get(r.student_id || '')?.email || '—',
+    student_email: studentMap.get(r.student_id || '')?.email || '—',
+    answers: (r.answers || []).map((a: any) => {
+      const q = qMap.get(a.question_id);
+      return {
+        prompt: q?.prompt || 'Frage',
+        qtype: q?.qtype,
+        value: a.value,
+        extra_text_label: q?.extra_text_label,
+        extra_text: a.extra_text,
+      };
+    }),
+  }));
 
   return NextResponse.json({ surveys, responses: enriched });
 }
