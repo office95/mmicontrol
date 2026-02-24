@@ -116,6 +116,7 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [logoUploading, setLogoUploading] = useState(false);
+  const [automationSettings, setAutomationSettings] = useState<{ id: string; title: string; description: string; active: boolean }[]>([]);
   const supabase = createSupabaseBrowserClient();
 
   const mediaUrl = (path?: string | null) =>
@@ -166,6 +167,13 @@ export default function SettingsPage() {
       }));
       setOpening(nextHours.length ? nextHours : defaultOpening);
     }
+    // Automationen laden
+    const resAuto = await fetch('/api/admin/settings/automations');
+    if (resAuto.ok) {
+      const data = await resAuto.json();
+      setAutomationSettings(data || []);
+    }
+
     setLoading(false);
   };
 
@@ -189,6 +197,16 @@ export default function SettingsPage() {
     } else {
       setMessage(data.error || 'Fehler beim Speichern');
     }
+
+    // Automationen speichern
+    if (automationSettings.length) {
+      await fetch('/api/admin/settings/automations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ automations: automationSettings }),
+      });
+    }
+
     setLoading(false);
   };
 
@@ -428,23 +446,32 @@ export default function SettingsPage() {
           </Section>
 
           <div className="grid gap-4">
-            {automations.map((a) => (
+            {automations.map((a) => {
+              const live = automationSettings.find((s) => s.id === a.id);
+              const active = live ? live.active : true;
+              return (
               <div key={a.id} className="rounded-lg border border-slate-200 bg-white/90 p-4 shadow-sm">
                 <div className="flex flex-wrap items-center gap-3 justify-between">
                   <div>
                     <p className="text-xs uppercase tracking-[0.14em] text-slate-500">Automation</p>
                     <h3 className="text-lg font-semibold text-ink">{a.title}</h3>
                   </div>
-                  <span
-                    className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold border"
-                    style={{
-                      color: a.status === 'aktiv' ? '#047857' : '#92400e',
-                      borderColor: a.status === 'aktiv' ? '#04785733' : '#92400e33',
-                      backgroundColor: a.status === 'aktiv' ? '#ecfdf3' : '#fff7ed',
-                    }}
-                  >
-                    {a.status === 'aktiv' ? 'Aktiv' : 'Geplant'}
-                  </span>
+                  <label className="flex items-center gap-2 text-sm text-slate-700">
+                    <input
+                      type="checkbox"
+                      checked={active}
+                      onChange={(e) => {
+                        setAutomationSettings((prev) => {
+                          const next = [...prev];
+                          const idx = next.findIndex((x) => x.id === a.id);
+                          if (idx >= 0) next[idx] = { ...next[idx], active: e.target.checked };
+                          else next.push({ id: a.id, title: a.title, description: a.action, active: e.target.checked });
+                          return next;
+                        });
+                      }}
+                    />
+                    Aktiv
+                  </label>
                 </div>
                 <div className="mt-3 space-y-2 text-sm text-slate-700">
                   <p><strong>Wann:</strong> {a.when}</p>
@@ -453,7 +480,7 @@ export default function SettingsPage() {
                   {a.notes && <p className="text-slate-500"><strong>Hinweis:</strong> {a.notes}</p>}
                 </div>
               </div>
-            ))}
+            )})}
           </div>
         </div>
       )}

@@ -49,6 +49,26 @@ create table if not exists public.course_survey_answers (
 alter table if exists public.course_survey_answers
   add column if not exists extra_text text;
 
+-- Automation Settings (global toggles)
+create table if not exists public.automation_settings (
+  id text primary key,
+  title text not null,
+  description text,
+  active boolean not null default true,
+  updated_at timestamptz not null default now()
+);
+
+-- Defaults einspielen (idempotent)
+insert into public.automation_settings (id, title, description, active)
+values
+  ('survey-reminder', 'Fragebogen-Erinnerung', 'E-Mail/Banner vor Kursstart, wenn Survey offen.', true),
+  ('survey-submitted-mail', 'Mail bei Fragebogen-Einreichung', 'Mail an Dozenten nach Absenden.', true),
+  ('survey-open-banner', 'Banner offener Fragebogen (Student)', 'Banner im Student Dashboard.', true),
+  ('course-reschedule-mail', 'Kursverschiebung Benachrichtigung', 'Mail an Admin, Lehrende, Teilnehmer bei Terminverschiebung.', true),
+  ('role-assign-mail', 'Rollen-/Freischaltungs-Mail', 'Mail an User bei Rollen-/Freischaltung.', true),
+  ('support-ticket-mail', 'Support/Ticket Mail', 'Mails bei Support-Nachrichten.', true),
+  ('quiz-save-idempotent', 'Quiz-Speichern (Admin)', 'Schutz vor Datenverlust beim Quiz-Speichern.', true)
+on conflict (id) do nothing;
 -- Erinnerungen (damit E-Mails nur einmal pro Buchung/Survey rausgehen)
 create table if not exists public.course_survey_reminders (
   survey_id uuid not null references public.course_surveys(id) on delete cascade,
