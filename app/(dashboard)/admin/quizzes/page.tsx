@@ -140,6 +140,7 @@ export default function AdminQuizzesPage() {
         prompt: 'Neue Frage',
         difficulty: 'easy',
         qtype: 'single',
+        module_number: editQuiz?.module_number ?? null,
         options: [
           { label: 'Antwort 1', is_correct: true },
           { label: 'Antwort 2', is_correct: false },
