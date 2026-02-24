@@ -115,16 +115,24 @@ export async function POST(req: Request) {
       .select();
     if (insQErr) return NextResponse.json({ error: insQErr.message }, { status: 400 });
 
-    const newQuestionIds = (upsertedQs || []).map((r) => r.id);
+    // IDs zuverlässig mappen: frisch gespeicherte Fragen neu laden, nach order_index sortieren
+    const { data: savedQuestions, error: refetchErr } = await supa
+      .from('quiz_questions')
+      .select('id, order_index')
+      .eq('quiz_id', quizRow.id)
+      .order('order_index', { ascending: true });
+    if (refetchErr) return NextResponse.json({ error: refetchErr.message }, { status: 400 });
 
     // Optionen neu aufbauen: nur für die übergebenen Fragen, aber ohne andere Fragen zu löschen
-    if (newQuestionIds.length) {
-      await supa.from('quiz_answer_options').delete().in('question_id', newQuestionIds);
+    const questionIdsInOrder = (savedQuestions || []).map((q) => q.id);
+    if (questionIdsInOrder.length) {
+      await supa.from('quiz_answer_options').delete().in('question_id', questionIdsInOrder);
     }
 
+    const sortedInputQs = [...(questions || [])].sort((a: any, b: any) => (a.order_index ?? 0) - (b.order_index ?? 0));
     const optPayload: any[] = [];
-    (questions || []).forEach((q: any, i: number) => {
-      const targetId = newQuestionIds[i]; // Reihenfolge wie upsertedQs bei identischer Sortierung
+    sortedInputQs.forEach((q: any, i: number) => {
+      const targetId = questionIdsInOrder[i];
       const opts = q.options || [];
       opts.forEach((o: any, j: number) => {
         optPayload.push({
