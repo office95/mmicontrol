@@ -76,14 +76,16 @@ export async function GET(req: Request) {
   const surveyIdsBase = surveysBase?.map((s) => s.id) || [];
 
   // Responses holen: entweder zu bekannten Survey-IDs oder zu Booking-IDs dieses Kurses
-  let { data: responses } = await service
+  let responses: any[] = [];
+  const { data: responsesData } = await service
     .from('course_survey_responses')
     .select('id, survey_id, booking_id, student_id, submitted_at, course_survey_answers(question_id, value, extra_text)')
     .in('survey_id', surveyIdsBase.length ? surveyIdsBase : surveyIds)
     .order('submitted_at', { ascending: false });
+  responses = responsesData || [];
 
   // Falls explizites response_id noch nicht enthalten, nachladen
-  if (responseIdParam && !(responses || []).some((r) => r.id === responseIdParam)) {
+  if (responseIdParam && !responses.some((r) => r.id === responseIdParam)) {
     const { data: respSingle } = await service
       .from('course_survey_responses')
       .select('id, survey_id, booking_id, student_id, submitted_at, course_survey_answers(question_id, value, extra_text)')
