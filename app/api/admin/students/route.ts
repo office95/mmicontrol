@@ -7,10 +7,13 @@ const service = createClient(
 );
 
 const SELECT =
-  'id, student_id, salutation, name, street, zip, city, country, state, company, vat_number, birthdate, phone, email, bank_name, iban, bic, status, is_problem, problem_note, created_at';
+  'id, student_id, salutation, name, street, zip, city, country, state, company, vat_number, birthdate, phone, email, bank_name, iban, bic, status, is_problem, problem_note, created_at, archived_at';
 
-export async function GET() {
-  const { data, error } = await service.from('students').select(SELECT).order('created_at', { ascending: false });
+export async function GET(req: Request) {
+  const { searchParams } = new URL(req.url);
+  const showArchived = searchParams.get('show_archived') === 'true';
+  const base = service.from('students').select(SELECT).order('created_at', { ascending: false });
+  const { data, error } = showArchived ? await base : await base.is('archived_at', null);
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
 
   // Latest booking per student + saldo
@@ -116,7 +119,8 @@ export async function DELETE(req: Request) {
   const { searchParams } = new URL(req.url);
   const id = searchParams.get('id');
   if (!id) return NextResponse.json({ error: 'id fehlt' }, { status: 400 });
-  const { error } = await service.from('students').delete().eq('id', id);
+  // Soft-Archive statt Hard-Delete
+  const { error } = await service.rpc('archive_student', { p_student_id: id, p_actor: null });
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
-  return NextResponse.json({ success: true });
+  return NextResponse.json({ success: true, archived: true });
 }
