@@ -74,13 +74,14 @@ export async function GET(req: Request) {
   const bookingIds = (bookings || []).map((b) => b.id);
 
   const surveyIdsBase = surveysBase?.map((s) => s.id) || [];
+  const surveyIdsInitial = surveyIdsBase;
 
   // Responses holen: entweder zu bekannten Survey-IDs oder zu Booking-IDs dieses Kurses
   let responses: any[] = [];
   const { data: responsesData } = await service
     .from('course_survey_responses')
     .select('id, survey_id, booking_id, student_id, submitted_at, course_survey_answers(question_id, value, extra_text)')
-    .in('survey_id', surveyIdsBase.length ? surveyIdsBase : surveyIds)
+    .in('survey_id', surveyIdsInitial)
     .order('submitted_at', { ascending: false });
   responses = responsesData || [];
 
