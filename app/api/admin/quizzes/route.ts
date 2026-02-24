@@ -123,10 +123,20 @@ export async function POST(req: Request) {
       .order('order_index', { ascending: true });
     if (refetchErr) return NextResponse.json({ error: refetchErr.message }, { status: 400 });
 
-    // Optionen neu aufbauen: nur für die übergebenen Fragen, aber ohne andere Fragen zu löschen
-    const questionIdsInOrder = (savedQuestions || []).map((q) => q.id);
+    // Mapping von order_index -> question_id zur sicheren Zuordnung
+    const savedByOrder = new Map<number, string>();
+    (savedQuestions || []).forEach((q) => savedByOrder.set(q.order_index ?? 0, q.id));
+
     const sortedInputQs = [...(questions || [])].sort((a: any, b: any) => (a.order_index ?? 0) - (b.order_index ?? 0));
-    const targetIds = questionIdsInOrder.slice(0, sortedInputQs.length);
+
+    // Ziel-IDs in gleicher Länge wie Eingabe, mit Fallback auf Positionszuordnung
+    const questionIdsInOrder = (savedQuestions || []).map((q) => q.id);
+    const targetIds = sortedInputQs.map((q: any, i: number) => {
+      const key = q.order_index ?? i;
+      return savedByOrder.get(key) ?? questionIdsInOrder[i];
+    });
+
+    // Optionen neu aufbauen: nur für die Fragen, die wir tatsächlich erhalten haben
     if (targetIds.length) {
       await supa.from('quiz_answer_options').delete().in('question_id', targetIds);
     }
