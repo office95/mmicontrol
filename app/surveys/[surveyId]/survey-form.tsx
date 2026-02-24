@@ -24,6 +24,7 @@ export default function SurveyForm({ survey, questions, bookingId, preview = fal
   const search = useSearchParams();
   const [values, setValues] = useState<Record<string, string>>({});
   const [extraValues, setExtraValues] = useState<Record<string, string>>({});
+  const [consent, setConsent] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
@@ -162,6 +163,20 @@ export default function SurveyForm({ survey, questions, bookingId, preview = fal
         </div>
       ))}
 
+      <div className="flex items-start gap-3 rounded-xl border border-white/10 bg-white/5 p-4">
+        <input
+          type="checkbox"
+          className="mt-1"
+          checked={consent}
+          onChange={(e) => setConsent(e.target.checked)}
+          disabled={preview}
+        />
+        <p className="text-sm text-white/80">
+          Ich stimme zu, dass meine in diesem Formular angegebenen Daten zur Vorbereitung und Durchführung des Kurses gespeichert und
+          verarbeitet werden. Die Daten werden ausschließlich für diesen Zweck verwendet und nicht an Dritte weitergegeben.
+        </p>
+      </div>
+
       {error && <p className="text-sm text-rose-300">{error}</p>}
 
       <button
@@ -172,6 +187,7 @@ export default function SurveyForm({ survey, questions, bookingId, preview = fal
           || submitting
           || questions.some((q) => q.required && !(values[q.id] ?? '').trim())
           || questions.some((q) => q.extra_text_label && q.extra_text_required && !(extraValues[q.id] ?? '').trim())
+          || !consent
         }
       >
         {preview ? 'Vorschau' : submitting ? 'Sendet…' : 'Absenden'}
