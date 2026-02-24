@@ -422,7 +422,10 @@ export default async function StudentPage({ searchParams }: { searchParams: Reco
           if (!b.course_id) return;
           const survey = surveys.find((s) => s.course_id === b.course_id);
           if (!survey) return;
-          const startStr = (b as any).course_start || null;
+          const startVal = Array.isArray((b as any).course_dates)
+            ? (b as any).course_dates[0]?.start_date
+            : (b as any).course_dates?.start_date;
+          const startStr = startVal || null;
           const start = startStr ? new Date(startStr) : null;
           if (!start) return;
           const openDays = survey.open_days_before_start ?? 7;
