@@ -92,75 +92,84 @@ export async function POST(req: Request) {
   if (qErr) return NextResponse.json({ error: qErr.message }, { status: 400 });
 
   if (Array.isArray(questions) && questions.length) {
-    const qPayload = questions.map((q: any, idx: number) => {
-      const base: any = {
-        quiz_id: quizRow.id,
-        module_id: null,
-        module_number: q.module_number ?? null,
-        difficulty: q.difficulty ?? 'medium',
-        qtype: q.qtype ?? 'single',
-        prompt: q.prompt,
-        media_url: q.media_url ?? null,
-        explanation: q.explanation ?? null,
-        order_index: q.order_index ?? idx,
-      };
-      if (q.id) {
-        base.id = q.id;
-      } else {
-        // sicherstellen, dass keine null/undefined-ID geschickt wird (sonst verletzt NOT NULL)
-        delete base.id;
-      }
-      return base;
-    });
-
-    // upsert Fragen
-    const { data: upsertedQs, error: insQErr } = await supa
-      .from('quiz_questions')
-      .upsert(qPayload, { onConflict: 'id' })
-      .select();
-    if (insQErr) return NextResponse.json({ error: insQErr.message }, { status: 400 });
-
-    // Zuordnung über key (order_index + prompt) zwischen Input und Rückgabe
     const inputQs = (questions || []).map((q: any, i: number) => ({
       ...q,
       order_index: q.order_index ?? i,
       prompt: (q.prompt || '').trim(),
-      id: q.id && typeof q.id === 'string' && q.id.length ? q.id : undefined,
+      id: q.id && typeof q.id === 'string' && q.id.trim().length ? q.id : undefined,
     }));
-    const keyFrom = (order: number, prompt: string) => `${order}::${prompt}`.toLowerCase();
 
-    const upsertMap = new Map<string, string>();
-    (upsertedQs || []).forEach((r: any) => {
-      upsertMap.set(keyFrom(r.order_index ?? 0, (r.prompt || '').trim()), r.id);
-    });
+    const toInsert = inputQs.filter((q) => !q.id).map((q) => ({
+      quiz_id: quizRow.id,
+      module_id: null,
+      module_number: q.module_number ?? null,
+      difficulty: q.difficulty ?? 'medium',
+      qtype: q.qtype ?? 'single',
+      prompt: q.prompt,
+      media_url: q.media_url ?? null,
+      explanation: q.explanation ?? null,
+      order_index: q.order_index,
+    }));
 
-    const targetIds = inputQs.map((q, i) => {
-      const key = keyFrom(q.order_index, q.prompt);
-      return upsertMap.get(key) || upsertedQs?.[i]?.id || null;
+    const toUpdate = inputQs.filter((q) => q.id).map((q) => ({
+      id: q.id,
+      quiz_id: quizRow.id,
+      module_id: null,
+      module_number: q.module_number ?? null,
+      difficulty: q.difficulty ?? 'medium',
+      qtype: q.qtype ?? 'single',
+      prompt: q.prompt,
+      media_url: q.media_url ?? null,
+      explanation: q.explanation ?? null,
+      order_index: q.order_index,
+    }));
+
+    let inserted: any[] = [];
+    if (toInsert.length) {
+      const { data: ins, error: insErr } = await supa.from('quiz_questions').insert(toInsert).select();
+      if (insErr) return NextResponse.json({ error: insErr.message }, { status: 400 });
+      inserted = ins || [];
+    }
+
+    let updated: any[] = [];
+    if (toUpdate.length) {
+      const { data: upd, error: updErr } = await supa.from('quiz_questions').upsert(toUpdate, { onConflict: 'id' }).select();
+      if (updErr) return NextResponse.json({ error: updErr.message }, { status: 400 });
+      updated = upd || [];
+    }
+
+    // IDs in Original-Reihenfolge abbilden
+    const idForPosition: string[] = [];
+    let insIdx = 0;
+    let updIdx = 0;
+    inputQs.forEach((q) => {
+      if (q.id) {
+        idForPosition.push(updated[updIdx++]?.id || q.id!);
+      } else {
+        idForPosition.push(inserted[insIdx++]?.id || null);
+      }
     });
 
     // Optionen neu aufbauen: nur für die zugeordneten Fragen
-    const validTargetIds = targetIds.filter(Boolean) as string[];
+    const validTargetIds = idForPosition.filter(Boolean) as string[];
     if (validTargetIds.length) {
       await supa.from('quiz_answer_options').delete().in('question_id', validTargetIds);
     }
 
     const optPayload: any[] = [];
-    inputQs
-      .sort((a, b) => a.order_index - b.order_index)
-      .forEach((q: any, i: number) => {
-        const targetId = targetIds[i];
-        if (!targetId) return;
-        const opts = q.options || [];
-        opts.forEach((o: any, j: number) => {
-          optPayload.push({
-            question_id: targetId,
-            label: o.label,
-            is_correct: !!o.is_correct,
-            order_index: o.order_index ?? j,
-          });
+    inputQs.forEach((q: any, i: number) => {
+      const targetId = idForPosition[i];
+      if (!targetId) return;
+      const opts = q.options || [];
+      opts.forEach((o: any, j: number) => {
+        optPayload.push({
+          question_id: targetId,
+          label: o.label,
+          is_correct: !!o.is_correct,
+          order_index: o.order_index ?? j,
         });
       });
+    });
     if (optPayload.length) {
       const { error: optErr } = await supa.from('quiz_answer_options').insert(optPayload);
       if (optErr) return NextResponse.json({ error: optErr.message }, { status: 400 });
