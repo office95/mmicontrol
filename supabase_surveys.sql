@@ -45,6 +45,14 @@ create table if not exists public.course_survey_answers (
   created_at timestamptz default now()
 );
 
+-- Erinnerungen (damit E-Mails nur einmal pro Buchung/Survey rausgehen)
+create table if not exists public.course_survey_reminders (
+  survey_id uuid not null references public.course_surveys(id) on delete cascade,
+  booking_id uuid not null references public.bookings(id) on delete cascade,
+  sent_at timestamptz default now(),
+  primary key (survey_id, booking_id)
+);
+
 -- Trigger updated_at
 create or replace function public.set_updated_at()
 returns trigger as $$

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createSupabaseServerClient } from '@/lib/supabase-server';
+import { sendMail } from '@/lib/mailer';
 
 export async function GET() {
   const supabase = createSupabaseServerClient();
@@ -42,6 +43,14 @@ export async function GET() {
   const responded = new Set((responses || []).map((r) => `${r.survey_id}_${r.booking_id}`));
 
   const today = new Date();
+  const bookingIds = bookings.map((b) => b.id);
+  const { data: reminders } = await supabase
+    .from('course_survey_reminders')
+    .select('survey_id, booking_id')
+    .in('survey_id', surveyIds)
+    .in('booking_id', bookingIds);
+  const reminded = new Set((reminders || []).map((r) => `${r.survey_id}_${r.booking_id}`));
+
   const open = bookings.flatMap((b) => {
     if (!b.course_id) return [] as any[];
     const survey = surveys.find((s) => s.course_id === b.course_id);
@@ -55,6 +64,40 @@ export async function GET() {
     if (today < openDate) return [];
     if (responded.has(`${survey.id}_${b.id}`)) return [];
     const startDateVal2 = Array.isArray(b.course_dates) ? b.course_dates[0]?.start_date : (b as any).course_dates?.start_date;
+
+    // Reminder mail senden (nur einmal)
+    if (!reminded.has(`${survey.id}_${b.id}`)) {
+      const startLabel = startDateVal2 ? new Date(startDateVal2).toLocaleDateString('de-AT') : 'bald';
+      const courseLabel = b.course_title || b.course_id;
+      const link = `${process.env.NEXT_PUBLIC_SITE_URL || ''}/surveys/${survey.id}?booking_id=${b.id}`;
+      // fire and forget; Fehler werden nur geloggt
+      sendMail({
+        to: email,
+        subject: `Bitte Fragebogen ausfüllen: ${courseLabel}`,
+        text: [
+          'Hallo,',
+          '',
+          `bitte fülle den Kursfragebogen für "${courseLabel}" aus.`,
+          `Kursstart: ${startLabel}`,
+          '',
+          `Zum Fragebogen: ${link}`,
+          '',
+          'Danke!'
+        ].join('\n'),
+      }).catch((e) => console.warn('survey reminder mail failed', e));
+
+      (async () => {
+        try {
+          const { error } = await supabase
+            .from('course_survey_reminders')
+            .insert({ survey_id: survey.id, booking_id: b.id });
+          if (error) console.warn('reminder insert failed', error);
+        } catch (e) {
+          console.warn('reminder insert failed', e);
+        }
+      })();
+    }
+
     return [{
       survey_id: survey.id,
       course_id: b.course_id,
