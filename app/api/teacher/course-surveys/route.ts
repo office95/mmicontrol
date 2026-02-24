@@ -86,19 +86,41 @@ export async function GET(req: Request) {
   const surveyIdsBase = surveysBase?.map((s) => s.id) || [];
   const surveyIdsInitial = surveyIdsBase;
 
-  // Responses holen: per Survey-ID, Booking-ID oder explizitem response_id
+  // Responses holen: Variante A über Survey-IDs, Variante B über bookings→course_id (redundant, aber robust)
   let responses: any[] = [];
-  const filters: string[] = [];
-  if (surveyIdsInitial.length) filters.push(`survey_id.in.(${surveyIdsInitial.join(',')})`);
-  if (bookingIds.length) filters.push(`booking_id.in.(${bookingIds.join(',')})`);
-  if (responseIdParam) filters.push(`id.eq.${responseIdParam}`);
 
-  const { data: responsesData } = await service
-    .from('course_survey_responses')
-    .select('id, survey_id, booking_id, student_id, submitted_at, course_survey_answers(question_id, value, extra_text)')
-    .or(filters.join(','))
-    .order('submitted_at', { ascending: false });
-  responses = responsesData || [];
+  if (surveyIdsInitial.length) {
+    const { data: responsesBySurvey } = await service
+      .from('course_survey_responses')
+      .select('id, survey_id, booking_id, student_id, submitted_at, course_survey_answers(question_id, value, extra_text)')
+      .in('survey_id', surveyIdsInitial)
+      .order('submitted_at', { ascending: false });
+    responses = responsesBySurvey || [];
+  }
+
+  if (courseId) {
+    const { data: responsesByCourse } = await service
+      .from('course_survey_responses')
+      .select('id, survey_id, booking_id, student_id, submitted_at, course_survey_answers(question_id, value, extra_text), bookings!inner(course_id)')
+      .eq('bookings.course_id', courseId)
+      .order('submitted_at', { ascending: false });
+    if (responsesByCourse?.length) {
+      const seen = new Set(responses.map((r) => r.id));
+      responsesByCourse.forEach((r) => {
+        if (!seen.has(r.id)) responses.push(r);
+      });
+    }
+  }
+
+  // Falls explizit response_id gefordert
+  if (responseIdParam && !responses.some((r) => r.id === responseIdParam)) {
+    const { data: respSingle } = await service
+      .from('course_survey_responses')
+      .select('id, survey_id, booking_id, student_id, submitted_at, course_survey_answers(question_id, value, extra_text)')
+      .eq('id', responseIdParam)
+      .maybeSingle();
+    if (respSingle) responses = [respSingle, ...responses];
+  }
 
   // Falls explizites response_id noch nicht enthalten, nachladen
   if (responseIdParam && !responses.some((r) => r.id === responseIdParam)) {
