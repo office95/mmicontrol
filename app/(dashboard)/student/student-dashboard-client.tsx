@@ -223,7 +223,7 @@ export default function StudentDashboardClient({
 
       {tab === 'bookings' && (
         <>
-          <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white font-semibold">
+          <div className="text-white text-lg font-semibold">
             {bookings.length > 1 ? 'Deine aktuellen Buchungen' : 'Deine aktuelle Buchung'}
           </div>
           <BookingsClient bookings={bookings} />
@@ -309,9 +309,6 @@ export default function StudentDashboardClient({
           100% { opacity: 0.7; transform: scale(0.98); }
         }
       `}</style>
-
-      {tab === 'bookings' && <BookingsClient bookings={bookings} />}
-
       {tab === 'bookings' && (
         <div className="rounded-2xl border border-white/10 bg-slate-950 text-white overflow-hidden shadow-2xl">
           <div className="grid md:grid-cols-[1.2fr,1fr] gap-0 relative">
