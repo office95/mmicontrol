@@ -152,6 +152,7 @@ select
   cm.user_id      as teacher_id,
   cs.id           as survey_id,
   cs.course_id,
+  c.partner_id    as course_partner_id,
   cs.title        as survey_title,
   cs.created_at   as survey_created_at,
   csr.id          as response_id,

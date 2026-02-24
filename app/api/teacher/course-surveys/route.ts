@@ -35,11 +35,23 @@ export async function GET(req: Request) {
   if (courseId) filters.course_id = courseId;
   if (surveyIdParam) filters.survey_id = surveyIdParam;
 
+  const { data: profile } = await service
+    .from('profiles')
+    .select('partner_id')
+    .eq('id', user.id)
+    .maybeSingle();
+  const teacherPartner = (profile as any)?.partner_id ?? null;
+
   const { data: viewRows } = await service
     .from('v_teacher_course_surveys')
-    .select('survey_id, course_id, survey_title, survey_created_at, response_id, booking_id, student_id, submitted_at, question_id, value, extra_text')
+    .select('survey_id, course_id, course_partner_id, survey_title, survey_created_at, response_id, booking_id, student_id, submitted_at, question_id, value, extra_text')
     .match(filters)
     .order('submitted_at', { ascending: false });
+
+  // Partner-Filter erzwingen: nur Kurse des zugewiesenen Partners
+  const filteredRows = teacherPartner
+    ? (viewRows || []).filter((r) => r.course_partner_id === teacherPartner)
+    : viewRows || [];
 
   const surveysMap = new Map<string, { id: string; course_id: string; title: string; created_at: string | null }>();
   type AnswerEntry = { question_id: string | null; value: any; extra_text: any };
@@ -54,7 +66,7 @@ export async function GET(req: Request) {
 
   const responsesMap = new Map<string, ResponseEntry>();
 
-  (viewRows || []).forEach((r) => {
+  (filteredRows || []).forEach((r) => {
     if (!surveysMap.has(r.survey_id)) {
       surveysMap.set(r.survey_id, {
         id: r.survey_id,
@@ -87,7 +99,7 @@ export async function GET(req: Request) {
   const responses = Array.from(responsesMap.values());
 
   // Fragen für die Surveys laden, um Prompts zu ergänzen
-  const questionIds = Array.from(new Set((viewRows || []).map((r) => r.question_id).filter(Boolean) as string[]));
+  const questionIds = Array.from(new Set((filteredRows || []).map((r) => r.question_id).filter(Boolean) as string[]));
   const { data: questionsAll } = questionIds.length
     ? await service
         .from('course_survey_questions')
