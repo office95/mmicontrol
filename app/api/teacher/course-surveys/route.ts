@@ -79,11 +79,7 @@ export async function GET(req: Request) {
   let { data: responses } = await service
     .from('course_survey_responses')
     .select('id, survey_id, booking_id, student_id, submitted_at, course_survey_answers(question_id, value, extra_text)')
-    .or([
-      surveyIdsBase.length ? `survey_id.in.(${surveyIdsBase.join(',')})` : '',
-      bookingIds.length ? `booking_id.in.(${bookingIds.join(',')})` : '',
-      responseIdParam ? `id.eq.${responseIdParam}` : '',
-    ].filter(Boolean).join(','))
+    .in('survey_id', surveyIdsBase.length ? surveyIdsBase : surveyIds)
     .order('submitted_at', { ascending: false });
 
   // Falls explizites response_id noch nicht enthalten, nachladen
