@@ -244,6 +244,8 @@ export default function StudentDashboardClient({
                     <a
                       key={`${s.survey_id}_${s.booking_id}`}
                       href={`/surveys/${s.survey_id}?booking_id=${s.booking_id}`}
+                      target="_blank"
+                      rel="noreferrer"
                       className="group rounded-xl border border-white/15 bg-white/5 px-3 py-3 text-sm backdrop-blur hover:border-pink-300/60 hover:bg-white/10 transition"
                     >
                       <div className="flex items-center justify-between gap-2">
