@@ -11,6 +11,7 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const courseId = searchParams.get('course_id');
   const surveyIdParam = searchParams.get('survey_id');
+  const responseIdParam = searchParams.get('response_id');
   if (!courseId && !surveyIdParam) return NextResponse.json({ error: 'course_id or survey_id required' }, { status: 400 });
 
   const supabase = createSupabaseServerClient();
@@ -75,14 +76,25 @@ export async function GET(req: Request) {
   const surveyIdsBase = surveysBase?.map((s) => s.id) || [];
 
   // Responses holen: entweder zu bekannten Survey-IDs oder zu Booking-IDs dieses Kurses
-  const { data: responses } = await service
+  let { data: responses } = await service
     .from('course_survey_responses')
     .select('id, survey_id, booking_id, student_id, submitted_at, course_survey_answers(question_id, value, extra_text)')
     .or([
       surveyIdsBase.length ? `survey_id.in.(${surveyIdsBase.join(',')})` : '',
       bookingIds.length ? `booking_id.in.(${bookingIds.join(',')})` : '',
+      responseIdParam ? `id.eq.${responseIdParam}` : '',
     ].filter(Boolean).join(','))
     .order('submitted_at', { ascending: false });
+
+  // Falls explizites response_id noch nicht enthalten, nachladen
+  if (responseIdParam && !(responses || []).some((r) => r.id === responseIdParam)) {
+    const { data: respSingle } = await service
+      .from('course_survey_responses')
+      .select('id, survey_id, booking_id, student_id, submitted_at, course_survey_answers(question_id, value, extra_text)')
+      .eq('id', responseIdParam)
+      .maybeSingle();
+    if (respSingle) responses = [respSingle, ...(responses || [])];
+  }
 
   // Survey-IDs um die aus Responses erweitern (falls Responses existieren, aber Survey nicht über course_id geholt wurde)
   const surveyIds = Array.from(new Set([
