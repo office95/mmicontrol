@@ -225,6 +225,7 @@ export default function StudentDashboardClient({
         <div className="relative overflow-hidden rounded-2xl border border-white/12 bg-gradient-to-r from-sky-900/70 via-indigo-900/60 to-fuchsia-900/70 p-5 sm:p-6 text-white shadow-2xl">
           <div className="absolute -right-10 -top-16 h-40 w-40 rounded-full bg-fuchsia-500/25 blur-3xl" />
           <div className="absolute -left-16 -bottom-16 h-48 w-48 rounded-full bg-sky-500/20 blur-3xl" />
+          <div className="shine" aria-hidden />
           <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div className="space-y-2 max-w-xl">
               <p className="text-[11px] uppercase tracking-[0.22em] text-white/70">Kursfragebogen offen</p>
@@ -249,6 +250,27 @@ export default function StudentDashboardClient({
           </div>
         </div>
       )}
+
+      <style jsx global>{`
+        .shine {
+          position: absolute;
+          top: 0;
+          left: -40%;
+          width: 40%;
+          height: 100%;
+          background: linear-gradient(120deg, transparent 0%, rgba(255,255,255,0.35) 50%, transparent 100%);
+          transform: skewX(-15deg);
+          animation: shine-move 2.6s ease-in-out infinite;
+          pointer-events: none;
+        }
+        .shine:hover { animation-play-state: paused; }
+        @keyframes shine-move {
+          0% { left: -40%; opacity: 0; }
+          15% { opacity: 1; }
+          50% { left: 120%; opacity: 1; }
+          100% { left: 120%; opacity: 0; }
+        }
+      `}</style>
 
       {tab === 'bookings' && <BookingsClient bookings={bookings} />}
 
