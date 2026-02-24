@@ -343,7 +343,7 @@ export default function AdminQuizzesPage() {
     setError(null);
     try {
     const body = {
-        quiz: { ...editQuiz, module_id: null },
+        quiz: { ...editQuiz, module_id: null, level_count: editQuiz.level_count ?? 1, time_per_question: editQuiz.time_per_question ?? 15 },
       questions: editQuestions.map((q, idx) => ({
         id: q.id,
         prompt: q.prompt,
@@ -538,20 +538,20 @@ export default function AdminQuizzesPage() {
                 <div className="flex flex-wrap gap-3 text-sm">
                   <div>
                     <label className="text-xs text-slate-300">Zeit/Frage (s)</label>
-                    <input
-                      type="number"
-                      className="w-24 rounded border border-white/20 bg-black/30 px-2 py-1 text-white"
-                      value={editQuiz.time_per_question || 30}
-                      onChange={(e) => setEditQuiz({ ...editQuiz, time_per_question: Number(e.target.value) })}
-                    />
+                  <input
+                    type="number"
+                    className="w-24 rounded border border-white/20 bg-black/30 px-2 py-1 text-white"
+                    value={editQuiz.time_per_question ?? 15}
+                    onChange={(e) => setEditQuiz({ ...editQuiz, time_per_question: Number(e.target.value) || 15 })}
+                  />
                   </div>
                   <div>
                     <label className="text-xs text-slate-300">Level</label>
                     <input
                       type="number"
                       className="w-20 rounded border border-white/20 bg-black/30 px-2 py-1 text-white"
-                      value={editQuiz.level_count || 5}
-                      onChange={(e) => setEditQuiz({ ...editQuiz, level_count: Number(e.target.value) })}
+                      value={editQuiz.level_count ?? 1}
+                      onChange={(e) => setEditQuiz({ ...editQuiz, level_count: Number(e.target.value) || 1 })}
                     />
                   </div>
                   <div>
