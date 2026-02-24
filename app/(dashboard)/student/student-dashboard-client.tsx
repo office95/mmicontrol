@@ -174,6 +174,33 @@ export default function StudentDashboardClient({
   return (
     <div className="min-h-screen flex flex-col space-y-10">
       <div className="flex-1 space-y-10">
+      {(surveysOpen || []).length > 0 && (
+        <div className="rounded-2xl border border-amber-200/50 bg-gradient-to-r from-amber-900/60 via-amber-800/50 to-amber-900/60 p-4 sm:p-5 text-amber-50 shadow-xl ring-1 ring-amber-300/30">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+              <p className="text-[11px] uppercase tracking-[0.22em] text-amber-200">Kursfragebogen offen</p>
+              <h3 className="text-xl font-semibold">Bitte vor Kursstart ausfüllen</h3>
+              <p className="text-sm text-amber-100/80">Hilft uns, den Kurs optimal vorzubereiten.</p>
+            </div>
+          </div>
+          <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {(surveysOpen || []).map((s) => (
+              <a
+                key={`${s.survey_id}_${s.booking_id}`}
+                href={`/surveys/${s.survey_id}?booking_id=${s.booking_id}`}
+                className="flex items-center justify-between rounded-lg border border-amber-200/60 bg-amber-800/40 px-3 py-2 text-sm text-amber-50 hover:bg-amber-700/40 transition"
+              >
+                <div>
+                  <div className="font-semibold line-clamp-1">{s.title}</div>
+                  <div className="text-amber-100/80 text-xs line-clamp-1">{s.course_title || s.course_id}</div>
+                </div>
+                <span className="text-[11px] uppercase tracking-[0.14em] text-amber-200">Start</span>
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Tabs innerhalb des Student-Dashboards */}
       <nav className="sticky top-0 z-30 -mx-4 px-4 pt-3 pb-4 bg-slate-950/85 border-b border-white/10 backdrop-blur-lg shadow-lg">
         <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-sm font-semibold text-white/85">
@@ -221,28 +248,7 @@ export default function StudentDashboardClient({
         </div>
       </nav>
 
-      {tab === 'bookings' && (
-        <>
-          {(surveysOpen || []).length > 0 && (
-            <div className="rounded-2xl border border-amber-300/60 bg-amber-900/30 p-4 text-amber-100">
-              <h3 className="text-lg font-semibold">Kursfragebogen offen</h3>
-              <p className="text-sm text-amber-50 mb-2">Bitte vor Kursstart ausfüllen.</p>
-              <div className="flex flex-col gap-2">
-                {(surveysOpen || []).map((s) => (
-                  <a
-                    key={`${s.survey_id}_${s.booking_id}`}
-                    href={`/surveys/${s.survey_id}?booking_id=${s.booking_id}`}
-                    className="rounded-lg border border-amber-300/60 bg-amber-800/40 px-3 py-2 text-sm text-amber-50 hover:bg-amber-700/40"
-                  >
-                    {s.title} · {s.course_title || s.course_id}
-                  </a>
-                ))}
-              </div>
-            </div>
-          )}
-          <BookingsClient bookings={bookings} />
-        </>
-      )}
+      {tab === 'bookings' && <BookingsClient bookings={bookings} />}
 
       {tab === 'bookings' && (
         <div className="rounded-2xl border border-white/10 bg-slate-950 text-white overflow-hidden shadow-2xl">
