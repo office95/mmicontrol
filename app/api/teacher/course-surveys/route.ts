@@ -9,7 +9,7 @@ const service = createClient(
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
-  const courseId = searchParams.get('course_id');
+  let courseId = searchParams.get('course_id');
   const surveyIdParam = searchParams.get('survey_id');
   const responseIdParam = searchParams.get('response_id');
   if (!courseId && !surveyIdParam) return NextResponse.json({ error: 'course_id or survey_id required' }, { status: 400 });
@@ -17,6 +17,16 @@ export async function GET(req: Request) {
   const supabase = createSupabaseServerClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+
+  // Falls nur survey_id gegeben, Kurs dazu laden
+  if (!courseId && surveyIdParam) {
+    const { data: surveyCourse } = await service
+      .from('course_surveys')
+      .select('course_id')
+      .eq('id', surveyIdParam)
+      .maybeSingle();
+    courseId = surveyCourse?.course_id ?? null;
+  }
 
   // Lehrer-Berechtigung prüfen
   const { data: membership } = await service
