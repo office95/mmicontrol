@@ -1,7 +1,6 @@
 import { createSupabaseServerClient } from '@/lib/supabase-server';
 import SurveyForm from './survey-form';
 import { redirect } from 'next/navigation';
-import { cookies } from 'next/headers';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,13 +22,32 @@ export default async function SurveyPage({ params, searchParams }: { params: { s
     if (surveyErr || qErr || !survey) return <div className="text-white p-6">Vorschau nicht möglich.</div>;
     data = { survey, questions, booking: { course_title: survey.course_id } };
   } else {
-    const cookieHeader = cookies().toString();
-    const res = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || ''}/api/student/surveys/${params.surveyId}?booking_id=${bookingId}`, {
-      headers: { cookie: cookieHeader },
-      cache: 'no-store',
-    }).catch(() => null);
-    if (!res || !res.ok) return <div className="text-white p-6">Nicht gefunden oder keine Berechtigung.</div>;
-    data = await res.json();
+    // Direkt über Supabase (bypass fetch, behält Session)
+    const { data: survey } = await supabase
+      .from('course_surveys')
+      .select('id, course_id, title, instructions')
+      .eq('id', params.surveyId)
+      .maybeSingle();
+    if (!survey) return <div className="text-white p-6">Nicht gefunden oder keine Berechtigung.</div>;
+
+    const { data: booking } = await supabase
+      .from('bookings')
+      .select('id, course_id, student_id, student_email, course_dates(start_date)')
+      .eq('id', bookingId!)
+      .maybeSingle();
+    if (!booking) return <div className="text-white p-6">Nicht gefunden oder keine Berechtigung.</div>;
+
+    const email = (user.email || '').toLowerCase();
+    const allowed = (booking.student_id && booking.student_id === user.id) || (booking.student_email || '').toLowerCase() === email;
+    if (!allowed || booking.course_id !== survey.course_id) return <div className="text-white p-6">Nicht gefunden oder keine Berechtigung.</div>;
+
+    const { data: questions } = await supabase
+      .from('course_survey_questions')
+      .select('id, qtype, prompt, options, required, position, extra_text_label, extra_text_required')
+      .eq('survey_id', survey.id)
+      .order('position', { ascending: true });
+
+    data = { survey, questions, booking };
   }
 
   return (
