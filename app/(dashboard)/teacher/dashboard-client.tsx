@@ -135,58 +135,6 @@ export default function DashboardClient({
       desc: 'Bei Fragen erreichst du den Support über den „Support“-Button in der Navigation.',
     },
   ];
-  const [showTour, setShowTour] = useState(false);
-  const [tourStep, setTourStep] = useState(0);
-  const [tourDone, setTourDone] = useState(false);
-
-  const tourSteps: {
-    id: string;
-    title: string;
-    desc: string;
-    tab?: 'perf' | 'courses' | 'materials' | 'feedback' | 'benefits';
-  }[] = [
-    {
-      id: 'tabs',
-      title: 'Navigation',
-      desc: 'Hier wechselst du zwischen Performance, Kursen, Unterlagen, Feedback und Benefits.',
-    },
-    {
-      id: 'charts',
-      title: 'Performance & Charts',
-      desc: 'Unter „Performance-Übersicht“ siehst du KPIs, Trends und Diagramme zu Buchungen und Teilnehmern.',
-      tab: 'perf',
-    },
-    {
-      id: 'courses',
-      title: 'Kurse & Teilnehmer',
-      desc: 'In „Meine Kurse & Teilnehmer“ findest du deine Kurskarten mit Startdatum, Dauer und Teilnehmerzahl.',
-      tab: 'courses',
-    },
-    {
-      id: 'attendance',
-      title: 'Teilnehmer & Anwesenheit',
-      desc: 'Über „Teilnehmer“ und „Anwesenheitsliste“ verwaltest du Teilnehmerdetails und Check-ins.',
-      tab: 'courses',
-    },
-    {
-      id: 'surveys',
-      title: 'Fragebogen-Antworten',
-      desc: 'Der Button „Fragebogen-Antworten“ öffnet alle eingereichten Kursfragebögen deiner Kurse.',
-      tab: 'courses',
-    },
-    {
-      id: 'export',
-      title: 'PDF / Export',
-      desc: 'Im Fragebogen-Modal kannst du über „PDF / Drucken“ alle Antworten druckfertig exportieren.',
-      tab: 'courses',
-    },
-    {
-      id: 'support',
-      title: 'Support & Hilfe',
-      desc: 'Bei Fragen erreichst du den Support über den „Support“-Button in der Navigation.',
-    },
-  ];
-
   useEffect(() => {
     const supabase = createSupabaseBrowserClient();
     const loadUnread = async () => {
@@ -209,30 +157,6 @@ export default function DashboardClient({
       supabase.removeChannel(channel);
     };
   }, []);
-
-  useEffect(() => {
-    const done = localStorage.getItem('teacherTourDone') === 'true';
-    setTourDone(done);
-  }, []);
-
-  const startTour = () => {
-    setTourStep(0);
-    setShowTour(true);
-  };
-
-  const endTour = () => {
-    setShowTour(false);
-    setTourDone(true);
-    localStorage.setItem('teacherTourDone', 'true');
-  };
-
-  const goToStep = (idx: number) => {
-    const step = Math.max(0, Math.min(idx, tourSteps.length - 1));
-    const target = tourSteps[step];
-    if (target.tab) setTab(target.tab);
-    setTourStep(step);
-    setShowTour(true);
-  };
 
   useEffect(() => {
     const done = localStorage.getItem('teacherTourDone') === 'true';
@@ -553,6 +477,8 @@ export default function DashboardClient({
           </div>
         </div>
       </div>
+
+    </div> {/* end flex-1 */}
 
       {showTour && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center px-4">
