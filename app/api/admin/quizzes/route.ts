@@ -117,15 +117,6 @@ export async function POST(req: Request) {
 
     const newQuestionIds = (upsertedQs || []).map((r) => r.id);
 
-    // alte Fragen entfernen, die nicht mehr existieren
-    if (newQuestionIds.length) {
-      await supa
-        .from('quiz_questions')
-        .delete()
-        .eq('quiz_id', quizRow.id)
-        .not('id', 'in', `(${newQuestionIds.join(',')})`);
-    }
-
     // Optionen neu aufbauen: erst alte Optionen der betroffenen Fragen löschen
     if (newQuestionIds.length) {
       await supa.from('quiz_answer_options').delete().in('question_id', newQuestionIds);
