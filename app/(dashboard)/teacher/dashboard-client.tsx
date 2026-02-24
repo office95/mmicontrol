@@ -84,6 +84,108 @@ export default function DashboardClient({
 }) {
   const [tab, setTab] = useState<'perf' | 'courses' | 'materials' | 'feedback' | 'benefits'>('perf');
   const [unread, setUnread] = useState(0);
+  const [showTour, setShowTour] = useState(false);
+  const [tourStep, setTourStep] = useState(0);
+  const [tourDone, setTourDone] = useState(false);
+
+  const tourSteps: {
+    id: string;
+    title: string;
+    desc: string;
+    tab?: 'perf' | 'courses' | 'materials' | 'feedback' | 'benefits';
+  }[] = [
+    {
+      id: 'tabs',
+      title: 'Navigation',
+      desc: 'Hier wechselst du zwischen Performance, Kursen, Unterlagen, Feedback und Benefits.',
+    },
+    {
+      id: 'charts',
+      title: 'Performance & Charts',
+      desc: 'Unter „Performance-Übersicht“ siehst du KPIs, Trends und Diagramme zu Buchungen und Teilnehmern.',
+      tab: 'perf',
+    },
+    {
+      id: 'courses',
+      title: 'Kurse & Teilnehmer',
+      desc: 'In „Meine Kurse & Teilnehmer“ findest du deine Kurskarten mit Startdatum, Dauer und Teilnehmerzahl.',
+      tab: 'courses',
+    },
+    {
+      id: 'attendance',
+      title: 'Teilnehmer & Anwesenheit',
+      desc: 'Über „Teilnehmer“ und „Anwesenheitsliste“ verwaltest du Teilnehmerdetails und Check-ins.',
+      tab: 'courses',
+    },
+    {
+      id: 'surveys',
+      title: 'Fragebogen-Antworten',
+      desc: 'Der Button „Fragebogen-Antworten“ öffnet alle eingereichten Kursfragebögen deiner Kurse.',
+      tab: 'courses',
+    },
+    {
+      id: 'export',
+      title: 'PDF / Export',
+      desc: 'Im Fragebogen-Modal kannst du über „PDF / Drucken“ alle Antworten druckfertig exportieren.',
+      tab: 'courses',
+    },
+    {
+      id: 'support',
+      title: 'Support & Hilfe',
+      desc: 'Bei Fragen erreichst du den Support über den „Support“-Button in der Navigation.',
+    },
+  ];
+  const [showTour, setShowTour] = useState(false);
+  const [tourStep, setTourStep] = useState(0);
+  const [tourDone, setTourDone] = useState(false);
+
+  const tourSteps: {
+    id: string;
+    title: string;
+    desc: string;
+    tab?: 'perf' | 'courses' | 'materials' | 'feedback' | 'benefits';
+  }[] = [
+    {
+      id: 'tabs',
+      title: 'Navigation',
+      desc: 'Hier wechselst du zwischen Performance, Kursen, Unterlagen, Feedback und Benefits.',
+    },
+    {
+      id: 'charts',
+      title: 'Performance & Charts',
+      desc: 'Unter „Performance-Übersicht“ siehst du KPIs, Trends und Diagramme zu Buchungen und Teilnehmern.',
+      tab: 'perf',
+    },
+    {
+      id: 'courses',
+      title: 'Kurse & Teilnehmer',
+      desc: 'In „Meine Kurse & Teilnehmer“ findest du deine Kurskarten mit Startdatum, Dauer und Teilnehmerzahl.',
+      tab: 'courses',
+    },
+    {
+      id: 'attendance',
+      title: 'Teilnehmer & Anwesenheit',
+      desc: 'Über „Teilnehmer“ und „Anwesenheitsliste“ verwaltest du Teilnehmerdetails und Check-ins.',
+      tab: 'courses',
+    },
+    {
+      id: 'surveys',
+      title: 'Fragebogen-Antworten',
+      desc: 'Der Button „Fragebogen-Antworten“ öffnet alle eingereichten Kursfragebögen deiner Kurse.',
+      tab: 'courses',
+    },
+    {
+      id: 'export',
+      title: 'PDF / Export',
+      desc: 'Im Fragebogen-Modal kannst du über „PDF / Drucken“ alle Antworten druckfertig exportieren.',
+      tab: 'courses',
+    },
+    {
+      id: 'support',
+      title: 'Support & Hilfe',
+      desc: 'Bei Fragen erreichst du den Support über den „Support“-Button in der Navigation.',
+    },
+  ];
 
   useEffect(() => {
     const supabase = createSupabaseBrowserClient();
@@ -107,6 +209,54 @@ export default function DashboardClient({
       supabase.removeChannel(channel);
     };
   }, []);
+
+  useEffect(() => {
+    const done = localStorage.getItem('teacherTourDone') === 'true';
+    setTourDone(done);
+  }, []);
+
+  const startTour = () => {
+    setTourStep(0);
+    setShowTour(true);
+  };
+
+  const endTour = () => {
+    setShowTour(false);
+    setTourDone(true);
+    localStorage.setItem('teacherTourDone', 'true');
+  };
+
+  const goToStep = (idx: number) => {
+    const step = Math.max(0, Math.min(idx, tourSteps.length - 1));
+    const target = tourSteps[step];
+    if (target.tab) setTab(target.tab);
+    setTourStep(step);
+    setShowTour(true);
+  };
+
+  useEffect(() => {
+    const done = localStorage.getItem('teacherTourDone') === 'true';
+    setTourDone(done);
+  }, []);
+
+  const startTour = () => {
+    setTourStep(0);
+    setShowTour(true);
+  };
+
+  const endTour = () => {
+    setShowTour(false);
+    setTourDone(true);
+    localStorage.setItem('teacherTourDone', 'true');
+  };
+
+  const goToStep = (idx: number) => {
+    const step = Math.max(0, Math.min(idx, tourSteps.length - 1));
+    const target = tourSteps[step];
+    if (target.tab) setTab(target.tab);
+    setTourStep(step);
+    setShowTour(true);
+  };
   const feedbackByCourse = useMemo(() => {
     const map = new Map<string, Feedback[]>();
     feedbacks.forEach((f) => {
@@ -194,6 +344,12 @@ export default function DashboardClient({
               </span>
             )}
           </a>
+          <button
+            className="ml-auto px-3 py-2 rounded-full border border-pink-300/60 text-pink-50 hover:bg-pink-500/15 transition"
+            onClick={startTour}
+          >
+            ? Hilfe / Tour
+          </button>
           </div>
         </nav>
 
@@ -398,7 +554,58 @@ export default function DashboardClient({
         </div>
       </div>
 
-      </div>
+      {showTour && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center px-4">
+          <div className="max-w-lg w-full rounded-2xl bg-white text-ink p-5 shadow-2xl">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Schritt {tourStep + 1} / {tourSteps.length}</p>
+                <h3 className="text-xl font-semibold text-ink mt-1">{tourSteps[tourStep].title}</h3>
+              </div>
+              <button className="text-slate-500 hover:text-ink" onClick={endTour}>×</button>
+            </div>
+            <p className="text-sm text-slate-700 mt-3">{tourSteps[tourStep].desc}</p>
+
+            <div className="flex flex-wrap items-center gap-2 mt-4">
+              {tourSteps[tourStep].tab && (
+                <button
+                  className="px-3 py-1.5 rounded-lg border border-slate-300 text-sm text-slate-700 hover:bg-slate-100"
+                  onClick={() => {
+                    if (tourSteps[tourStep].tab) setTab(tourSteps[tourStep].tab!);
+                  }}
+                >
+                  Zum Bereich wechseln
+                </button>
+              )}
+              <div className="ml-auto flex items-center gap-2">
+                <button
+                  className="px-3 py-1.5 rounded-lg border border-slate-300 text-sm text-slate-700 hover:bg-slate-100"
+                  onClick={() => goToStep(tourStep - 1)}
+                  disabled={tourStep === 0}
+                >
+                  Zurück
+                </button>
+                {tourStep < tourSteps.length - 1 ? (
+                  <button
+                    className="px-3 py-1.5 rounded-lg bg-pink-500 text-white text-sm font-semibold hover:bg-pink-600"
+                    onClick={() => goToStep(tourStep + 1)}
+                  >
+                    Weiter
+                  </button>
+                ) : (
+                  <button
+                    className="px-3 py-1.5 rounded-lg bg-pink-500 text-white text-sm font-semibold hover:bg-pink-600"
+                    onClick={endTour}
+                  >
+                    Tour beenden
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <FooterLinks />
     </div>
   );
