@@ -225,8 +225,16 @@ function SurveyModal({ course, onClose }: { course: CourseCard; onClose: () => v
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
       <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white text-ink shadow-2xl p-6 relative">
-        <button className="absolute top-3 right-3 text-slate-500 hover:text-ink" onClick={onClose}>×</button>
-        <h3 className="text-2xl font-semibold mb-2">Fragebogen-Antworten · {course.title}</h3>
+        <button className="absolute top-3 right-3 text-slate-500 hover:text-ink no-print" onClick={onClose}>×</button>
+        <div className="flex items-start justify-between gap-3 mb-2">
+          <h3 className="text-2xl font-semibold">Fragebogen-Antworten · {course.title}</h3>
+          <button
+            className="no-print rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-100"
+            onClick={() => window.print()}
+          >
+            PDF / Drucken
+          </button>
+        </div>
         {loading && <p className="text-sm text-slate-500">Lade…</p>}
         {error && <p className="text-sm text-rose-600">{error}</p>}
         {data && (
@@ -245,7 +253,11 @@ function SurveyModal({ course, onClose }: { course: CourseCard; onClose: () => v
                     <p className="text-sm text-slate-500">Noch keine Antworten.</p>
                   )}
                   {rForSurvey.map((r: any, idx: number) => (
-                    <div key={idx} className="border border-slate-200 rounded-lg bg-white px-3 py-2 space-y-1">
+                    <div
+                      key={idx}
+                      className="border border-slate-200 rounded-lg bg-white px-3 py-2 space-y-1 print:page-break-after-always"
+                      style={{ pageBreakAfter: 'always' }}
+                    >
                       <p className="text-sm text-slate-700">
                         Teilnehmer: {r.student_name || r.student_email || '—'} ·{' '}
                         {r.submitted_at ? new Date(r.submitted_at).toLocaleString() : '—'}
