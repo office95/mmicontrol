@@ -125,14 +125,15 @@ export async function POST(req: Request) {
 
     // Optionen neu aufbauen: nur für die übergebenen Fragen, aber ohne andere Fragen zu löschen
     const questionIdsInOrder = (savedQuestions || []).map((q) => q.id);
-    if (questionIdsInOrder.length) {
-      await supa.from('quiz_answer_options').delete().in('question_id', questionIdsInOrder);
+    const sortedInputQs = [...(questions || [])].sort((a: any, b: any) => (a.order_index ?? 0) - (b.order_index ?? 0));
+    const targetIds = questionIdsInOrder.slice(0, sortedInputQs.length);
+    if (targetIds.length) {
+      await supa.from('quiz_answer_options').delete().in('question_id', targetIds);
     }
 
-    const sortedInputQs = [...(questions || [])].sort((a: any, b: any) => (a.order_index ?? 0) - (b.order_index ?? 0));
     const optPayload: any[] = [];
     sortedInputQs.forEach((q: any, i: number) => {
-      const targetId = questionIdsInOrder[i];
+      const targetId = targetIds[i];
       const opts = q.options || [];
       opts.forEach((o: any, j: number) => {
         optPayload.push({
