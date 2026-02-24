@@ -120,5 +120,16 @@ create policy if not exists course_survey_answers_student_select on public.cours
   for select using (exists (select 1 from public.course_survey_responses r where r.id = course_survey_answers.response_id and r.student_id = auth.uid()));
 create policy if not exists course_survey_responses_student_insert on public.course_survey_responses
   for insert with check (auth.uid() = student_id);
-create policy if not exists course_survey_answers_student_insert on public.course_survey_answers
-  for insert with check (exists (select 1 from public.course_survey_responses r where r.id = course_survey_answers.response_id and r.student_id = auth.uid()));
+drop policy if exists course_survey_answers_student_insert on public.course_survey_answers;
+create policy course_survey_answers_student_insert on public.course_survey_answers
+  for insert with check (
+    exists (
+      select 1 from public.course_survey_responses r
+      join public.bookings b on b.id = r.booking_id
+      where r.id = course_survey_answers.response_id
+        and (
+          r.student_id = auth.uid()
+          or lower(b.student_email) = lower(auth.email())
+        )
+    )
+  );
