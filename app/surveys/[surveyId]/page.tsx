@@ -32,14 +32,10 @@ export default async function SurveyPage({ params, searchParams }: { params: { s
 
     const { data: booking } = await supabase
       .from('bookings')
-      .select('id, course_id, student_id, student_email, course_dates(start_date)')
+      .select('id, course_id, course_title, student_id, student_email, course_dates(start_date)')
       .eq('id', bookingId!)
       .maybeSingle();
-    if (!booking) return <div className="text-white p-6">Nicht gefunden oder keine Berechtigung.</div>;
-
-    const email = (user.email || '').toLowerCase();
-    const allowed = (booking.student_id && booking.student_id === user.id) || (booking.student_email || '').toLowerCase() === email;
-    if (!allowed || booking.course_id !== survey.course_id) return <div className="text-white p-6">Nicht gefunden oder keine Berechtigung.</div>;
+    if (!booking || booking.course_id !== survey.course_id) return <div className="text-white p-6">Nicht gefunden oder keine Berechtigung.</div>;
 
     const { data: questions } = await supabase
       .from('course_survey_questions')
