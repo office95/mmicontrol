@@ -57,31 +57,23 @@ export async function GET(req: Request) {
     .eq('course_id', courseId)
     .order('created_at', { ascending: false });
 
-  if (!surveys?.length) return NextResponse.json({ responses: [] });
+  if (!surveys?.length) return NextResponse.json({ surveys: [], responses: [] });
 
   const surveyIds = surveys.map((s) => s.id);
 
-  // Alle Responses laden, damit auch ältere Surveys angezeigt werden können
-  const { data: responsesAll } = await service
+  // Alle Fragen aller Surveys laden
+  const { data: questionsAll } = await service
+    .from('course_survey_questions')
+    .select('id, survey_id, prompt, qtype, options, required, position, extra_text_label')
+    .in('survey_id', surveyIds)
+    .order('position', { ascending: true });
+
+  // Alle Responses laden
+  const { data: responses } = await service
     .from('course_survey_responses')
     .select('id, survey_id, booking_id, student_id, submitted_at, course_survey_answers(question_id, value, extra_text)')
     .in('survey_id', surveyIds)
     .order('submitted_at', { ascending: false });
-
-  // Welche Survey zeigen? Priorität: die erste Survey mit Antworten, sonst die neueste
-  const surveyWithAnswers = surveys.find((s) => (responsesAll || []).some((r) => r.survey_id === s.id));
-  const survey = surveyWithAnswers ?? surveys[0];
-
-  const { data: questions } = await service
-    .from('course_survey_questions')
-    .select('id, prompt, qtype, options, required, position, extra_text_label')
-    .eq('survey_id', survey.id)
-    .order('position', { ascending: true });
-  const qMap = new Map<string, any>();
-  (questions || []).forEach((q) => qMap.set(q.id, q));
-
-  // Responses auf ausgewählte Survey filtern
-  const responses = (responsesAll || []).filter((r) => r.survey_id === survey.id);
 
   // Teilnehmerdaten anreichern
   const studentIds = Array.from(new Set((responses || []).map((r) => r.student_id).filter(Boolean))) as string[];
@@ -90,6 +82,9 @@ export async function GET(req: Request) {
     const { data: studs } = await service.from('students').select('id, name, email').in('id', studentIds);
     studs?.forEach((s) => studentMap.set(s.id, s));
   }
+
+  const qMap = new Map<string, any>();
+  (questionsAll || []).forEach((q) => qMap.set(q.id, q));
 
   const enriched = (responses || []).map((r) => {
     return {
@@ -109,5 +104,5 @@ export async function GET(req: Request) {
     };
   });
 
-  return NextResponse.json({ survey, responses: enriched });
+  return NextResponse.json({ surveys, responses: enriched });
 }

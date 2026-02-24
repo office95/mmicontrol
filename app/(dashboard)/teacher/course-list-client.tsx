@@ -191,7 +191,7 @@ export default function CourseListClient({ courses }: { courses: CourseCard[] })
 function SurveyModal({ course, onClose }: { course: CourseCard; onClose: () => void }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<{ surveys: any[]; responses: any[] } | null>(null);
 
   useEffect(() => {
     let ignore = false;
@@ -217,32 +217,43 @@ function SurveyModal({ course, onClose }: { course: CourseCard; onClose: () => v
         {error && <p className="text-sm text-rose-600">{error}</p>}
         {data && (
           <div className="space-y-4">
-            <div className="flex items-center gap-3">
-              <p className="text-sm text-slate-600">Eingereicht: {data.responses?.length || 0}</p>
-              <a
-                href={`/api/teacher/course-surveys/export?course_id=${course.id}`}
-                className="text-sm px-3 py-1 rounded-lg border border-slate-300 bg-slate-50 hover:bg-slate-100"
-              >
-                CSV Export
-              </a>
-            </div>
-            {(data.responses || []).map((r: any, idx: number) => (
-              <div key={idx} className="rounded-xl border border-slate-200 bg-slate-50 p-3 space-y-2">
-                <p className="text-sm text-slate-700">Teilnehmer: {r.student_name || r.student_email || '—'} · {r.submitted_at ? new Date(r.submitted_at).toLocaleString() : '—'}</p>
-                <div className="space-y-1 text-sm">
-                  {(r.answers || []).map((a: any, i: number) => (
-                    <div key={i} className="border border-slate-200 rounded-lg bg-white px-3 py-2">
-                      <p className="font-semibold text-slate-800">{a.prompt}</p>
-                      <p className="text-slate-700">{a.value || '—'}</p>
-                      {a.extra_text_label && (
-                        <p className="text-slate-600 mt-1"><span className="font-semibold">{a.extra_text_label}:</span> {a.extra_text || '—'}</p>
-                      )}
+            {(data.surveys || []).map((s) => {
+              const rForSurvey = (data.responses || []).filter((r) => r.survey_id === s.id);
+              return (
+                <div key={s.id} className="rounded-xl border border-slate-200 bg-slate-50 p-3 space-y-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-sm font-semibold text-slate-800">{s.title || 'Fragebogen'}</p>
+                    <span className="text-xs inline-flex items-center gap-1 px-2 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-700">
+                      Eingereicht: {rForSurvey.length}
+                    </span>
+                  </div>
+                  {rForSurvey.length === 0 && (
+                    <p className="text-sm text-slate-500">Noch keine Antworten.</p>
+                  )}
+                  {rForSurvey.map((r: any, idx: number) => (
+                    <div key={idx} className="border border-slate-200 rounded-lg bg-white px-3 py-2 space-y-1">
+                      <p className="text-sm text-slate-700">
+                        Teilnehmer: {r.student_name || r.student_email || '—'} ·{' '}
+                        {r.submitted_at ? new Date(r.submitted_at).toLocaleString() : '—'}
+                      </p>
+                      <div className="space-y-1 text-sm">
+                        {(r.answers || []).map((a: any, i: number) => (
+                          <div key={i} className="border border-slate-200 rounded-lg bg-slate-50 px-3 py-2">
+                            <p className="font-semibold text-slate-800">{a.prompt}</p>
+                            <p className="text-slate-700">{a.value || '—'}</p>
+                            {a.extra_text_label && (
+                              <p className="text-slate-600 mt-1">
+                                <span className="font-semibold">{a.extra_text_label}:</span> {a.extra_text || '—'}
+                              </p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   ))}
                 </div>
-              </div>
-            ))}
-            {!data.responses?.length && <p className="text-sm text-slate-500">Noch keine Antworten.</p>}
+              );
+            })}
           </div>
         )}
       </div>
