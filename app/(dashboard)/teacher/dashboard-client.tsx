@@ -97,42 +97,42 @@ export default function DashboardClient({
     {
       id: 'tabs',
       title: 'Navigation',
-      desc: 'Hier wechselst du zwischen Performance, Kursen, Unterlagen, Feedback und Benefits.',
+      desc: 'Oben in der Navigation kannst du zwischen Performance, Kursen, Unterlagen, Feedback und Benefits wechseln.',
     },
     {
       id: 'charts',
       title: 'Performance & Charts',
-      desc: 'Unter „Performance-Übersicht“ siehst du KPIs, Trends und Diagramme zu Buchungen und Teilnehmern.',
+      desc: 'Im Tab „Performance-Übersicht“ siehst du KPIs, Trends und Diagramme zu Buchungen und Teilnehmern.',
       tab: 'perf',
     },
     {
       id: 'courses',
       title: 'Kurse & Teilnehmer',
-      desc: 'In „Meine Kurse & Teilnehmer“ findest du deine Kurskarten mit Startdatum, Dauer und Teilnehmerzahl.',
+      desc: 'Im Tab „Meine Kurse & Teilnehmer“ findest du deine Kurskarten mit Startdatum, Dauer und Teilnehmerzahl.',
       tab: 'courses',
     },
     {
       id: 'attendance',
       title: 'Teilnehmer & Anwesenheit',
-      desc: 'Über „Teilnehmer“ und „Anwesenheitsliste“ verwaltest du Teilnehmerdetails und Check-ins.',
+      desc: 'Innerhalb des Kurs-Tabs erreichst du über „Teilnehmer“ und „Anwesenheitsliste“ die Check-ins.',
       tab: 'courses',
     },
     {
       id: 'surveys',
       title: 'Fragebogen-Antworten',
-      desc: 'Der Button „Fragebogen-Antworten“ öffnet alle eingereichten Kursfragebögen deiner Kurse.',
+      desc: 'Im Kurs-Tab führt der Button „Fragebogen-Antworten“ direkt zu allen eingereichten Kursfragebögen.',
       tab: 'courses',
     },
     {
       id: 'export',
       title: 'PDF / Export',
-      desc: 'Im Fragebogen-Modal kannst du über „PDF / Drucken“ alle Antworten druckfertig exportieren.',
+      desc: 'Im Fragebogen-Modal findest du oben „PDF / Drucken“, um Antworten pro Fragebogen zu exportieren.',
       tab: 'courses',
     },
     {
       id: 'support',
       title: 'Support & Hilfe',
-      desc: 'Bei Fragen erreichst du den Support über den „Support“-Button in der Navigation.',
+      desc: 'Oben rechts führt dich der „Support“-Button zum Hilfebereich und Tickets.',
     },
   ];
   useEffect(() => {
@@ -481,7 +481,7 @@ export default function DashboardClient({
     </div> {/* end flex-1 */}
 
       {showTour && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center px-4">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-[2px] flex items-center justify-center px-4">
           <div className="max-w-lg w-full rounded-2xl bg-white text-ink p-5 shadow-2xl">
             <div className="flex items-start justify-between gap-3">
               <div>
@@ -493,6 +493,9 @@ export default function DashboardClient({
             <p className="text-sm text-slate-700 mt-3">{tourSteps[tourStep].desc}</p>
 
             <div className="flex flex-wrap items-center gap-2 mt-4">
+              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-xs border border-slate-200">
+                Tipp: Schau oben in die Navigation / Buttons.
+              </span>
               {tourSteps[tourStep].tab && (
                 <button
                   className="px-3 py-1.5 rounded-lg border border-slate-300 text-sm text-slate-700 hover:bg-slate-100"
