@@ -328,11 +328,18 @@ export default async function TeacherPage() {
     const courseIdsAll = courses.map((c) => c.id);
     const { data: courseSurveys } = await service
       .from('course_surveys')
-      .select('id, course_id')
-      .in('course_id', courseIdsAll);
+      .select('id, course_id, created_at')
+      .in('course_id', courseIdsAll)
+      .order('created_at', { ascending: false });
 
     const surveyByCourse = new Map<string, string>();
-    (courseSurveys || []).forEach((s) => s.course_id && surveyByCourse.set(s.course_id, s.id));
+    (courseSurveys || []).forEach((s) => {
+      if (!s.course_id) return;
+      // neueste Survey pro Kurs bevorzugen
+      if (!surveyByCourse.has(s.course_id)) {
+        surveyByCourse.set(s.course_id, s.id);
+      }
+    });
 
     const surveyIds = (courseSurveys || []).map((s) => s.id);
     const { data: responses } = surveyIds.length

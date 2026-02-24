@@ -53,8 +53,10 @@ export async function GET(req: Request) {
 
   const { data: survey } = await service
     .from('course_surveys')
-    .select('id, title')
+    .select('id, title, created_at')
     .eq('course_id', courseId)
+    .order('created_at', { ascending: false })
+    .limit(1)
     .maybeSingle();
   if (!survey) return NextResponse.json({ responses: [] });
 
