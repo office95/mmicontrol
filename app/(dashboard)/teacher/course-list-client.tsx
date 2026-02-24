@@ -208,7 +208,10 @@ function SurveyModal({ course, onClose }: { course: CourseCard; onClose: () => v
           return null;
         }
       })();
-      const res = await fetch(`/api/teacher/course-surveys?course_id=${course.id}${course.survey_id ? `&survey_id=${course.survey_id}` : ''}${respId ? `&response_id=${respId}` : ''}`);
+      const res = await fetch(
+        `/api/teacher/course-surveys?course_id=${course.id}${course.survey_id ? `&survey_id=${course.survey_id}` : ''}${respId ? `&response_id=${respId}` : ''}`,
+        { cache: 'no-store' }
+      );
       const json = await res.json().catch(() => ({}));
       if (ignore) return;
       if (!res.ok) setError(json.error || 'Fehler beim Laden');
