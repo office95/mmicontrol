@@ -51,15 +51,46 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: 'forbidden' }, { status: 403 });
   }
 
-  const { data: surveys } = await service
+  // Kurs-Surveys holen
+  const { data: surveysBase } = await service
     .from('course_surveys')
     .select('id, title, created_at')
     .eq('course_id', courseId)
     .order('created_at', { ascending: false });
 
-  if (!surveys?.length) return NextResponse.json({ surveys: [], responses: [] });
+  // Buchungen des Kurses holen, um Responses über booking_id abzufangen
+  const { data: bookings } = await service
+    .from('bookings')
+    .select('id')
+    .eq('course_id', courseId);
+  const bookingIds = (bookings || []).map((b) => b.id);
 
-  const surveyIds = surveys.map((s) => s.id);
+  const surveyIdsBase = surveysBase?.map((s) => s.id) || [];
+
+  // Responses holen: entweder zu bekannten Survey-IDs oder zu Booking-IDs dieses Kurses
+  const { data: responses } = await service
+    .from('course_survey_responses')
+    .select('id, survey_id, booking_id, student_id, submitted_at, course_survey_answers(question_id, value, extra_text)')
+    .or([
+      surveyIdsBase.length ? `survey_id.in.(${surveyIdsBase.join(',')})` : '',
+      bookingIds.length ? `booking_id.in.(${bookingIds.join(',')})` : '',
+    ].filter(Boolean).join(','))
+    .order('submitted_at', { ascending: false });
+
+  // Survey-IDs um die aus Responses erweitern (falls Responses existieren, aber Survey nicht über course_id geholt wurde)
+  const surveyIds = Array.from(new Set([
+    ...surveyIdsBase,
+    ...((responses || []).map((r) => r.survey_id).filter(Boolean) as string[]),
+  ]));
+
+  if (!surveyIds.length) return NextResponse.json({ surveys: [], responses: [] });
+
+  // Surveys nachladen für alle IDs (falls durch Responses ergänzt)
+  const { data: surveys } = await service
+    .from('course_surveys')
+    .select('id, title, created_at, course_id')
+    .in('id', surveyIds)
+    .order('created_at', { ascending: false });
 
   // Alle Fragen aller Surveys laden
   const { data: questionsAll } = await service
@@ -67,13 +98,6 @@ export async function GET(req: Request) {
     .select('id, survey_id, prompt, qtype, options, required, position, extra_text_label')
     .in('survey_id', surveyIds)
     .order('position', { ascending: true });
-
-  // Alle Responses laden
-  const { data: responses } = await service
-    .from('course_survey_responses')
-    .select('id, survey_id, booking_id, student_id, submitted_at, course_survey_answers(question_id, value, extra_text)')
-    .in('survey_id', surveyIds)
-    .order('submitted_at', { ascending: false });
 
   // Teilnehmerdaten anreichern
   const studentIds = Array.from(new Set((responses || []).map((r) => r.student_id).filter(Boolean))) as string[];
