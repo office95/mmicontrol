@@ -31,6 +31,15 @@ export async function GET(_req: Request, ctx: { params: { id: string } }) {
     return NextResponse.json({ error: 'service role key missing' }, { status: 500 });
   }
 
+  const shuffle = <T,>(items: T[]): T[] => {
+    const arr = [...items];
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  };
+
   const quizId = ctx.params.id;
   const user = await currentUser();
   if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
@@ -55,9 +64,17 @@ export async function GET(_req: Request, ctx: { params: { id: string } }) {
     .order('created_at', { ascending: true });
   if (qsErr) return NextResponse.json({ error: qsErr.message }, { status: 400 });
 
-  return NextResponse.json({
-    quiz,
-    questions: (questions || []).map((q: any) => ({
+  // Map and randomize
+  const mapped = (questions || []).map((q: any) => {
+    const baseOptions = (q.quiz_answer_options || [])
+      .sort((a: any, b: any) => (a.order_index ?? 0) - (b.order_index ?? 0))
+      .map((o: any) => ({ id: o.id, label: o.label, is_correct: o.is_correct }));
+
+    // Shuffle options for choice-type questions; keep order-sensitive ones as-is
+    const optionShuffleAllowed = !['order', 'match', 'text'].includes(q.qtype);
+    const options = optionShuffleAllowed ? shuffle(baseOptions) : baseOptions;
+
+    return {
       id: q.id,
       module_id: q.module_id,
       module_number: q.module_number,
@@ -67,9 +84,20 @@ export async function GET(_req: Request, ctx: { params: { id: string } }) {
       media_url: q.media_url,
       explanation: q.explanation,
       order_index: q.order_index,
-      options: (q.quiz_answer_options || [])
-        .sort((a: any, b: any) => (a.order_index ?? 0) - (b.order_index ?? 0))
-        .map((o: any) => ({ id: o.id, label: o.label, is_correct: o.is_correct })),
-    })),
+      options,
+    };
+  });
+
+  const shuffledQuestions = shuffle(mapped);
+
+  // Set a presentation order for the client (optional)
+  const questionsWithDisplayOrder = shuffledQuestions.map((q, idx) => ({
+    ...q,
+    display_order: idx,
+  }));
+
+  return NextResponse.json({
+    quiz,
+    questions: questionsWithDisplayOrder,
   });
 }
