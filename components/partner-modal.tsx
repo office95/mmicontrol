@@ -439,13 +439,31 @@ export default function PartnerModal({
                   </div>
                 </Field>
                 <Field label="Provisionen (%)" className="space-y-2">
-                  <div className="grid grid-cols-2 gap-2">
-                    <input className="input" placeholder="1 TLN" value={provision1} onChange={(e) => setProvision1(e.target.value)} />
-                    <input className="input" placeholder="2 TLN" value={provision2} onChange={(e) => setProvision2(e.target.value)} />
-                    <input className="input" placeholder="3 TLN" value={provision3} onChange={(e) => setProvision3(e.target.value)} />
-                    <input className="input" placeholder="4 TLN" value={provision4} onChange={(e) => setProvision4(e.target.value)} />
-                    <input className="input" placeholder="5 TLN" value={provision5} onChange={(e) => setProvision5(e.target.value)} />
-                    <input className="input" placeholder="ab 6 TLN" value={provision6plus} onChange={(e) => setProvision6plus(e.target.value)} />
+                  <div className="grid grid-cols-2 gap-3 text-xs text-slate-600">
+                    <div className="space-y-1">
+                      <p className="font-semibold text-[11px] uppercase tracking-[0.08em]">1 Teilnehmer</p>
+                      <input className="input" placeholder="z.B. 10" value={provision1} onChange={(e) => setProvision1(e.target.value)} />
+                    </div>
+                    <div className="space-y-1">
+                      <p className="font-semibold text-[11px] uppercase tracking-[0.08em]">2 Teilnehmer</p>
+                      <input className="input" placeholder="z.B. 12" value={provision2} onChange={(e) => setProvision2(e.target.value)} />
+                    </div>
+                    <div className="space-y-1">
+                      <p className="font-semibold text-[11px] uppercase tracking-[0.08em]">3 Teilnehmer</p>
+                      <input className="input" placeholder="z.B. 14" value={provision3} onChange={(e) => setProvision3(e.target.value)} />
+                    </div>
+                    <div className="space-y-1">
+                      <p className="font-semibold text-[11px] uppercase tracking-[0.08em]">4 Teilnehmer</p>
+                      <input className="input" placeholder="z.B. 16" value={provision4} onChange={(e) => setProvision4(e.target.value)} />
+                    </div>
+                    <div className="space-y-1">
+                      <p className="font-semibold text-[11px] uppercase tracking-[0.08em]">5 Teilnehmer</p>
+                      <input className="input" placeholder="z.B. 18" value={provision5} onChange={(e) => setProvision5(e.target.value)} />
+                    </div>
+                    <div className="space-y-1">
+                      <p className="font-semibold text-[11px] uppercase tracking-[0.08em]">ab 6 Teilnehmer</p>
+                      <input className="input" placeholder="z.B. 20" value={provision6plus} onChange={(e) => setProvision6plus(e.target.value)} />
+                    </div>
                   </div>
                 </Field>
               </div>
