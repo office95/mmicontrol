@@ -123,13 +123,6 @@ export default function DashboardClient({
       tab: 'courses',
     },
     {
-      id: 'materials',
-      title: 'Kursunterlagen',
-      desc: 'Im Tab „Kursunterlagen“ findest du immer die aktuellen Materialien zu deinen Kursen, sortiert nach Kurs.',
-      location: 'Navigation · Kursunterlagen',
-      tab: 'materials',
-    },
-    {
       id: 'surveys',
       title: 'Fragebogen-Antworten',
       desc: 'Auf der Kurskarte „Fragebogen-Antworten“ öffnen: Hier siehst du die Antworten, die Teilnehmer vor Kursbeginn ausfüllen, damit du dich perfekt vorbereiten kannst.',
@@ -144,10 +137,11 @@ export default function DashboardClient({
       tab: 'courses',
     },
     {
-      id: 'support',
-      title: 'Support & Hilfe',
-      desc: 'Probleme, Wünsche, Anregungen? Über „Support“ schickst du uns eine Nachricht – wir antworten rasch auf dein Anliegen.',
-      location: 'Navigation · Support',
+      id: 'materials',
+      title: 'Kursunterlagen',
+      desc: 'Im Tab „Kursunterlagen“ findest du immer die aktuellen Materialien zu deinen Kursen, sortiert nach Kurs.',
+      location: 'Navigation · Kursunterlagen',
+      tab: 'materials',
     },
     {
       id: 'feedback',
@@ -162,6 +156,18 @@ export default function DashboardClient({
       desc: 'Im Tab „Benefits“ zeigen wir Partner mit Specials für MMI Members Card Besitzer – alle Aktionen auf einen Blick.',
       location: 'Navigation · Benefits',
       tab: 'benefits',
+    },
+    {
+      id: 'support',
+      title: 'Support & Hilfe',
+      desc: 'Probleme, Wünsche, Anregungen? Über „Support“ schickst du uns eine Nachricht – wir antworten rasch auf dein Anliegen.',
+      location: 'Navigation · Support',
+    },
+    {
+      id: 'quiz',
+      title: 'Music Mission Quiz',
+      desc: 'Ganz unten das „Music Mission Quiz“: Damit trainieren auch deine Teilnehmer spielerisch Theorie – mehrere Levels, steigende Schwierigkeit und Highscore-Liste (anonymisierte Namen).',
+      location: 'Seitenende · Quiz-Banner',
     },
   ];
   useEffect(() => {
@@ -526,16 +532,6 @@ export default function DashboardClient({
                 <span className="inline-flex h-2 w-2 rounded-full bg-pink-500 animate-pulse" />
                 Ort: {tourSteps[tourStep].location}
               </span>
-              {tourSteps[tourStep].tab && (
-                <button
-                  className="px-3 py-1.5 rounded-lg border border-slate-300 text-sm text-slate-700 hover:bg-slate-100"
-                  onClick={() => {
-                    if (tourSteps[tourStep].tab) setTab(tourSteps[tourStep].tab!);
-                  }}
-                >
-                  Zum Bereich wechseln
-                </button>
-              )}
               <div className="ml-auto flex items-center gap-2">
                 <button
                   className="px-3 py-1.5 rounded-lg border border-slate-300 text-sm text-slate-700 hover:bg-slate-100"
