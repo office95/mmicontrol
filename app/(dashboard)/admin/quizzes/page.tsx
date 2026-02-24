@@ -138,7 +138,7 @@ export default function AdminQuizzesPage() {
       ...prev,
       {
         prompt: 'Neue Frage',
-        difficulty: 'medium',
+        difficulty: 'easy',
         qtype: 'single',
         options: [
           { label: 'Antwort 1', is_correct: true },
