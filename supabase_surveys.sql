@@ -76,6 +76,33 @@ create policy if not exists course_survey_questions_admin_all on public.course_s
 create policy if not exists course_survey_responses_admin_all on public.course_survey_responses for all using (auth.uid() in (select id from public.v_admin));
 create policy if not exists course_survey_answers_admin_all on public.course_survey_answers for all using (auth.uid() in (select id from public.v_admin));
 
+-- Studenten: lesen eigenen Kursfragebogen/-fragen
+create policy if not exists course_surveys_student_select on public.course_surveys
+  for select using (
+    exists (
+      select 1 from public.bookings b
+      where b.course_id = course_surveys.course_id
+        and (
+          b.student_id = auth.uid()
+          or lower(b.student_email) = lower(auth.email())
+        )
+    )
+  );
+
+create policy if not exists course_survey_questions_student_select on public.course_survey_questions
+  for select using (
+    exists (
+      select 1
+      from public.course_surveys s
+      join public.bookings b on b.course_id = s.course_id
+      where s.id = course_survey_questions.survey_id
+        and (
+          b.student_id = auth.uid()
+          or lower(b.student_email) = lower(auth.email())
+        )
+    )
+  );
+
 -- Lehrer: Lesen/Einsehen ihrer Kurse
 create policy if not exists course_surveys_teacher_select on public.course_surveys
   for select using (auth.uid() in (select user_id from public.course_members cm where cm.course_id = course_surveys.course_id and cm.role = 'teacher'));
