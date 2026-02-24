@@ -221,34 +221,42 @@ export default function StudentDashboardClient({
         </div>
       </nav>
 
-      {(surveysOpen || []).length > 0 && (
-        <div className="relative overflow-hidden rounded-2xl border border-white/12 bg-gradient-to-r from-sky-900/70 via-indigo-900/60 to-fuchsia-900/70 p-5 sm:p-6 text-white shadow-2xl">
-          <div className="absolute -right-10 -top-16 h-40 w-40 rounded-full bg-fuchsia-500/25 blur-3xl" />
-          <div className="absolute -left-16 -bottom-16 h-48 w-48 rounded-full bg-sky-500/20 blur-3xl" />
-          <div className="shine" aria-hidden />
-          <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-            <div className="space-y-2 max-w-xl">
-              <p className="text-[11px] uppercase tracking-[0.22em] text-white/70">Kursfragebogen offen</p>
-              <h3 className="text-2xl font-bold">Bitte vor Kursstart ausfüllen</h3>
-              <p className="text-sm text-white/80">Deine Antworten helfen uns, den Kurs perfekt vorzubereiten.</p>
-            </div>
-            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 w-full lg:w-auto">
-              {(surveysOpen || []).map((s) => (
-                <a
-                  key={`${s.survey_id}_${s.booking_id}`}
-                  href={`/surveys/${s.survey_id}?booking_id=${s.booking_id}`}
-                  className="group rounded-xl border border-white/15 bg-white/5 px-3 py-3 text-sm backdrop-blur hover:border-pink-300/60 hover:bg-white/10 transition"
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="font-semibold line-clamp-1 group-hover:text-pink-200">{s.title}</div>
-                    <span className="text-[11px] uppercase tracking-[0.14em] text-pink-200">Start</span>
-                  </div>
-                  <div className="text-white/75 text-xs line-clamp-1">{s.course_title || s.course_id}</div>
-                </a>
-              ))}
-            </div>
+      {tab === 'bookings' && (
+        <>
+          <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white font-semibold">
+            {bookings.length > 1 ? 'Deine aktuellen Buchungen' : 'Deine aktuelle Buchung'}
           </div>
-        </div>
+          <BookingsClient bookings={bookings} />
+          {(surveysOpen || []).length > 0 && (
+            <div className="relative overflow-hidden rounded-2xl border border-white/12 bg-gradient-to-r from-sky-900/70 via-indigo-900/60 to-fuchsia-900/70 p-5 sm:p-6 text-white shadow-2xl">
+              <div className="absolute -right-10 -top-16 h-40 w-40 rounded-full bg-fuchsia-500/25 blur-3xl" />
+              <div className="absolute -left-16 -bottom-16 h-48 w-48 rounded-full bg-sky-500/20 blur-3xl" />
+              <div className="shine" aria-hidden />
+              <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                <div className="space-y-2 max-w-xl">
+                  <p className="text-[11px] uppercase tracking-[0.22em] text-white/70">Kursfragebogen offen</p>
+                  <h3 className="text-2xl font-bold">Bitte vor Kursstart ausfüllen</h3>
+                  <p className="text-sm text-white/80">Deine Antworten helfen uns, den Kurs perfekt vorzubereiten.</p>
+                </div>
+                <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 w-full lg:w-auto">
+                  {(surveysOpen || []).map((s) => (
+                    <a
+                      key={`${s.survey_id}_${s.booking_id}`}
+                      href={`/surveys/${s.survey_id}?booking_id=${s.booking_id}`}
+                      className="group rounded-xl border border-white/15 bg-white/5 px-3 py-3 text-sm backdrop-blur hover:border-pink-300/60 hover:bg-white/10 transition"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="font-semibold line-clamp-1 group-hover:text-pink-200">{s.title}</div>
+                        <span className="text-[11px] uppercase tracking-[0.14em] text-pink-200">Start</span>
+                      </div>
+                      <div className="text-white/75 text-xs line-clamp-1">{s.course_title || s.course_id}</div>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </>
       )}
 
       <style jsx global>{`
