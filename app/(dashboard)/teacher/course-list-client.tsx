@@ -209,7 +209,7 @@ function SurveyModal({ course, onClose }: { course: CourseCard; onClose: () => v
         }
       })();
       const res = await fetch(
-        `/api/teacher/course-surveys?course_id=${course.id}${course.survey_id ? `&survey_id=${course.survey_id}` : ''}${respId ? `&response_id=${respId}` : ''}`,
+        `/api/teacher/course-surveys?course_id=${course.id}${respId ? `&response_id=${respId}` : ''}`,
         { cache: 'no-store' }
       );
       const json = await res.json().catch(() => ({}));
