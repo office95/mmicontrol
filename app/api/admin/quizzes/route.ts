@@ -104,7 +104,12 @@ export async function POST(req: Request) {
         explanation: q.explanation ?? null,
         order_index: q.order_index ?? idx,
       };
-      if (q.id) base.id = q.id;
+      if (q.id) {
+        base.id = q.id;
+      } else {
+        // sicherstellen, dass keine null/undefined-ID geschickt wird (sonst verletzt NOT NULL)
+        delete base.id;
+      }
       return base;
     });
 
@@ -120,6 +125,7 @@ export async function POST(req: Request) {
       ...q,
       order_index: q.order_index ?? i,
       prompt: (q.prompt || '').trim(),
+      id: q.id && typeof q.id === 'string' && q.id.length ? q.id : undefined,
     }));
     const keyFrom = (order: number, prompt: string) => `${order}::${prompt}`.toLowerCase();
 
