@@ -30,8 +30,8 @@ export async function GET(req: Request) {
 
   // Hinweis: Service-Role verwendet; keine zusätzliche Teacher-RLS hier, View filtert nach Bedarf
 
-  // Neue, robuste Variante: alles aus View v_teacher_course_surveys holen
-  const filters: any = {};
+  // Neue, robuste Variante: alles aus View v_teacher_course_surveys holen, gefiltert auf aktuellen Teacher
+  const filters: any = { teacher_id: user.id };
   if (courseId) filters.course_id = courseId;
   if (surveyIdParam) filters.survey_id = surveyIdParam;
 
