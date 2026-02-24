@@ -51,7 +51,7 @@ export async function POST(req: Request, { params }: { params: { surveyId: strin
 
   const { data: booking } = await supabase
     .from('bookings')
-    .select('id, course_id, student_id, student_email')
+    .select('id, course_id, student_id, student_email, course_dates(start_date), courses(title), students(name)')
     .eq('id', booking_id)
     .maybeSingle();
   const email = (user.email || '').toLowerCase();
@@ -89,6 +89,11 @@ export async function POST(req: Request, { params }: { params: { surveyId: strin
   // Notify zugehörige Dozenten per E-Mail
   try {
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.SUPABASE_URL || '';
+    const courseTitle = (booking as any)?.courses?.title || survey.course_id;
+    const courseStart = (booking as any)?.course_dates?.start_date
+      ? new Date((booking as any).course_dates.start_date).toLocaleDateString('de-AT')
+      : '';
+    const studentName = (booking as any)?.students?.name || '';
     const { data: teachers } = await supabase
       .from('course_members')
       .select('user_id')
@@ -108,8 +113,9 @@ export async function POST(req: Request, { params }: { params: { surveyId: strin
           'Hallo,',
           '',
           'es wurde ein Kursfragebogen ausgefüllt.',
-          `Kurs-ID: ${survey.course_id}`,
-          `Booking-ID: ${booking_id}`,
+          `Kurs: ${courseTitle}`,
+          courseStart ? `Kursstart: ${courseStart}` : '',
+          studentName ? `Teilnehmer: ${studentName}` : '',
           '',
           `Antworten ansehen: ${siteUrl}/teacher?tab=courses`,
           '',
