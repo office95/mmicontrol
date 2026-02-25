@@ -105,7 +105,7 @@ export default function PartnerModal({
   const [ratingReliability, setRatingReliability] = useState('0');
   const [ratingEngagement, setRatingEngagement] = useState('0');
 
-  const [activeTab, setActiveTab] = useState<'details' | 'vertrag' | 'bank' | 'rating' | 'media'>('details');
+  const [activeTab, setActiveTab] = useState<'details' | 'vertrag' | 'bank' | 'media' | 'rating'>('details');
   const [bookings, setBookings] = useState<
     { id: string; booking_date: string | null; course_title: string | null; course_start: string | null; student_name: string | null; status: string; amount: number | null }[]
   >([]);
@@ -347,18 +347,18 @@ export default function PartnerModal({
             Bankverbindung
           </button>
           <button
-            className={`pb-2 border-b-2 ${activeTab === 'rating' ? 'border-pink-500 text-pink-600' : 'border-transparent'}`}
-            onClick={() => setActiveTab('rating')}
-            type="button"
-          >
-            Bewertung
-          </button>
-          <button
             className={`pb-2 border-b-2 ${activeTab === 'media' ? 'border-pink-500 text-pink-600' : 'border-transparent'}`}
             onClick={() => setActiveTab('media')}
             type="button"
           >
             Medien
+          </button>
+          <button
+            className={`pb-2 border-b-2 ${activeTab === 'rating' ? 'border-pink-500 text-pink-600' : 'border-transparent'}`}
+            onClick={() => setActiveTab('rating')}
+            type="button"
+          >
+            Bewertung
           </button>
         </div>
 
@@ -581,101 +581,96 @@ export default function PartnerModal({
           )}
 
           {activeTab === 'media' && (
-            <section className="rounded-xl border border-slate-200 bg-slate-50/70 p-4 shadow-sm space-y-4">
-              <p className="text-sm font-semibold text-ink">Medien</p>
-              {!partnerId && (
-                <p className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-                  Bitte Partner anlegen und speichern, danach können Medien hochgeladen werden.
-                </p>
-              )}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Field label="Logo (PNG/JPG)">
-                  <div className="space-y-2">
-                    <input
-                      type="file"
-                      accept="image/png,image/jpeg"
-                      disabled={!partnerId}
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) uploadFile(file, 'logo', setLogoPath);
-                      }}
-                    />
-                    {logoPath && (
-                      <div className="rounded-lg border border-slate-200 bg-white p-2">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/media/${logoPath}`} alt="Logo" className="h-20 object-contain mx-auto" />
-                        <p className="text-[11px] text-slate-500 break-all mt-1">{logoPath}</p>
-                      </div>
-                    )}
-                  </div>
-                </Field>
-                <Field label="Hero Bild 1">
-                  <div className="space-y-2">
-                    <input
-                      type="file"
-                      accept="image/png,image/jpeg"
-                      disabled={!partnerId}
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) uploadFile(file, 'hero1', setHero1Path);
-                      }}
-                    />
-                    {hero1Path && (
-                      <div className="rounded-lg border border-slate-200 bg-white p-2">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/media/${hero1Path}`} alt="Hero 1" className="h-24 w-full object-cover rounded" />
-                        <p className="text-[11px] text-slate-500 break-all mt-1">{hero1Path}</p>
-                      </div>
-                    )}
-                  </div>
-                </Field>
-                <Field label="Hero Bild 2">
-                  <div className="space-y-2">
-                    <input
-                      type="file"
-                      accept="image/png,image/jpeg"
-                      disabled={!partnerId}
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) uploadFile(file, 'hero2', setHero2Path);
-                      }}
-                    />
-                    {hero2Path && (
-                      <div className="rounded-lg border border-slate-200 bg-white p-2">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/media/${hero2Path}`} alt="Hero 2" className="h-24 w-full object-cover rounded" />
-                        <p className="text-[11px] text-slate-500 break-all mt-1">{hero2Path}</p>
-                      </div>
-                    )}
-                  </div>
-                </Field>
+            <section className="rounded-xl border border-slate-200 bg-gradient-to-br from-slate-50 via-white to-slate-100 p-5 shadow-sm space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500">Medien</p>
+                  <h4 className="text-lg font-semibold text-ink">Logo, Hero & Galerie</h4>
+                  <p className="text-xs text-slate-600">Unterstützt PNG/JPG. Hero-Bilder ideal 16:9.</p>
+                </div>
+                {!partnerId && (
+                  <span className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-3 py-1">
+                    Partner zuerst speichern
+                  </span>
+                )}
               </div>
 
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-ink">Galerie (mehrere Bilder)</label>
-                <input
-                  type="file"
-                  multiple
-                  accept="image/png,image/jpeg"
-                  disabled={!partnerId}
-                  onChange={(e) => uploadGallery(e.target.files)}
-                />
-                {galleryPaths.length > 0 && (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {[
+                  { label: 'Logo', value: logoPath, setter: setLogoPath, kind: 'logo' as const, helper: 'Quadratisch bevorzugt' },
+                  { label: 'Hero Bild 1', value: hero1Path, setter: setHero1Path, kind: 'hero1' as const, helper: 'Startseite / Header' },
+                  { label: 'Hero Bild 2', value: hero2Path, setter: setHero2Path, kind: 'hero2' as const, helper: 'Alternative Bühne' },
+                ].map((item) => (
+                  <div key={item.kind} className="rounded-lg border border-slate-200 bg-white p-3 space-y-2 shadow-sm">
+                    <div className="flex items-center justify-between">
+                      <div className="text-sm font-semibold text-ink">{item.label}</div>
+                      <span className="text-[11px] text-slate-500">{item.helper}</span>
+                    </div>
+                    <label className={`block w-full rounded-lg border border-dashed ${partnerId ? 'border-slate-300 hover:border-pink-400 cursor-pointer' : 'border-slate-200 cursor-not-allowed'} bg-slate-50 text-center text-sm text-slate-500 py-4`}>
+                      <input
+                        type="file"
+                        className="hidden"
+                        accept="image/png,image/jpeg"
+                        disabled={!partnerId}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) uploadFile(file, item.kind, item.setter);
+                        }}
+                      />
+                      <span className="font-semibold text-pink-600">Upload</span> oder hier ablegen
+                    </label>
+                    {item.value && (
+                      <div className="rounded-lg border border-slate-200 bg-white p-2">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/media/${item.value}`}
+                          alt={item.label}
+                          className={`${item.kind === 'logo' ? 'h-24 object-contain mx-auto' : 'h-28 w-full object-cover rounded'}`}
+                        />
+                        <p className="text-[11px] text-slate-500 break-all mt-1">{item.value}</p>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              <div className="rounded-lg border border-slate-200 bg-white p-3 space-y-3 shadow-sm">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-semibold text-ink">Galerie</p>
+                    <p className="text-xs text-slate-600">Mehrere Bilder hinzufügen</p>
+                  </div>
+                  <label className={`inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-semibold ${partnerId ? 'bg-pink-600 text-white cursor-pointer hover:bg-pink-500' : 'bg-slate-200 text-slate-500 cursor-not-allowed'}`}>
+                    <input
+                      type="file"
+                      multiple
+                      accept="image/png,image/jpeg"
+                      className="hidden"
+                      disabled={!partnerId}
+                      onChange={(e) => uploadGallery(e.target.files)}
+                    />
+                    + Upload
+                  </label>
+                </div>
+                {galleryPaths.length > 0 ? (
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                     {galleryPaths.map((p) => (
-                      <div key={p} className="relative rounded-lg border border-slate-200 bg-white p-2">
+                      <div key={p} className="relative rounded-lg border border-slate-200 bg-slate-50 p-2 shadow-sm">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/media/${p}`} alt="Gallery" className="h-24 w-full object-cover rounded" />
                         <button
                           type="button"
-                          className="absolute top-1 right-1 bg-white/80 border border-slate-300 rounded-full px-2 text-xs text-slate-600"
+                          className="absolute top-1 right-1 bg-white/90 border border-slate-300 rounded-full px-2 text-xs text-slate-600 hover:border-pink-400"
                           onClick={() => setGalleryPaths((prev) => prev.filter((x) => x !== p))}
                         >
                           ×
                         </button>
+                        <p className="text-[10px] text-slate-500 break-all mt-1">{p}</p>
                       </div>
                     ))}
                   </div>
+                ) : (
+                  <p className="text-sm text-slate-500">Noch keine Galerie-Bilder hochgeladen.</p>
                 )}
               </div>
             </section>
