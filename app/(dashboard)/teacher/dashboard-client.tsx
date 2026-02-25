@@ -493,13 +493,7 @@ export default function DashboardClient({
                       href={`/quizzes?preview=1${q.course_id ? `&course_id=${q.course_id}` : ''}`}
                       className="rounded-full bg-pink-600 px-4 py-2 text-white text-sm font-semibold hover:bg-pink-500"
                     >
-                      Als Teilnehmer ansehen
-                    </a>
-                    <a
-                      href={`/admin/quizzes?id=${q.id}`}
-                      className="rounded-full border border-white/30 px-3 py-2 text-white text-sm hover:bg-white/10"
-                    >
-                      Öffnen
+                      Zum Quiz
                     </a>
                   </div>
                 </div>
