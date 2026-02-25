@@ -735,13 +735,13 @@ export default async function TeacherPage() {
       }[]
     | null = [];
 
-  // Quizze für freigegebene Kurse (nur veröffentlicht)
+  // Quizze nur für Kurse, in denen der Dozent explizit als Teacher eingetragen ist (course_members)
   let quizzes: { id: string; title: string; description: string | null; course_id: string | null }[] = [];
-  if (courseIds.length) {
+  if (courseMemberIds.length) {
     const { data: quizRows } = await service
       .from('quizzes')
       .select('id, title, description, course_id, is_published')
-      .in('course_id', courseIds)
+      .in('course_id', courseMemberIds)
       .eq('is_published', true)
       .order('created_at', { ascending: false });
     quizzes = (quizRows || []).map((q) => ({ id: q.id, title: q.title, description: q.description ?? null, course_id: q.course_id }));
