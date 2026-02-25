@@ -257,6 +257,9 @@ export default function DashboardClient({
     setSelectedQuizCourseId((prev) => prev ?? nextId);
   }, [quizCourseOptions, quizMap]);
   const selectedFeedbacks = selectedCourseId ? feedbackByCourse.get(selectedCourseId) || [] : [];
+  const memberCardImg = process.env.NEXT_PUBLIC_SUPABASE_URL
+    ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/media/1772012669195-51d9yl.jpg`
+    : null;
 
   return (
     <div className="min-h-screen flex flex-col space-y-8">
@@ -313,6 +316,24 @@ export default function DashboardClient({
             </button>
           </div>
         </nav>
+
+      {memberCardImg && (
+        <div className="rounded-2xl border border-white/10 bg-gradient-to-r from-slate-900 via-slate-900 to-black text-white overflow-hidden shadow-2xl">
+          <div className="grid md:grid-cols-[1.1fr,1fr]">
+            <div className="relative h-full min-h-[180px] bg-black/40">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={memberCardImg} alt="Music Mission Member Card" className="h-full w-full object-cover opacity-90" />
+            </div>
+            <div className="p-6 sm:p-8 flex flex-col justify-center space-y-2">
+              <p className="text-[11px] uppercase tracking-[0.24em] text-amber-300">Coming Soon</p>
+              <h3 className="text-3xl sm:text-4xl font-semibold text-amber-200 drop-shadow">Die Music Mission Member Card kommt.</h3>
+              <p className="text-sm sm:text-base text-amber-100/90">
+                Mehr Netzwerk. Mehr Vorteile. Mehr Möglichkeiten – exklusiv für unsere Community.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {tab === 'perf' && (
         <TeacherStatsClient
