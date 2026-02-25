@@ -7,7 +7,7 @@ const service = createClient(
 );
 
 const PARTNER_COLUMNS =
-  'id, status, provider_id, name, street, zip, city, country, state, phone, email, created_at, contract, contract_date, bank_name, iban, bic, contact_person, vat_number, tax_number, registry_number, provision1, provision2, provision3, provision4, provision5, provision6plus, rating_course, rating_teacher, rating_reliability, rating_engagement';
+  'id, status, provider_id, name, street, zip, city, country, state, phone, email, created_at, contract, contract_date, bank_name, iban, bic, contact_person, vat_number, tax_number, registry_number, provision1, provision2, provision3, provision4, provision5, provision6plus, rating_course, rating_teacher, rating_reliability, rating_engagement, logo_path, hero1_path, hero2_path, gallery_paths';
 
 export async function GET() {
   const { data, error } = await service.from('partners').select(PARTNER_COLUMNS).order('created_at', { ascending: false });
@@ -78,6 +78,10 @@ export async function POST(req: Request) {
     rating_teacher: body.rating_teacher ?? 0,
     rating_reliability: body.rating_reliability ?? 0,
     rating_engagement: body.rating_engagement ?? 0,
+    logo_path: body.logo_path ?? null,
+    hero1_path: body.hero1_path ?? null,
+    hero2_path: body.hero2_path ?? null,
+    gallery_paths: body.gallery_paths ?? [],
   };
   if (!payload.name) return NextResponse.json({ error: 'Name erforderlich' }, { status: 400 });
   if (!payload.email) return NextResponse.json({ error: 'Email erforderlich' }, { status: 400 });

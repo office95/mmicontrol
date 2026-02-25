@@ -30,6 +30,10 @@ create table if not exists public.partners (
   rating_teacher int default 0,
   rating_reliability int default 0,
   rating_engagement int default 0,
+  logo_path text,
+  hero1_path text,
+  hero2_path text,
+  gallery_paths text[],
   created_at timestamptz default now()
 );
 
@@ -37,3 +41,9 @@ alter table public.partners enable row level security;
 drop policy if exists "partners admin all" on public.partners;
 create policy "partners admin all" on public.partners
   for all using (auth.uid() in (select id from public.profiles where role='admin'));
+
+-- Medien-Felder nachträglich ergänzen (idempotent)
+alter table public.partners add column if not exists logo_path text;
+alter table public.partners add column if not exists hero1_path text;
+alter table public.partners add column if not exists hero2_path text;
+alter table public.partners add column if not exists gallery_paths text[];

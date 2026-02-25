@@ -35,6 +35,10 @@ export type PartnerRow = {
   rating_teacher: number | null;
   rating_reliability: number | null;
   rating_engagement: number | null;
+  logo_path?: string | null;
+  hero1_path?: string | null;
+  hero2_path?: string | null;
+  gallery_paths?: string[] | null;
 };
 
 const COUNTRIES = ['Österreich', 'Deutschland'] as const;
@@ -101,10 +105,14 @@ export default function PartnerModal({
   const [ratingReliability, setRatingReliability] = useState('0');
   const [ratingEngagement, setRatingEngagement] = useState('0');
 
-  const [activeTab, setActiveTab] = useState<'details' | 'vertrag' | 'bank' | 'rating'>('details');
+  const [activeTab, setActiveTab] = useState<'details' | 'vertrag' | 'bank' | 'rating' | 'media'>('details');
   const [bookings, setBookings] = useState<
     { id: string; booking_date: string | null; course_title: string | null; course_start: string | null; student_name: string | null; status: string; amount: number | null }[]
   >([]);
+  const [logoPath, setLogoPath] = useState<string | null>(null);
+  const [hero1Path, setHero1Path] = useState<string | null>(null);
+  const [hero2Path, setHero2Path] = useState<string | null>(null);
+  const [galleryPaths, setGalleryPaths] = useState<string[]>([]);
 
   const stateOptions = useMemo(() => (country === 'Österreich' ? STATES_AT : STATES_DE), [country]);
 
@@ -131,6 +139,45 @@ export default function PartnerModal({
     if (val >= 2.0) return 'Mittel';
     if (val > 0) return 'Schwach';
     return 'Keine Bewertung';
+  };
+
+  const partnerId = partner?.id;
+
+  const uploadFile = async (file: File, kind: 'logo' | 'hero1' | 'hero2', onPath: (p: string) => void) => {
+    if (!partnerId) {
+      setError('Bitte Partner zuerst speichern, dann Medien hochladen.');
+      return;
+    }
+    setError(null);
+    const ext = file.name.split('.').pop() || 'jpg';
+    const path = `partners/${partnerId}/${kind}-${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from('media').upload(path, file, { upsert: true });
+    if (error) {
+      setError(error.message);
+      return;
+    }
+    onPath(path);
+  };
+
+  const uploadGallery = async (files: FileList | null) => {
+    if (!files || !files.length) return;
+    if (!partnerId) {
+      setError('Bitte Partner zuerst speichern, dann Medien hochladen.');
+      return;
+    }
+    setError(null);
+    const newPaths: string[] = [];
+    for (const file of Array.from(files)) {
+      const ext = file.name.split('.').pop() || 'jpg';
+      const path = `partners/${partnerId}/gallery-${Date.now()}-${file.name.replace(/\s+/g, '_')}`;
+      const { error } = await supabase.storage.from('media').upload(path, file, { upsert: true });
+      if (error) {
+        setError(error.message);
+        return;
+      }
+      newPaths.push(path);
+    }
+    setGalleryPaths((prev) => [...prev, ...newPaths]);
   };
 
   useEffect(() => {
@@ -164,6 +211,10 @@ export default function PartnerModal({
     setRatingTeacher(partner.rating_teacher?.toString() ?? '0');
     setRatingReliability(partner.rating_reliability?.toString() ?? '0');
     setRatingEngagement(partner.rating_engagement?.toString() ?? '0');
+    setLogoPath(partner.logo_path ?? null);
+    setHero1Path(partner.hero1_path ?? null);
+    setHero2Path(partner.hero2_path ?? null);
+    setGalleryPaths(partner.gallery_paths ?? []);
   }, [partner]);
 
   useEffect(() => {
@@ -217,6 +268,10 @@ export default function PartnerModal({
         rating_teacher: Number(ratingTeacher) || 0,
         rating_reliability: Number(ratingReliability) || 0,
         rating_engagement: Number(ratingEngagement) || 0,
+        logo_path: logoPath,
+        hero1_path: hero1Path,
+        hero2_path: hero2Path,
+        gallery_paths: galleryPaths,
       }),
     });
     const data = await res.json();
@@ -297,6 +352,13 @@ export default function PartnerModal({
             type="button"
           >
             Bewertung
+          </button>
+          <button
+            className={`pb-2 border-b-2 ${activeTab === 'media' ? 'border-pink-500 text-pink-600' : 'border-transparent'}`}
+            onClick={() => setActiveTab('media')}
+            type="button"
+          >
+            Medien
           </button>
         </div>
 
@@ -514,6 +576,107 @@ export default function PartnerModal({
               </div>
               <div className="text-sm text-slate-600">
                 Gesamt: <span className="font-semibold text-ink">{ratingLabel(avgRating)}</span> ({avgRating.toFixed(1)} / 5)
+              </div>
+            </section>
+          )}
+
+          {activeTab === 'media' && (
+            <section className="rounded-xl border border-slate-200 bg-slate-50/70 p-4 shadow-sm space-y-4">
+              <p className="text-sm font-semibold text-ink">Medien</p>
+              {!partnerId && (
+                <p className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                  Bitte Partner anlegen und speichern, danach können Medien hochgeladen werden.
+                </p>
+              )}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Field label="Logo (PNG/JPG)">
+                  <div className="space-y-2">
+                    <input
+                      type="file"
+                      accept="image/png,image/jpeg"
+                      disabled={!partnerId}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) uploadFile(file, 'logo', setLogoPath);
+                      }}
+                    />
+                    {logoPath && (
+                      <div className="rounded-lg border border-slate-200 bg-white p-2">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/media/${logoPath}`} alt="Logo" className="h-20 object-contain mx-auto" />
+                        <p className="text-[11px] text-slate-500 break-all mt-1">{logoPath}</p>
+                      </div>
+                    )}
+                  </div>
+                </Field>
+                <Field label="Hero Bild 1">
+                  <div className="space-y-2">
+                    <input
+                      type="file"
+                      accept="image/png,image/jpeg"
+                      disabled={!partnerId}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) uploadFile(file, 'hero1', setHero1Path);
+                      }}
+                    />
+                    {hero1Path && (
+                      <div className="rounded-lg border border-slate-200 bg-white p-2">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/media/${hero1Path}`} alt="Hero 1" className="h-24 w-full object-cover rounded" />
+                        <p className="text-[11px] text-slate-500 break-all mt-1">{hero1Path}</p>
+                      </div>
+                    )}
+                  </div>
+                </Field>
+                <Field label="Hero Bild 2">
+                  <div className="space-y-2">
+                    <input
+                      type="file"
+                      accept="image/png,image/jpeg"
+                      disabled={!partnerId}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) uploadFile(file, 'hero2', setHero2Path);
+                      }}
+                    />
+                    {hero2Path && (
+                      <div className="rounded-lg border border-slate-200 bg-white p-2">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/media/${hero2Path}`} alt="Hero 2" className="h-24 w-full object-cover rounded" />
+                        <p className="text-[11px] text-slate-500 break-all mt-1">{hero2Path}</p>
+                      </div>
+                    )}
+                  </div>
+                </Field>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-ink">Galerie (mehrere Bilder)</label>
+                <input
+                  type="file"
+                  multiple
+                  accept="image/png,image/jpeg"
+                  disabled={!partnerId}
+                  onChange={(e) => uploadGallery(e.target.files)}
+                />
+                {galleryPaths.length > 0 && (
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    {galleryPaths.map((p) => (
+                      <div key={p} className="relative rounded-lg border border-slate-200 bg-white p-2">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/media/${p}`} alt="Gallery" className="h-24 w-full object-cover rounded" />
+                        <button
+                          type="button"
+                          className="absolute top-1 right-1 bg-white/80 border border-slate-300 rounded-full px-2 text-xs text-slate-600"
+                          onClick={() => setGalleryPaths((prev) => prev.filter((x) => x !== p))}
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </section>
           )}
