@@ -42,6 +42,9 @@ export type PartnerRow = {
   teacher_name?: string | null;
   teacher_image_path?: string | null;
   teacher_description?: string | null;
+  website_slogan?: string | null;
+  website_description?: string | null;
+  website_tags?: string[] | null;
 };
 
 const COUNTRIES = ['Österreich', 'Deutschland'] as const;
@@ -108,7 +111,7 @@ export default function PartnerModal({
   const [ratingReliability, setRatingReliability] = useState('0');
   const [ratingEngagement, setRatingEngagement] = useState('0');
 
-  const [activeTab, setActiveTab] = useState<'details' | 'vertrag' | 'bank' | 'media' | 'dozent' | 'rating'>('details');
+  const [activeTab, setActiveTab] = useState<'details' | 'vertrag' | 'bank' | 'media' | 'dozent' | 'website' | 'rating'>('details');
   const [bookings, setBookings] = useState<
     { id: string; booking_date: string | null; course_title: string | null; course_start: string | null; student_name: string | null; status: string; amount: number | null }[]
   >([]);
@@ -119,6 +122,9 @@ export default function PartnerModal({
   const [teacherName, setTeacherName] = useState<string>('');
   const [teacherImagePath, setTeacherImagePath] = useState<string | null>(null);
   const [teacherDescription, setTeacherDescription] = useState<string>('');
+  const [websiteSlogan, setWebsiteSlogan] = useState<string>('');
+  const [websiteDescription, setWebsiteDescription] = useState<string>('');
+  const [websiteTags, setWebsiteTags] = useState<string[]>([]);
 
   const stateOptions = useMemo(() => (country === 'Österreich' ? STATES_AT : STATES_DE), [country]);
 
@@ -224,6 +230,9 @@ export default function PartnerModal({
     setTeacherName(partner.teacher_name ?? '');
     setTeacherImagePath(partner.teacher_image_path ?? null);
     setTeacherDescription(partner.teacher_description ?? '');
+    setWebsiteSlogan(partner.website_slogan ?? '');
+    setWebsiteDescription(partner.website_description ?? '');
+    setWebsiteTags(partner.website_tags ?? []);
   }, [partner]);
 
   useEffect(() => {
@@ -284,6 +293,9 @@ export default function PartnerModal({
         teacher_name: teacherName || null,
         teacher_image_path: teacherImagePath || null,
         teacher_description: teacherDescription || null,
+        website_slogan: websiteSlogan || null,
+        website_description: websiteDescription || null,
+        website_tags: websiteTags.slice(0, 10),
       }),
     });
     const data = await res.json();
@@ -371,6 +383,13 @@ export default function PartnerModal({
             type="button"
           >
             Dozent
+          </button>
+          <button
+            className={`pb-2 border-b-2 ${activeTab === 'website' ? 'border-pink-500 text-pink-600' : 'border-transparent'}`}
+            onClick={() => setActiveTab('website')}
+            type="button"
+          >
+            Website
           </button>
           <button
             className={`pb-2 border-b-2 ${activeTab === 'rating' ? 'border-pink-500 text-pink-600' : 'border-transparent'}`}
@@ -621,6 +640,70 @@ export default function PartnerModal({
                   value={teacherDescription}
                   onChange={(e) => setTeacherDescription(e.target.value)}
                   placeholder="Erfahrung, Spezialisierung, Referenzen…"
+                />
+              </Field>
+            </section>
+          )}
+
+          {activeTab === 'website' && (
+            <section className="rounded-xl border border-slate-200 bg-slate-50 p-5 shadow-sm space-y-4">
+              <div>
+                <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500">Website</p>
+                <h4 className="text-lg font-semibold text-ink">Darstellung auf der Website</h4>
+                <p className="text-xs text-slate-600">Slogan, Kurztext und bis zu 10 Tags.</p>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Field label="Slogan">
+                  <input
+                    className="input"
+                    value={websiteSlogan}
+                    onChange={(e) => setWebsiteSlogan(e.target.value)}
+                    placeholder={`z.B. "Next Level Live Sound"`}
+                  />
+                </Field>
+                <Field label="Tags (max. 10)">
+                  <div className="space-y-2">
+                    <div className="flex gap-2">
+                      <input
+                        className="input"
+                        placeholder="Tag hinzufügen und Enter"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            const val = (e.currentTarget.value || '').trim();
+                            if (!val) return;
+                            if (websiteTags.length >= 10) return;
+                            setWebsiteTags((prev) => Array.from(new Set([...prev, val])));
+                            e.currentTarget.value = '';
+                          }
+                        }}
+                      />
+                      <span className="text-xs text-slate-500 self-center">{websiteTags.length}/10</span>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {websiteTags.map((t) => (
+                        <span key={t} className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-white border border-slate-200 text-xs text-slate-700">
+                          {t}
+                          <button
+                            type="button"
+                            className="text-slate-500 hover:text-pink-600"
+                            onClick={() => setWebsiteTags((prev) => prev.filter((x) => x !== t))}
+                          >
+                            ×
+                          </button>
+                        </span>
+                      ))}
+                      {!websiteTags.length && <span className="text-xs text-slate-500">Noch keine Tags</span>}
+                    </div>
+                  </div>
+                </Field>
+              </div>
+              <Field label="Beschreibung">
+                <textarea
+                  className="input min-h-[140px]"
+                  value={websiteDescription}
+                  onChange={(e) => setWebsiteDescription(e.target.value)}
+                  placeholder="Kurzbeschreibung, USP, Besonderheiten …"
                 />
               </Field>
             </section>
