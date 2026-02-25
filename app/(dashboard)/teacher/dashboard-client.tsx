@@ -318,21 +318,20 @@ export default function DashboardClient({
         </nav>
 
       {memberCardImg && (
-        <div className="rounded-2xl border border-amber-200/30 bg-gradient-to-r from-slate-900 via-slate-900 to-black text-white overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.35)]">
+        <div className="rounded-2xl border border-amber-100/20 bg-slate-950/80 text-white overflow-hidden shadow-[0_18px_50px_rgba(0,0,0,0.35)] backdrop-blur-md">
           <div className="grid md:grid-cols-[1.1fr,1fr]">
-            <div className="relative h-full min-h-[180px] bg-black/40">
+            <div className="relative h-full min-h-[200px] bg-black/50">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={memberCardImg} alt="Music Mission Member Card" className="h-full w-full object-cover opacity-90" />
+              <img src={memberCardImg} alt="Music Mission Member Card" className="h-full w-full object-cover opacity-85" />
+              <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/45 to-transparent" />
             </div>
-            <div className="relative p-6 sm:p-8 flex flex-col justify-center gap-3 overflow-hidden">
-              <div className="absolute inset-0 bg-white/5 backdrop-blur-sm" />
-              <div className="absolute inset-y-0 -right-24 w-48 bg-gradient-to-l from-amber-300/25 via-amber-200/10 to-transparent pointer-events-none animate-shine" />
-              <div className="relative space-y-2">
-                <p className="text-[11px] uppercase tracking-[0.24em] text-amber-200/90">Coming Soon</p>
-                <h3 className="text-3xl sm:text-4xl font-semibold bg-gradient-to-r from-amber-200 via-amber-300 to-yellow-300 text-transparent bg-clip-text drop-shadow-[0_0_35px_rgba(255,193,7,0.35)]">
+            <div className="relative p-6 sm:p-8 flex flex-col justify-center gap-3">
+              <div className="relative space-y-3">
+                <p className="text-[11px] uppercase tracking-[0.22em] text-amber-200/80">Coming Soon</p>
+                <h3 className="text-3xl sm:text-5xl font-semibold leading-tight bg-gradient-to-r from-amber-200 via-amber-100 to-yellow-200 text-transparent bg-clip-text tracking-tight drop-shadow-[0_10px_30px_rgba(255,204,102,0.25)]">
                   Die Music Mission Member Card kommt.
                 </h3>
-                <p className="text-sm sm:text-base text-amber-100/90 leading-relaxed">
+                <p className="text-base text-amber-100/90 leading-relaxed">
                   Mehr Netzwerk. Mehr Vorteile. Mehr Möglichkeiten – exklusiv für unsere Community.
                 </p>
               </div>
