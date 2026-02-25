@@ -101,7 +101,7 @@ export async function POST(req: Request) {
 
     const toInsert = inputQs.filter((q) => !q.id).map((q) => ({
       quiz_id: quizRow.id,
-      module_id: null,
+      module_id: quiz.module_id ?? null,
       module_number: q.module_number ?? null,
       difficulty: q.difficulty ?? 'medium',
       qtype: q.qtype ?? 'single',
@@ -114,7 +114,7 @@ export async function POST(req: Request) {
     const toUpdate = inputQs.filter((q) => q.id).map((q) => ({
       id: q.id,
       quiz_id: quizRow.id,
-      module_id: null,
+      module_id: quiz.module_id ?? null,
       module_number: q.module_number ?? null,
       difficulty: q.difficulty ?? 'medium',
       qtype: q.qtype ?? 'single',
