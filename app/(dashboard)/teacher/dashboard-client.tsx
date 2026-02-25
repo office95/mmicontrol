@@ -318,16 +318,16 @@ export default function DashboardClient({
         </nav>
 
       {memberCardImg && (
-        <div className="rounded-2xl border border-amber-100/20 bg-slate-950/80 text-white overflow-hidden shadow-[0_18px_50px_rgba(0,0,0,0.35)] backdrop-blur-md">
+        <div className="rounded-2xl border border-amber-100/25 bg-slate-950/80 text-white overflow-hidden shadow-[0_18px_55px_rgba(0,0,0,0.35)] backdrop-blur-md">
           <div className="grid md:grid-cols-[1.1fr,1fr]">
-            <div className="relative h-full min-h-[200px] bg-black/50">
+            <div className="relative h-full min-h-[200px] bg-black/30">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={memberCardImg} alt="Music Mission Member Card" className="h-full w-full object-cover opacity-85" />
-              <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/45 to-transparent" />
+              <img src={memberCardImg} alt="Music Mission Member Card" className="h-full w-full object-cover opacity-100" />
+              <div className="absolute inset-0 bg-gradient-to-r from-black/55 via-black/30 to-transparent" />
             </div>
-            <div className="relative p-6 sm:p-8 flex flex-col justify-center gap-3">
+            <div className="relative p-6 sm:p-8 flex flex-col justify-center gap-3 overflow-hidden">
               <div className="relative space-y-3">
-                <p className="text-[11px] uppercase tracking-[0.22em] text-amber-200/80">Coming Soon</p>
+                <p className="text-[11px] uppercase tracking-[0.22em] text-amber-200/85">Coming Soon</p>
                 <h3 className="text-3xl sm:text-5xl font-semibold leading-tight bg-gradient-to-r from-amber-200 via-amber-100 to-yellow-200 text-transparent bg-clip-text tracking-tight drop-shadow-[0_10px_30px_rgba(255,204,102,0.25)]">
                   Die Music Mission Member Card kommt.
                 </h3>
@@ -335,6 +335,7 @@ export default function DashboardClient({
                   Mehr Netzwerk. Mehr Vorteile. Mehr Möglichkeiten – exklusiv für unsere Community.
                 </p>
               </div>
+              <div className="pointer-events-none absolute inset-y-4 right-4 w-28 bg-gradient-to-l from-amber-200/24 via-transparent to-transparent animate-shine-slow" />
             </div>
           </div>
         </div>
@@ -650,15 +651,15 @@ function FooterLinks() {
   );
 }
 
-// Shine effect for Member Card banner (client-side only)
+// Shine effect for Member Card banner (hover, subtle)
 const shineStyle = `
-@keyframes shine {
+@keyframes shineSlow {
   0% { transform: translateX(120%); opacity: 0; }
-  30% { opacity: 0.35; }
-  60% { opacity: 0.15; }
+  30% { opacity: 0.25; }
+  60% { opacity: 0.08; }
   100% { transform: translateX(-120%); opacity: 0; }
 }
-.animate-shine { animation: shine 3s ease-in-out infinite; }
+.animate-shine-slow { animation: shineSlow 4s ease-in-out infinite; }
 `;
 
 if (typeof document !== 'undefined') {
