@@ -2,6 +2,7 @@
 
 import BookingsClient from './bookings-client';
 import ProfileWrapper from './profile-wrapper';
+import StudentSupportTab from './support-tab';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createSupabaseBrowserClient } from '@/lib/supabase-browser';
 
@@ -88,7 +89,7 @@ export default function StudentDashboardClient({
   courses: Course[];
   quizzes: { id: string; title: string; description: string | null; course_id: string | null; level_count: number; time_per_question: number }[];
   profile: StudentProfile;
-  initialTab?: 'bookings' | 'materials' | 'profile' | 'feedback';
+  initialTab?: 'bookings' | 'materials' | 'profile' | 'feedback' | 'quiz' | 'support';
   materials: Material[];
   recommended: RecommendedCourse[];
   benefits: Benefit[];
@@ -96,11 +97,19 @@ export default function StudentDashboardClient({
   feedbacks: Record<string, any>;
   surveysOpen?: { survey_id: string; course_id: string; course_title?: string | null; booking_id: string; title: string; instructions?: string | null; start_date?: string | null }[];
 }) {
-  const [tab, setTab] = useState<'bookings' | 'materials' | 'profile' | 'feedback'>(initialTab || 'bookings');
+  const [tab, setTab] = useState<'bookings' | 'materials' | 'profile' | 'feedback' | 'quiz' | 'support'>(initialTab || 'bookings');
   const [unread, setUnread] = useState(0);
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(courses[0]?.id || null);
   const courseQuiz = useMemo(() => quizzes.find((q) => q.course_id === selectedCourseId) || null, [quizzes, selectedCourseId]);
   const courseTitle = (cid: string | null) => courses.find((c) => c.id === cid)?.title ?? 'Kurs';
+  const quizzesByCourse = useMemo(
+    () =>
+      quizzes.map((q) => ({
+        ...q,
+        course_title: courseTitle(q.course_id),
+      })),
+    [quizzes, courses]
+  );
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const benefitsRef = useRef<HTMLDivElement | null>(null);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
@@ -177,27 +186,21 @@ export default function StudentDashboardClient({
       {/* Tabs innerhalb des Student-Dashboards */}
       <nav className="sticky top-0 z-30 -mx-4 px-4 pt-3 pb-4 bg-slate-950/85 border-b border-white/10 backdrop-blur-lg shadow-lg">
         <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-sm font-semibold text-white/85">
-          {(
-            [
-              { key: 'bookings', label: 'Dashboard', tab: 'bookings' },
-              { key: 'materials', label: 'Kursunterlagen', tab: 'materials' },
-              { key: 'feedback', label: 'Kurs Bewertung', tab: 'feedback' },
-              { key: 'support', label: 'Support', tab: 'support' },
-              { key: 'profile', label: 'Profil', tab: 'profile' },
-            ] as const
-          ).map((item) => {
+          {([
+            { key: 'bookings', label: 'Dashboard', tab: 'bookings' },
+            { key: 'materials', label: 'Kursunterlagen', tab: 'materials' },
+            { key: 'feedback', label: 'Kurs Bewertung', tab: 'feedback' },
+            { key: 'quiz', label: 'Quiz', tab: 'quiz' },
+            { key: 'support', label: 'Support', tab: 'support' },
+            { key: 'profile', label: 'Profil', tab: 'profile' },
+          ] as const).map((item) => {
             const active = tab === item.tab;
-            const href = item.tab === 'support' ? '/student/support' : `/student?tab=${item.tab}`;
             return (
-              <a
+              <button
                 key={item.key}
-                href={href}
-                onClick={(e) => {
-                  e.preventDefault();
-                  if (item.tab === 'support') {
-                    window.location.href = '/student/support';
-                  } else {
-                    setTab(item.tab as any);
+                onClick={() => {
+                  setTab(item.tab as any);
+                  if (typeof window !== 'undefined') {
                     const url = new URL(window.location.href);
                     url.searchParams.set('tab', item.tab);
                     window.history.replaceState({}, '', url.toString());
@@ -215,7 +218,7 @@ export default function StudentDashboardClient({
                     {unread}
                   </span>
                 )}
-              </a>
+              </button>
             );
           })}
         </div>
@@ -463,6 +466,45 @@ export default function StudentDashboardClient({
         </div>
       )}
 
+      {tab === 'quiz' && (
+        <div className="space-y-4">
+          <div>
+            <p className="text-[11px] uppercase tracking-[0.24em] text-pink-200">Quiz</p>
+            <h3 className="text-2xl font-semibold text-white">Deine Kurs-Quizze</h3>
+            <p className="text-sm text-white/70">Starte das passende Quiz zu deinem Kurs.</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            {quizzesByCourse.map((q) => (
+              <div key={q.id} className="rounded-2xl bg-white text-ink border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+                <div className="p-4 space-y-2 flex-1">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs uppercase tracking-[0.14em] text-slate-500">Kurs</span>
+                    <span className="text-[11px] px-2 py-1 rounded-full bg-slate-100 border border-slate-200 text-slate-700">
+                      Level {q.level_count ?? 0}
+                    </span>
+                  </div>
+                  <h4 className="text-lg font-semibold leading-tight">{q.title}</h4>
+                  <p className="text-sm text-slate-600 line-clamp-3">{q.description || 'Bereit für einen kurzen Wissens-Check?'}</p>
+                  <p className="text-xs text-slate-500">Kurs: {q.course_title}</p>
+                  <p className="text-xs text-slate-500">Zeit/Frage: {q.time_per_question ?? 30} s</p>
+                </div>
+                <div className="p-4 border-t border-slate-200 bg-slate-50">
+                  <a
+                    className="w-full inline-flex items-center justify-center rounded-lg bg-pink-600 text-white px-3 py-2 text-sm font-semibold hover:bg-pink-500"
+                    href={`/quizzes?course_id=${q.course_id ?? ''}&quiz_id=${q.id}`}
+                  >
+                    Zum Quiz
+                  </a>
+                </div>
+              </div>
+            ))}
+            {!quizzesByCourse.length && (
+              <div className="col-span-full text-white/80">Für deine Kurse ist aktuell kein Quiz hinterlegt.</div>
+            )}
+          </div>
+        </div>
+      )}
+
       {tab === 'materials' && (
         <div className="space-y-3">
           <div className="text-sm text-white/80">
@@ -514,6 +556,8 @@ export default function StudentDashboardClient({
           </div>
         </div>
       )}
+
+      {tab === 'support' && <StudentSupportTab />}
 
       {tab === 'profile' && (
         <ProfileWrapper open profile={profile} onClose={() => setTab('bookings')} />

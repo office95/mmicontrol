@@ -193,7 +193,7 @@ export default async function StudentPage({ searchParams }: { searchParams: Reco
   const showProfile = searchParams?.profile === '1';
   const initialTab =
     typeof searchParams?.tab === 'string' &&
-    ['bookings', 'materials', 'profile', 'feedback'].includes(searchParams.tab)
+    ['bookings', 'materials', 'profile', 'feedback', 'quiz', 'support'].includes(searchParams.tab)
       ? (searchParams.tab as any)
       : showProfile ? 'profile' : 'bookings';
   const selectedBooking = bookingId

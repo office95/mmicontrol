@@ -143,9 +143,10 @@ export default async function DashboardLayout({ children }: { children: ReactNod
     { href: '/student', label: 'Dashboard', roles: ['student'], slug: 'student-dashboard' },
     { href: '/student?tab=bookings', label: 'Meine Buchungen', roles: ['student'], slug: 'student-dashboard' },
     { href: '/student?tab=materials', label: 'Kursunterlagen', roles: ['student'], slug: 'student-materials' },
-    { href: '/student?tab=profile', label: 'Profil', roles: ['student'], slug: 'student-profile' },
+    { href: '/student?tab=quiz', label: 'Quiz', roles: ['student'], slug: 'student-dashboard' },
     { href: '/student?tab=feedback', label: 'Kurs Bewertung', roles: ['student'], slug: 'student-dashboard' },
-    { href: '/student/support', label: 'Support', roles: ['student'], slug: 'student-dashboard' },
+    { href: '/student?tab=support', label: 'Support', roles: ['student'], slug: 'student-dashboard' },
+    { href: '/student?tab=profile', label: 'Profil', roles: ['student'], slug: 'student-profile' },
     { href: '/admin/roles', label: 'Rollen & Rechte', roles: ['admin'], slug: 'admin-roles', pin: 'bottom' },
     { href: '/admin/settings', label: 'Einstellungen', roles: ['admin'], slug: 'admin-settings', pin: 'bottom' },
   ];
