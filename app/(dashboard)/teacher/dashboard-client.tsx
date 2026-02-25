@@ -472,12 +472,6 @@ export default function DashboardClient({
                 <h3 className="text-lg font-semibold text-white">Quiz-Übersicht</h3>
                 <p className="text-sm text-white/70">Quizze zu deinen Kursen. Fragen und Antworten werden zufällig gemischt.</p>
               </div>
-              <a
-                href="/admin/quizzes"
-                className="text-xs px-3 py-2 rounded-full border border-white/30 text-white hover:bg-white/10"
-              >
-                Quiz verwalten (Admin)
-              </a>
             </div>
             <div className="grid gap-3 mt-4">
               {quizzes.length === 0 && <p className="text-white/80">Noch keine Quizze vorhanden.</p>}
