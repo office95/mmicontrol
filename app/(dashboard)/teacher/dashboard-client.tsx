@@ -5,7 +5,7 @@ import { createSupabaseBrowserClient } from '@/lib/supabase-browser';
 import TeacherStatsClient from './stats-client';
 import CourseListClient from './course-list-client';
 import TeacherMaterials from './materials/teacher-materials-client';
-import TeacherSupportPage from './support/page';
+import TeacherSupportTab from './support-tab';
 
 type KPIs = {
   monthBookings: number;
@@ -509,7 +509,7 @@ export default function DashboardClient({
         </div>
       )}
 
-      {tab === 'support' && <TeacherSupportPage />}
+      {tab === 'support' && <TeacherSupportTab />}
 
       {/* Music Mission Quiz – immer direkt vor dem Footer */}
       <div className="rounded-2xl border border-white/10 bg-gradient-to-r from-slate-900 via-slate-800 to-pink-900/60 text-white overflow-hidden shadow-2xl">
