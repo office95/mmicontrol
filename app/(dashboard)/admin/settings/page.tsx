@@ -117,6 +117,9 @@ export default function SettingsPage() {
   const [message, setMessage] = useState<string | null>(null);
   const [logoUploading, setLogoUploading] = useState(false);
   const [automationSettings, setAutomationSettings] = useState<{ id: string; title: string; description: string; active: boolean }[]>([]);
+  const [mediaItems, setMediaItems] = useState<{ name: string; path: string; url: string }[]>([]);
+  const [mediaLoading, setMediaLoading] = useState(false);
+  const [mediaMsg, setMediaMsg] = useState<string | null>(null);
   const supabase = createSupabaseBrowserClient();
 
   const mediaUrl = (path?: string | null) =>
@@ -213,6 +216,54 @@ export default function SettingsPage() {
   useEffect(() => {
     load();
   }, []);
+
+  const listMedia = async () => {
+    setMediaLoading(true);
+    setMediaMsg(null);
+    const { data, error } = await supabase.storage.from('media').list('', { limit: 100, offset: 0 });
+    if (error) {
+      setMediaMsg(error.message);
+      setMediaItems([]);
+      setMediaLoading(false);
+      return;
+    }
+    const items =
+      data?.map((f) => ({
+        name: f.name,
+        path: f.name,
+        url: supabase.storage.from('media').getPublicUrl(f.name).data.publicUrl,
+      })) || [];
+    setMediaItems(items);
+    setMediaLoading(false);
+  };
+
+  useEffect(() => {
+    if (tab === 'media') listMedia();
+  }, [tab]);
+
+  const uploadMedia = async (files: FileList | null) => {
+    if (!files || !files.length) return;
+    setMediaLoading(true);
+    setMediaMsg(null);
+    for (const file of Array.from(files)) {
+      const ext = file.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const { error } = await supabase.storage.from('media').upload(fileName, file, { cacheControl: '3600', upsert: false });
+      if (error) {
+        setMediaMsg(error.message);
+        setMediaLoading(false);
+        return;
+      }
+    }
+    await listMedia();
+  };
+
+  const deleteMedia = async (path: string) => {
+    setMediaLoading(true);
+    const { error } = await supabase.storage.from('media').remove([path]);
+    if (error) setMediaMsg(error.message);
+    await listMedia();
+  };
 
   return (
     <div className="space-y-6">
@@ -430,10 +481,50 @@ export default function SettingsPage() {
 
       {tab === 'media' && (
         <div className="card p-6 shadow-xl text-slate-900 space-y-6">
-          <Section title="Medien">
-            <input type="file" accept="application/pdf,image/png,image/jpeg" className="input" multiple />
-            <p className="text-xs text-slate-500 mt-1">PDF, JPG, PNG hochladen und verwalten (Speicherung folgt).</p>
+          <Section title="Medien (Bilder für Website)">
+            <div className="flex items-center gap-3 text-sm">
+              <label className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-300 bg-slate-50 text-slate-700 cursor-pointer">
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="hidden"
+                  onChange={(e) => uploadMedia(e.target.files)}
+                />
+                Dateien wählen
+              </label>
+              {mediaMsg && <span className="text-rose-600">{mediaMsg}</span>}
+              {mediaLoading && <span className="text-slate-500">Lade…</span>}
+            </div>
+            <p className="text-xs text-slate-500 mt-1">JPG/PNG hochladen. URLs sind öffentlich im Bucket „media“ nutzbar.</p>
           </Section>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            {mediaItems.map((m) => (
+              <div key={m.path} className="border border-slate-200 rounded-lg overflow-hidden bg-white flex flex-col">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={m.url} alt={m.name} className="h-28 object-cover w-full" />
+                <div className="p-2 space-y-1">
+                  <p className="text-xs font-semibold text-slate-800 truncate" title={m.name}>{m.name}</p>
+                  <button
+                    className="text-[11px] text-pink-600 hover:underline"
+                    onClick={() => navigator.clipboard?.writeText(m.url)}
+                  >
+                    URL kopieren
+                  </button>
+                  <button
+                    className="text-[11px] text-rose-600 hover:underline"
+                    onClick={() => deleteMedia(m.path)}
+                  >
+                    Löschen
+                  </button>
+                </div>
+              </div>
+            ))}
+            {!mediaLoading && mediaItems.length === 0 && (
+              <p className="text-sm text-slate-600 col-span-full">Keine Medien hochgeladen.</p>
+            )}
+          </div>
         </div>
       )}
 
