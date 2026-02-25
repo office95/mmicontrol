@@ -37,6 +37,7 @@ create table if not exists public.partners (
   teacher_name text,
   teacher_image_path text,
   teacher_description text,
+  teacher_profiles jsonb,
   website_slogan text,
   website_description text,
   website_tags text[],
@@ -56,6 +57,7 @@ alter table public.partners add column if not exists gallery_paths text[];
 alter table public.partners add column if not exists teacher_name text;
 alter table public.partners add column if not exists teacher_image_path text;
 alter table public.partners add column if not exists teacher_description text;
+alter table public.partners add column if not exists teacher_profiles jsonb;
 alter table public.partners add column if not exists website_slogan text;
 alter table public.partners add column if not exists website_description text;
 alter table public.partners add column if not exists website_tags text[];

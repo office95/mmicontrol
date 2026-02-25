@@ -7,7 +7,7 @@ const service = createClient(
 );
 
 const PARTNER_COLUMNS =
-  'id, status, provider_id, name, street, zip, city, country, state, phone, email, created_at, contract, contract_date, bank_name, iban, bic, contact_person, vat_number, tax_number, registry_number, provision1, provision2, provision3, provision4, provision5, provision6plus, rating_course, rating_teacher, rating_reliability, rating_engagement, logo_path, hero1_path, hero2_path, gallery_paths, teacher_name, teacher_image_path, teacher_description, website_slogan, website_description, website_tags';
+  'id, status, provider_id, name, street, zip, city, country, state, phone, email, created_at, contract, contract_date, bank_name, iban, bic, contact_person, vat_number, tax_number, registry_number, provision1, provision2, provision3, provision4, provision5, provision6plus, rating_course, rating_teacher, rating_reliability, rating_engagement, logo_path, hero1_path, hero2_path, gallery_paths, teacher_name, teacher_image_path, teacher_description, teacher_profiles, website_slogan, website_description, website_tags';
 
 export async function GET() {
   const { data, error } = await service.from('partners').select(PARTNER_COLUMNS).order('created_at', { ascending: false });
@@ -85,6 +85,7 @@ export async function POST(req: Request) {
     teacher_name: body.teacher_name ?? null,
     teacher_image_path: body.teacher_image_path ?? null,
     teacher_description: body.teacher_description ?? null,
+    teacher_profiles: body.teacher_profiles ?? null,
     website_slogan: body.website_slogan ?? null,
     website_description: body.website_description ?? null,
     website_tags: body.website_tags ?? [],

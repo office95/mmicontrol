@@ -42,6 +42,7 @@ export type PartnerRow = {
   teacher_name?: string | null;
   teacher_image_path?: string | null;
   teacher_description?: string | null;
+  teacher_profiles?: { name: string; image_path?: string | null; description?: string | null }[] | null;
   website_slogan?: string | null;
   website_description?: string | null;
   website_tags?: string[] | null;
@@ -119,9 +120,9 @@ export default function PartnerModal({
   const [hero1Path, setHero1Path] = useState<string | null>(null);
   const [hero2Path, setHero2Path] = useState<string | null>(null);
   const [galleryPaths, setGalleryPaths] = useState<string[]>([]);
-  const [teacherName, setTeacherName] = useState<string>('');
-  const [teacherImagePath, setTeacherImagePath] = useState<string | null>(null);
-  const [teacherDescription, setTeacherDescription] = useState<string>('');
+  const [teachers, setTeachers] = useState<{ name: string; image_path: string | null; description: string }[]>([
+    { name: '', image_path: null, description: '' },
+  ]);
   const [websiteSlogan, setWebsiteSlogan] = useState<string>('');
   const [websiteDescription, setWebsiteDescription] = useState<string>('');
   const [websiteTags, setWebsiteTags] = useState<string[]>([]);
@@ -227,9 +228,21 @@ export default function PartnerModal({
     setHero1Path(partner.hero1_path ?? null);
     setHero2Path(partner.hero2_path ?? null);
     setGalleryPaths(partner.gallery_paths ?? []);
-    setTeacherName(partner.teacher_name ?? '');
-    setTeacherImagePath(partner.teacher_image_path ?? null);
-    setTeacherDescription(partner.teacher_description ?? '');
+    const loadedTeachers =
+      partner.teacher_profiles && partner.teacher_profiles.length
+        ? partner.teacher_profiles.map((t) => ({
+            name: t.name || '',
+            image_path: t.image_path ?? null,
+            description: t.description || '',
+          }))
+        : [
+            {
+              name: partner.teacher_name ?? '',
+              image_path: partner.teacher_image_path ?? null,
+              description: partner.teacher_description ?? '',
+            },
+          ];
+    setTeachers(loadedTeachers.length ? loadedTeachers : [{ name: '', image_path: null, description: '' }]);
     setWebsiteSlogan(partner.website_slogan ?? '');
     setWebsiteDescription(partner.website_description ?? '');
     setWebsiteTags(partner.website_tags ?? []);
@@ -290,9 +303,10 @@ export default function PartnerModal({
         hero1_path: hero1Path,
         hero2_path: hero2Path,
         gallery_paths: galleryPaths,
-        teacher_name: teacherName || null,
-        teacher_image_path: teacherImagePath || null,
-        teacher_description: teacherDescription || null,
+        teacher_name: teachers[0]?.name || null,
+        teacher_image_path: teachers[0]?.image_path || null,
+        teacher_description: teachers[0]?.description || null,
+        teacher_profiles: teachers,
         website_slogan: websiteSlogan || null,
         website_description: websiteDescription || null,
         website_tags: websiteTags.slice(0, 10),
@@ -593,7 +607,7 @@ export default function PartnerModal({
                 <div>
                   <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500">Dozent</p>
                   <h4 className="text-lg font-semibold text-ink">Ansprechpartner / Dozentenprofil</h4>
-                  <p className="text-xs text-slate-600">Name, Portrait und Kurzbeschreibung.</p>
+                  <p className="text-xs text-slate-600">Beliebig viele Einträge mit Bild & Beschreibung.</p>
                 </div>
                 {!partnerId && (
                   <span className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-3 py-1">
@@ -601,47 +615,89 @@ export default function PartnerModal({
                   </span>
                 )}
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Field label="Name">
-                  <input className="input" value={teacherName} onChange={(e) => setTeacherName(e.target.value)} />
-                </Field>
-                <Field label="Portrait (PNG/JPG)">
-                  <div className="space-y-2">
-                    <label className={`block w-full rounded-lg border border-dashed ${partnerId ? 'border-slate-300 hover:border-pink-400 cursor-pointer' : 'border-slate-200 cursor-not-allowed'} bg-slate-50 text-center text-sm text-slate-500 py-3`}>
-                      <input
-                        type="file"
-                        className="hidden"
-                        accept="image/png,image/jpeg"
-                        disabled={!partnerId}
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) uploadFile(file, 'teacher', setTeacherImagePath);
-                        }}
-                      />
-                      <span className="font-semibold text-pink-600">Upload</span> oder hier ablegen
-                    </label>
-                    {teacherImagePath && (
-                      <div className="rounded-lg border border-slate-200 bg-white p-2 flex items-center gap-3">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/media/${teacherImagePath}`}
-                          alt="Dozent"
-                          className="h-20 w-20 object-cover rounded-full border border-slate-200"
+
+              <div className="space-y-4">
+                {teachers.map((t, idx) => (
+                  <div key={idx} className="rounded-lg border border-slate-200 bg-slate-50 p-3 shadow-sm space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="text-sm font-semibold text-ink">Dozent #{idx + 1}</div>
+                      {teachers.length > 1 && (
+                        <button
+                          type="button"
+                          className="text-xs text-red-600 hover:text-red-700"
+                          onClick={() => setTeachers((prev) => prev.filter((_, i) => i !== idx))}
+                        >
+                          Entfernen
+                        </button>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <Field label="Name">
+                        <input
+                          className="input"
+                          value={t.name}
+                          onChange={(e) =>
+                            setTeachers((prev) =>
+                              prev.map((p, i) => (i === idx ? { ...p, name: e.target.value } : p))
+                            )
+                          }
                         />
-                        <p className="text-[11px] text-slate-500 break-all">{teacherImagePath}</p>
-                      </div>
-                    )}
+                      </Field>
+                      <Field label="Portrait (PNG/JPG)">
+                        <div className="space-y-2">
+                          <label className={`block w-full rounded-lg border border-dashed ${partnerId ? 'border-slate-300 hover:border-pink-400 cursor-pointer' : 'border-slate-200 cursor-not-allowed'} bg-slate-50 text-center text-sm text-slate-500 py-3`}>
+                            <input
+                              type="file"
+                              className="hidden"
+                              accept="image/png,image/jpeg"
+                              disabled={!partnerId}
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file)
+                                  uploadFile(file, 'teacher', (path) =>
+                                    setTeachers((prev) => prev.map((p, i) => (i === idx ? { ...p, image_path: path } : p)))
+                                  );
+                              }}
+                            />
+                            <span className="font-semibold text-pink-600">Upload</span> oder hier ablegen
+                          </label>
+                          {t.image_path && (
+                            <div className="rounded-lg border border-slate-200 bg-white p-2 flex items-center gap-3">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/media/${t.image_path}`}
+                                alt="Dozent"
+                                className="h-16 w-16 object-cover rounded-full border border-slate-200"
+                              />
+                              <p className="text-[11px] text-slate-500 break-all">{t.image_path}</p>
+                            </div>
+                          )}
+                        </div>
+                      </Field>
+                    </div>
+                    <Field label="Kurzbeschreibung">
+                      <textarea
+                        className="input min-h-[100px]"
+                        value={t.description}
+                        onChange={(e) =>
+                          setTeachers((prev) =>
+                            prev.map((p, i) => (i === idx ? { ...p, description: e.target.value } : p))
+                          )
+                        }
+                        placeholder="Erfahrung, Spezialisierung, Referenzen…"
+                      />
+                    </Field>
                   </div>
-                </Field>
+                ))}
               </div>
-              <Field label="Kurzbeschreibung">
-                <textarea
-                  className="input min-h-[120px]"
-                  value={teacherDescription}
-                  onChange={(e) => setTeacherDescription(e.target.value)}
-                  placeholder="Erfahrung, Spezialisierung, Referenzen…"
-                />
-              </Field>
+
+              <button
+                type="button"
+                className="inline-flex items-center gap-2 rounded-full px-4 py-2 bg-pink-600 text-white text-sm font-semibold hover:bg-pink-500"
+                onClick={() => setTeachers((prev) => [...prev, { name: '', image_path: null, description: '' }])}
+              >
+                + Dozent hinzufügen
+              </button>
             </section>
           )}
 
