@@ -317,30 +317,6 @@ export default function DashboardClient({
           </div>
         </nav>
 
-      {memberCardImg && (
-        <div className="rounded-2xl border border-amber-100/25 bg-slate-950/80 text-white overflow-hidden shadow-[0_18px_55px_rgba(0,0,0,0.35)] backdrop-blur-md">
-          <div className="grid md:grid-cols-[1.1fr,1fr]">
-            <div className="relative h-full min-h-[200px] bg-black/30">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={memberCardImg} alt="Music Mission Member Card" className="h-full w-full object-cover opacity-100" />
-              <div className="absolute inset-0 bg-gradient-to-r from-black/55 via-black/30 to-transparent" />
-            </div>
-            <div className="relative p-6 sm:p-8 flex flex-col justify-center gap-3 overflow-hidden">
-              <div className="relative space-y-3">
-                <p className="text-[11px] uppercase tracking-[0.22em] text-amber-200/85">Coming Soon</p>
-                <h3 className="text-3xl sm:text-5xl font-semibold leading-tight bg-gradient-to-r from-amber-200 via-amber-100 to-yellow-200 text-transparent bg-clip-text tracking-tight drop-shadow-[0_10px_30px_rgba(255,204,102,0.25)]">
-                  Die Music Mission Member Card kommt.
-                </h3>
-                <p className="text-base text-amber-100/90 leading-relaxed">
-                  Mehr Netzwerk. Mehr Vorteile. Mehr Möglichkeiten – exklusiv für unsere Community.
-                </p>
-              </div>
-              <div className="pointer-events-none absolute inset-y-4 right-4 w-28 bg-gradient-to-l from-amber-200/24 via-transparent to-transparent animate-shine-slow" />
-            </div>
-          </div>
-        </div>
-      )}
-
       {tab === 'perf' && (
         <TeacherStatsClient
           kpis={kpis}
@@ -525,6 +501,30 @@ export default function DashboardClient({
       )}
 
       {tab === 'support' && <TeacherSupportTab />}
+
+      {memberCardImg && (
+        <div className="rounded-2xl border border-amber-100/25 bg-slate-950/80 text-white overflow-hidden shadow-[0_18px_55px_rgba(0,0,0,0.35)] backdrop-blur-md">
+          <div className="grid md:grid-cols-[1.1fr,1fr]">
+            <div className="relative h-full min-h-[200px] bg-black/30">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={memberCardImg} alt="Music Mission Member Card" className="h-full w-full object-cover opacity-100" />
+              <div className="absolute inset-0 bg-gradient-to-r from-black/55 via-black/30 to-transparent" />
+            </div>
+            <div className="relative p-6 sm:p-8 flex flex-col justify-center gap-3 overflow-hidden">
+              <div className="relative space-y-3">
+                <p className="text-[11px] uppercase tracking-[0.22em] text-amber-200/85">Coming Soon</p>
+                <h3 className="text-3xl sm:text-5xl font-semibold leading-tight bg-gradient-to-r from-amber-200 via-amber-100 to-yellow-200 text-transparent bg-clip-text tracking-tight drop-shadow-[0_10px_30px_rgba(255,204,102,0.25)]">
+                  Die Music Mission Member Card kommt.
+                </h3>
+                <p className="text-base text-amber-100/90 leading-relaxed">
+                  Mehr Netzwerk. Mehr Vorteile. Mehr Möglichkeiten – exklusiv für unsere Community.
+                </p>
+              </div>
+              <div className="pointer-events-none absolute inset-y-4 right-4 w-28 bg-gradient-to-l from-amber-200/24 via-transparent to-transparent animate-shine-slow" />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Music Mission Quiz – immer direkt vor dem Footer */}
       <div className="rounded-2xl border border-white/10 bg-gradient-to-r from-slate-900 via-slate-800 to-pink-900/60 text-white overflow-hidden shadow-2xl">
