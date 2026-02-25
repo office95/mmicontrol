@@ -5,6 +5,7 @@ import { createSupabaseBrowserClient } from '@/lib/supabase-browser';
 import TeacherStatsClient from './stats-client';
 import CourseListClient from './course-list-client';
 import TeacherMaterials from './materials/teacher-materials-client';
+import TeacherSupportPage from './support/page';
 
 type KPIs = {
   monthBookings: number;
@@ -508,30 +509,7 @@ export default function DashboardClient({
         </div>
       )}
 
-      {tab === 'support' && (
-        <div className="space-y-4">
-          <div className="rounded-2xl bg-white/10 border border-white/15 p-5 backdrop-blur-md shadow-xl">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <h3 className="text-lg font-semibold text-white">Support</h3>
-                <p className="text-sm text-white/70">Tickets erstellen und Antworten lesen – direkt hier im Dashboard.</p>
-              </div>
-              {unread > 0 && (
-                <span className="inline-flex h-7 px-3 items-center rounded-full bg-rose-500 text-white text-xs font-bold">
-                  {unread} neu
-                </span>
-              )}
-            </div>
-            <div className="mt-3 rounded-xl overflow-hidden border border-white/10 bg-black/30">
-              <iframe
-                src="/teacher/support?embed=1"
-                className="w-full min-h-[70vh] border-0"
-                title="Support"
-              />
-            </div>
-          </div>
-        </div>
-      )}
+      {tab === 'support' && <TeacherSupportPage />}
 
       {/* Music Mission Quiz – immer direkt vor dem Footer */}
       <div className="rounded-2xl border border-white/10 bg-gradient-to-r from-slate-900 via-slate-800 to-pink-900/60 text-white overflow-hidden shadow-2xl">
