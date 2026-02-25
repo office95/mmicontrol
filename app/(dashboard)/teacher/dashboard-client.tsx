@@ -82,7 +82,7 @@ export default function DashboardClient({
   feedbackOverallAvg?: number | null;
   benefits: Benefit[];
 }) {
-  const [tab, setTab] = useState<'perf' | 'courses' | 'materials' | 'feedback' | 'benefits'>('perf');
+  const [tab, setTab] = useState<'perf' | 'courses' | 'materials' | 'feedback' | 'benefits' | 'quiz' | 'support'>('perf');
   const [unread, setUnread] = useState(0);
   const [showTour, setShowTour] = useState(false);
   const [tourStep, setTourStep] = useState(0);
@@ -292,17 +292,18 @@ export default function DashboardClient({
             >
               Benefits
             </button>
-            <a
-              href="/teacher/support"
-              className="relative px-3 py-2 rounded-full border border-white/15 bg-white/5 hover:border-pink-300 hover:text-white flex items-center gap-2 transition"
+            <button
+              className={`px-3 py-2 rounded-full border transition ${tab === 'quiz' ? 'border-pink-400 bg-pink-500/15 text-white shadow-pink-500/20 shadow-sm' : 'border-white/15 bg-white/5 hover:border-pink-300 hover:text-white'}`}
+              onClick={() => setTab('quiz')}
+            >
+              Quiz
+            </button>
+            <button
+              className={`px-3 py-2 rounded-full border transition ${tab === 'support' ? 'border-pink-400 bg-pink-500/15 text-white shadow-pink-500/20 shadow-sm' : 'border-white/15 bg-white/5 hover:border-pink-300 hover:text-white'}`}
+              onClick={() => setTab('support')}
             >
               Support
-              {unread > 0 && (
-                <span className="inline-flex h-5 px-2 items-center justify-center rounded-full bg-rose-500 text-white text-xs font-bold">
-                  {unread}
-                </span>
-              )}
-            </a>
+            </button>
             <button
               className="ml-auto px-3 py-2 rounded-full border border-pink-300/60 text-pink-50 hover:bg-pink-500/15 transition"
               onClick={startTour}
@@ -457,6 +458,76 @@ export default function DashboardClient({
                   <p className="text-white/80">Keine Benefits hinterlegt.</p>
                 )}
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {tab === 'quiz' && (
+        <div className="space-y-4">
+          <div className="rounded-2xl bg-white/10 border border-white/15 p-5 backdrop-blur-md shadow-xl">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <h3 className="text-lg font-semibold text-white">Quiz-Übersicht</h3>
+                <p className="text-sm text-white/70">Quizze zu deinen Kursen. Fragen und Antworten werden zufällig gemischt.</p>
+              </div>
+              <a
+                href="/admin/quizzes"
+                className="text-xs px-3 py-2 rounded-full border border-white/30 text-white hover:bg-white/10"
+              >
+                Quiz verwalten (Admin)
+              </a>
+            </div>
+            <div className="grid gap-3 mt-4">
+              {quizzes.length === 0 && <p className="text-white/80">Noch keine Quizze vorhanden.</p>}
+              {quizzes.map((q) => (
+                <div key={q.id} className="rounded-xl border border-white/15 bg-white/5 p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.16em] text-pink-200">{q.course_id || 'Kurs'}</p>
+                    <h4 className="text-base font-semibold text-white">{q.title}</h4>
+                    <p className="text-sm text-white/70 line-clamp-2">{q.description || 'Kein Beschreibungstext hinterlegt.'}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <a
+                      href={`/quizzes?preview=1${q.course_id ? `&course_id=${q.course_id}` : ''}`}
+                      className="rounded-full bg-pink-600 px-4 py-2 text-white text-sm font-semibold hover:bg-pink-500"
+                    >
+                      Als Teilnehmer ansehen
+                    </a>
+                    <a
+                      href={`/admin/quizzes?id=${q.id}`}
+                      className="rounded-full border border-white/30 px-3 py-2 text-white text-sm hover:bg-white/10"
+                    >
+                      Öffnen
+                    </a>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {tab === 'support' && (
+        <div className="space-y-4">
+          <div className="rounded-2xl bg-white/10 border border-white/15 p-5 backdrop-blur-md shadow-xl">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <h3 className="text-lg font-semibold text-white">Support</h3>
+                <p className="text-sm text-white/70">Tickets erstellen und Antworten lesen – direkt hier im Dashboard.</p>
+              </div>
+              {unread > 0 && (
+                <span className="inline-flex h-7 px-3 items-center rounded-full bg-rose-500 text-white text-xs font-bold">
+                  {unread} neu
+                </span>
+              )}
+            </div>
+            <div className="mt-3 rounded-xl overflow-hidden border border-white/10 bg-black/30">
+              <iframe
+                src="/teacher/support?embed=1"
+                className="w-full min-h-[70vh] border-0"
+                title="Support"
+              />
             </div>
           </div>
         </div>
