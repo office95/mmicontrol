@@ -318,18 +318,24 @@ export default function DashboardClient({
         </nav>
 
       {memberCardImg && (
-        <div className="rounded-2xl border border-white/10 bg-gradient-to-r from-slate-900 via-slate-900 to-black text-white overflow-hidden shadow-2xl">
+        <div className="rounded-2xl border border-amber-200/30 bg-gradient-to-r from-slate-900 via-slate-900 to-black text-white overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.35)]">
           <div className="grid md:grid-cols-[1.1fr,1fr]">
             <div className="relative h-full min-h-[180px] bg-black/40">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={memberCardImg} alt="Music Mission Member Card" className="h-full w-full object-cover opacity-90" />
             </div>
-            <div className="p-6 sm:p-8 flex flex-col justify-center space-y-2">
-              <p className="text-[11px] uppercase tracking-[0.24em] text-amber-300">Coming Soon</p>
-              <h3 className="text-3xl sm:text-4xl font-semibold text-amber-200 drop-shadow">Die Music Mission Member Card kommt.</h3>
-              <p className="text-sm sm:text-base text-amber-100/90">
-                Mehr Netzwerk. Mehr Vorteile. Mehr Möglichkeiten – exklusiv für unsere Community.
-              </p>
+            <div className="relative p-6 sm:p-8 flex flex-col justify-center gap-3 overflow-hidden">
+              <div className="absolute inset-0 bg-white/5 backdrop-blur-sm" />
+              <div className="absolute inset-y-0 -right-24 w-48 bg-gradient-to-l from-amber-300/25 via-amber-200/10 to-transparent pointer-events-none animate-shine" />
+              <div className="relative space-y-2">
+                <p className="text-[11px] uppercase tracking-[0.24em] text-amber-200/90">Coming Soon</p>
+                <h3 className="text-3xl sm:text-4xl font-semibold bg-gradient-to-r from-amber-200 via-amber-300 to-yellow-300 text-transparent bg-clip-text drop-shadow-[0_0_35px_rgba(255,193,7,0.35)]">
+                  Die Music Mission Member Card kommt.
+                </h3>
+                <p className="text-sm sm:text-base text-amber-100/90 leading-relaxed">
+                  Mehr Netzwerk. Mehr Vorteile. Mehr Möglichkeiten – exklusiv für unsere Community.
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -643,6 +649,27 @@ function FooterLinks() {
       <a href="/legal/impressum" target="_blank" rel="noreferrer" className="hover:text-white">Impressum</a>
     </div>
   );
+}
+
+// Shine effect for Member Card banner (client-side only)
+const shineStyle = `
+@keyframes shine {
+  0% { transform: translateX(120%); opacity: 0; }
+  30% { opacity: 0.35; }
+  60% { opacity: 0.15; }
+  100% { transform: translateX(-120%); opacity: 0; }
+}
+.animate-shine { animation: shine 3s ease-in-out infinite; }
+`;
+
+if (typeof document !== 'undefined') {
+  const id = 'teacher-membercard-shine';
+  if (!document.getElementById(id)) {
+    const style = document.createElement('style');
+    style.id = id;
+    style.innerHTML = shineStyle;
+    document.head.appendChild(style);
+  }
 }
 
 function StarInputReadOnly({ value }: { value: number }) {
