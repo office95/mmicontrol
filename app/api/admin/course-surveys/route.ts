@@ -1,8 +1,16 @@
 import { NextResponse } from 'next/server';
-import { createSupabaseServerClient } from '@/lib/supabase-server';
+import { createClient } from '@supabase/supabase-js';
+import { createSupabaseRouteClient } from '@/lib/supabase-server';
+
+// Service-Client (RLS-bypass) getrennt vom Auth-Client, damit wir
+// Admin-Check weiter über die Session fahren können.
+const serviceClient = createClient(
+  process.env.SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 export async function POST(req: Request) {
-  const supabase = createSupabaseServerClient();
+  const supabase = createSupabaseRouteClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
 
@@ -14,7 +22,7 @@ export async function POST(req: Request) {
   if ((profile as any)?.role !== 'admin') return NextResponse.json({ error: 'forbidden' }, { status: 403 });
 
   // Upsert survey
-  const { data: upserted, error: upErr } = await supabase
+  const { data: upserted, error: upErr } = await serviceClient
     .from('course_surveys')
     .upsert({
       id: survey?.id,
@@ -30,7 +38,7 @@ export async function POST(req: Request) {
   const surveyId = upserted.id;
 
   // Überschreiben: alte Fragen löschen, dann neu einfügen
-  await supabase.from('course_survey_questions').delete().eq('survey_id', surveyId);
+  await serviceClient.from('course_survey_questions').delete().eq('survey_id', surveyId);
 
   const payload = (questions || []).map((q: any, idx: number) => ({
     survey_id: surveyId,
@@ -44,7 +52,7 @@ export async function POST(req: Request) {
   }));
 
   if (payload.length) {
-    const { error: qErr } = await supabase.from('course_survey_questions').insert(payload);
+    const { error: qErr } = await serviceClient.from('course_survey_questions').insert(payload);
     if (qErr) return NextResponse.json({ error: qErr.message }, { status: 400 });
   }
 
