@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { CheckCircle } from 'lucide-react';
 import AttendanceModal from './attendance-modal';
 
 interface Course {
@@ -19,6 +20,7 @@ interface Course {
   course_link?: string | null;
   cover_url?: string | null;
   partner_id?: string | null;
+  has_survey?: boolean;
 }
 
 export default function AdminCourseList({
@@ -150,10 +152,11 @@ export default function AdminCourseList({
                 Bearbeiten
               </button>
               <a
-                className="text-xs px-3 py-1 rounded-lg border border-pink-300 text-pink-700 hover:bg-pink-50"
+                className="text-xs px-3 py-1 rounded-lg border border-pink-300 text-pink-700 hover:bg-pink-50 inline-flex items-center gap-2"
                 href={`/admin/course-surveys/${c.id}`}
               >
                 Kursfragebogen
+                {c.has_survey && <CheckCircle className="h-3.5 w-3.5 text-emerald-600" aria-hidden />}
               </a>
               <button
                 className={`text-xs px-3 py-1 rounded-lg border ${

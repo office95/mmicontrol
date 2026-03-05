@@ -13,9 +13,10 @@ export async function GET(req: Request) {
   const minimal = searchParams.get('minimal') === '1';
   const tiersSelect =
     'course_price_tiers:course_price_tiers(price_tier_id, price_gross, vat_rate, price_net, deposit, saldo, duration_hours, price_tier:price_tiers(id,label,position))';
+  const surveySelect = 'course_surveys(id)';
   const select = minimal
-    ? `id, title, price_gross, category, cover_url, course_link, default_price_tier_id, ${tiersSelect}`
-    : `id, title, description, status, created_at, duration_hours, price_gross, vat_rate, price_net, deposit, saldo, category, vat_amount, course_link, cover_url, default_price_tier_id, ${tiersSelect}`;
+    ? `id, title, price_gross, category, cover_url, course_link, default_price_tier_id, ${tiersSelect}, ${surveySelect}`
+    : `id, title, description, status, created_at, duration_hours, price_gross, vat_rate, price_net, deposit, saldo, category, vat_amount, course_link, cover_url, default_price_tier_id, ${tiersSelect}, ${surveySelect}`;
   if (id) {
     const { data, error } = await supabase
       .from('courses')
@@ -23,7 +24,11 @@ export async function GET(req: Request) {
       .eq('id', id)
       .maybeSingle();
     if (error) return NextResponse.json({ error: error.message }, { status: 400 });
-    return NextResponse.json(data);
+    const mapped = data
+      ? { ...data, has_survey: Array.isArray((data as any).course_surveys) ? (data as any).course_surveys.length > 0 : false }
+      : null;
+    if (mapped) delete (mapped as any).course_surveys;
+    return NextResponse.json(mapped);
   }
 
   const orderCol = minimal ? 'title' : 'created_at';
@@ -32,7 +37,12 @@ export async function GET(req: Request) {
     .select(select)
     .order(orderCol, { ascending: minimal ? true : false });
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
-  return NextResponse.json(data);
+  const mapped = (data || []).map((row: any) => {
+    const has_survey = Array.isArray(row.course_surveys) ? row.course_surveys.length > 0 : false;
+    const { course_surveys, ...rest } = row;
+    return { ...rest, has_survey };
+  });
+  return NextResponse.json(mapped);
 }
 
 export async function POST(req: Request) {
