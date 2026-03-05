@@ -24,11 +24,10 @@ export async function GET(req: Request) {
       .eq('id', id)
       .maybeSingle();
     if (error) return NextResponse.json({ error: error.message }, { status: 400 });
-    const mapped = data
-      ? { ...data, has_survey: Array.isArray((data as any).course_surveys) ? (data as any).course_surveys.length > 0 : false }
-      : null;
-    if (mapped) delete (mapped as any).course_surveys;
-    return NextResponse.json(mapped);
+    if (!data) return NextResponse.json(null);
+    const { course_surveys, ...rest } = data as any;
+    const has_survey = Array.isArray(course_surveys) ? course_surveys.length > 0 : false;
+    return NextResponse.json({ ...rest, has_survey });
   }
 
   const orderCol = minimal ? 'title' : 'created_at';
@@ -38,8 +37,8 @@ export async function GET(req: Request) {
     .order(orderCol, { ascending: minimal ? true : false });
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
   const mapped = (data || []).map((row: any) => {
-    const has_survey = Array.isArray(row.course_surveys) ? row.course_surveys.length > 0 : false;
-    const { course_surveys, ...rest } = row;
+    const { course_surveys, ...rest } = row || {};
+    const has_survey = Array.isArray(course_surveys) ? course_surveys.length > 0 : false;
     return { ...rest, has_survey };
   });
   return NextResponse.json(mapped);
