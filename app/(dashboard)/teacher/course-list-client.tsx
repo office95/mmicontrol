@@ -295,18 +295,12 @@ function SurveyModal({ course, onClose }: { course: CourseCard; onClose: () => v
               width: 100%;
               height: auto;
             }
-            /* Nur der Modal-Inhalt bleibt sichtbar */
-            body * {
-              visibility: hidden !important;
-            }
-            .survey-print-wrap,
-            .survey-print-wrap * {
-              visibility: visible !important;
+            /* Nur der Modal-Inhalt bleibt sichtbar und im Fluss */
+            body > *:not(.survey-print-wrap) {
+              display: none !important;
             }
             .survey-print-wrap {
-              position: absolute !important;
-              top: 0 !important;
-              left: 0 !important;
+              position: static !important;
               padding: 0 !important;
               margin: 0 !important;
               width: 100% !important;
@@ -314,7 +308,7 @@ function SurveyModal({ course, onClose }: { course: CourseCard; onClose: () => v
               background: white !important;
             }
             .survey-print {
-              position: relative !important;
+              position: static !important;
               width: 100% !important;
               max-width: 100% !important;
               margin: 0 !important;
