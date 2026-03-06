@@ -65,7 +65,7 @@ export async function GET(req: Request) {
     // 1) Surveys der Partner-Kurse
     const { data: partnerSurveys } = await service
       .from('course_surveys')
-      .select('id, course_id, title, created_at, courses(partner_id)')
+      .select('id, course_id, title, created_at, courses!inner(partner_id)')
       .eq('courses.partner_id', teacherPartner);
 
     const surveysScoped = (partnerSurveys || []).filter((s: any) =>
@@ -82,7 +82,11 @@ export async function GET(req: Request) {
           .in('survey_id', surveyIdsScoped)
       : { data: [] };
 
-    const responseIds = (responsesRaw || []).map((r) => r.id);
+    const responsesScoped = responseIdParam
+      ? (responsesRaw || []).filter((r) => r.id === responseIdParam)
+      : responsesRaw || [];
+
+    const responseIds = (responsesScoped || []).map((r) => r.id);
     const { data: answersRaw } = responseIds.length
       ? await service
           .from('course_survey_answers')
@@ -105,7 +109,7 @@ export async function GET(req: Request) {
     };
 
     filteredRows = [];
-    (responsesRaw || []).forEach((r) => {
+    (responsesScoped || []).forEach((r) => {
       const survey = surveysScoped.find((s: any) => s.id === r.survey_id);
       const coursePartnerId = getPartnerId(survey);
       const answers = answersByResponse.get(r.id) || [];
