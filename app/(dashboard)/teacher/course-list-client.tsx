@@ -227,7 +227,7 @@ function SurveyModal({ course, onClose }: { course: CourseCard; onClose: () => v
       <div className="survey-print w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white text-ink shadow-2xl p-6 relative print:max-h-none print:overflow-visible print:shadow-none print:rounded-none">
         <button className="absolute top-3 right-3 text-slate-500 hover:text-ink no-print" onClick={onClose}>×</button>
         <div className="flex items-start justify-between gap-3 mb-2">
-          <h3 className="text-2xl font-semibold">Fragebogen-Antworten · {course.title}</h3>
+          <div className="no-print text-2xl font-semibold">Fragebogen-Antworten · {course.title}</div>
           <button
             className="no-print rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-100"
             onClick={() => window.print()}
