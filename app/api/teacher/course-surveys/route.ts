@@ -55,9 +55,90 @@ export async function GET(req: Request) {
 
   // Sicherheitsfilter: Dozenten sehen nur Kurse ihres Partners (Standardfall)
   // oder – falls kein Partner gesetzt sein sollte – nur eigene course_members.
-  const filteredRows = teacherPartner
+  let filteredRows = teacherPartner
     ? (viewRows || []).filter((r) => r.course_partner_id === teacherPartner)
     : (viewRows || []).filter((r) => r.teacher_id === user.id);
+
+  // Fallback: Wenn wegen fehlender course_members-Einträge keine Rows gefunden wurden,
+  // aber ein Partner gesetzt ist, hole Surveys + Responses direkt über Partner-Filter.
+  if ((!filteredRows || filteredRows.length === 0) && teacherPartner) {
+    // 1) Surveys der Partner-Kurse
+    const { data: partnerSurveys } = await service
+      .from('course_surveys')
+      .select('id, course_id, title, created_at, courses(partner_id)')
+      .eq('courses.partner_id', teacherPartner)
+      .maybeSingle(false);
+
+    const surveysScoped = (partnerSurveys || []).filter((s: any) =>
+      (!courseId || s.course_id === courseId) && (!surveyIdParam || s.id === surveyIdParam)
+    );
+
+    const surveyIdsScoped = surveysScoped.map((s: any) => s.id);
+
+    // 2) Responses + Answers für diese Surveys
+    const { data: responsesRaw } = surveyIdsScoped.length
+      ? await service
+          .from('course_survey_responses')
+          .select('id, survey_id, booking_id, student_id, submitted_at')
+          .in('survey_id', surveyIdsScoped)
+      : { data: [] };
+
+    const responseIds = (responsesRaw || []).map((r) => r.id);
+    const { data: answersRaw } = responseIds.length
+      ? await service
+          .from('course_survey_answers')
+          .select('response_id, question_id, value, extra_text')
+          .in('response_id', responseIds)
+      : { data: [] };
+
+    const answersByResponse = new Map<string, any[]>();
+    (answersRaw || []).forEach((a: any) => {
+      const list = answersByResponse.get(a.response_id) || [];
+      list.push(a);
+      answersByResponse.set(a.response_id, list);
+    });
+
+    filteredRows = [];
+    (responsesRaw || []).forEach((r) => {
+      const survey = surveysScoped.find((s: any) => s.id === r.survey_id);
+      const answers = answersByResponse.get(r.id) || [];
+      answers.forEach((a: any) => {
+        filteredRows!.push({
+          teacher_id: user.id,
+          survey_id: r.survey_id,
+          course_id: survey?.course_id ?? null,
+          course_partner_id: survey?.courses?.partner_id ?? teacherPartner,
+          survey_title: survey?.title ?? 'Fragebogen',
+          survey_created_at: survey?.created_at ?? null,
+          response_id: r.id,
+          booking_id: r.booking_id,
+          student_id: r.student_id,
+          submitted_at: r.submitted_at,
+          question_id: a.question_id,
+          value: a.value,
+          extra_text: a.extra_text,
+        });
+      });
+      // Falls keine Antworten (sollte selten vorkommen), trotzdem Response pushen
+      if (!answers.length) {
+        filteredRows!.push({
+          teacher_id: user.id,
+          survey_id: r.survey_id,
+          course_id: survey?.course_id ?? null,
+          course_partner_id: survey?.courses?.partner_id ?? teacherPartner,
+          survey_title: survey?.title ?? 'Fragebogen',
+          survey_created_at: survey?.created_at ?? null,
+          response_id: r.id,
+          booking_id: r.booking_id,
+          student_id: r.student_id,
+          submitted_at: r.submitted_at,
+          question_id: null,
+          value: null,
+          extra_text: null,
+        });
+      }
+    });
+  }
 
   const surveysMap = new Map<string, { id: string; course_id: string; title: string; created_at: string | null }>();
   type AnswerEntry = { question_id: string | null; value: any; extra_text: any };
