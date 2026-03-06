@@ -66,8 +66,7 @@ export async function GET(req: Request) {
     const { data: partnerSurveys } = await service
       .from('course_surveys')
       .select('id, course_id, title, created_at, courses(partner_id)')
-      .eq('courses.partner_id', teacherPartner)
-      .maybeSingle(false);
+      .eq('courses.partner_id', teacherPartner);
 
     const surveysScoped = (partnerSurveys || []).filter((s: any) =>
       (!courseId || s.course_id === courseId) && (!surveyIdParam || s.id === surveyIdParam)
