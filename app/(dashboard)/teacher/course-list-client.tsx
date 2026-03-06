@@ -325,9 +325,13 @@ function SurveyModal({ course, onClose }: { course: CourseCard; onClose: () => v
               page-break-inside: auto !important;
             }
             .survey-section {
-              page-break-inside: avoid;
+              page-break-inside: auto !important;
               page-break-before: auto !important;
+              page-break-after: auto !important;
               margin: 0 0 8px 0 !important;
+            }
+            .survey-section:last-child {
+              page-break-after: avoid !important;
             }
             .no-print {
               display: none !important;
