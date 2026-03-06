@@ -223,8 +223,8 @@ function SurveyModal({ course, onClose }: { course: CourseCard; onClose: () => v
   }, [course.id]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
-      <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white text-ink shadow-2xl p-6 relative">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 print:bg-white print:static">
+      <div className="survey-print w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white text-ink shadow-2xl p-6 relative print:max-h-none print:overflow-visible print:shadow-none print:rounded-none">
         <button className="absolute top-3 right-3 text-slate-500 hover:text-ink no-print" onClick={onClose}>×</button>
         <div className="flex items-start justify-between gap-3 mb-2">
           <h3 className="text-2xl font-semibold">Fragebogen-Antworten · {course.title}</h3>
@@ -285,6 +285,26 @@ function SurveyModal({ course, onClose }: { course: CourseCard; onClose: () => v
             })}
           </div>
         )}
+        <style jsx global>{`
+          @media print {
+            body * {
+              visibility: hidden;
+            }
+            .survey-print, .survey-print * {
+              visibility: visible;
+            }
+            .survey-print {
+              position: static !important;
+              inset: auto !important;
+              width: 100% !important;
+              max-width: 100% !important;
+              background: white !important;
+            }
+            .no-print {
+              display: none !important;
+            }
+          }
+        `}</style>
       </div>
     </div>
   );
