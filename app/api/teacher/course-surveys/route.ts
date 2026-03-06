@@ -30,8 +30,13 @@ export async function GET(req: Request) {
 
   // Hinweis: Service-Role verwendet; keine zusätzliche Teacher-RLS hier, View filtert nach Bedarf
 
-  // Neue, robuste Variante: alles aus View v_teacher_course_surveys holen, gefiltert auf aktuellen Teacher
-  const filters: any = { teacher_id: user.id };
+  // Neue, robuste Variante: alles aus View v_teacher_course_surveys holen.
+  // Wichtig: Bisher wurde strikt nach teacher_id gefiltert. Das blockiert
+  // Dozenten ohne expliziten course_members-Eintrag, obwohl sie über
+  // partner_id Zugriff auf Kurse haben (Teacher-Dashboard zeigt diese Kurse
+  // schon an). Daher filtern wir hier nach Partner und optional Kurs/Survey,
+  // nicht mehr ausschließlich nach teacher_id.
+  const filters: any = {};
   if (courseId) filters.course_id = courseId;
   if (surveyIdParam) filters.survey_id = surveyIdParam;
 
@@ -44,14 +49,15 @@ export async function GET(req: Request) {
 
   const { data: viewRows } = await service
     .from('v_teacher_course_surveys')
-    .select('survey_id, course_id, course_partner_id, survey_title, survey_created_at, response_id, booking_id, student_id, submitted_at, question_id, value, extra_text')
+    .select('teacher_id, survey_id, course_id, course_partner_id, survey_title, survey_created_at, response_id, booking_id, student_id, submitted_at, question_id, value, extra_text')
     .match(filters)
     .order('submitted_at', { ascending: false });
 
-  // Partner-Filter erzwingen: nur Kurse des zugewiesenen Partners
+  // Sicherheitsfilter: Dozenten sehen nur Kurse ihres Partners (Standardfall)
+  // oder – falls kein Partner gesetzt sein sollte – nur eigene course_members.
   const filteredRows = teacherPartner
     ? (viewRows || []).filter((r) => r.course_partner_id === teacherPartner)
-    : viewRows || [];
+    : (viewRows || []).filter((r) => r.teacher_id === user.id);
 
   const surveysMap = new Map<string, { id: string; course_id: string; title: string; created_at: string | null }>();
   type AnswerEntry = { question_id: string | null; value: any; extra_text: any };
