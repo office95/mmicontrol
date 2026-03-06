@@ -284,15 +284,17 @@ function SurveyModal({ course, onClose }: { course: CourseCard; onClose: () => v
 </html>
     `;
 
-    const w = window.open('', '_blank', 'noopener,noreferrer,width=900,height=1200');
-    if (!w) return;
-    w.document.open();
-    w.document.write(html);
-    w.document.close();
+    const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const w = window.open(url, '_blank', 'noopener,noreferrer,width=900,height=1200');
+    if (!w) {
+      URL.revokeObjectURL(url);
+      return;
+    }
     w.onload = () => {
       w.focus();
       w.print();
-      // w.close(); // optional
+      URL.revokeObjectURL(url);
     };
   }
 
