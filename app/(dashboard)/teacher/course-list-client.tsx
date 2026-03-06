@@ -222,6 +222,78 @@ function SurveyModal({ course, onClose }: { course: CourseCard; onClose: () => v
     return () => { ignore = true; };
   }, [course.id]);
 
+  function handlePrint() {
+    if (!data) return;
+    const docTitle = `Fragebogen-${course.title}`;
+    const html = `
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <title>${docTitle}</title>
+  <style>
+    * { box-sizing: border-box; font-family: Arial, sans-serif; }
+    body { margin: 12mm 10mm 12mm 10mm; color: #111; }
+    h1 { margin: 0 0 6mm 0; font-size: 18pt; }
+    h2 { margin: 4mm 0 2mm; font-size: 14pt; }
+    .response { border: 1px solid #ddd; border-radius: 6px; padding: 8px 10px; margin-bottom: 6mm; }
+    .answer { border: 1px solid #eee; border-radius: 6px; padding: 6px 8px; margin: 4px 0; background: #fafafa; }
+    .meta { font-size: 10pt; color: #444; margin-bottom: 4px; }
+    .label { font-weight: 700; }
+    .question { font-weight: 700; margin-bottom: 2px; }
+  </style>
+</head>
+<body>
+  <h1>Fragebogen-Antworten · ${course.title}</h1>
+  ${(data.surveys || [])
+    .map((s: any) => {
+      const rForSurvey = (data.responses || []).filter((r: any) => r.survey_id === s.id);
+      return `
+        <h2>${s.title || 'Fragebogen'} (Eingereicht: ${rForSurvey.length})</h2>
+        ${rForSurvey
+          .map(
+            (r: any) => `
+              <div class="response">
+                <div class="meta">
+                  <span class="label">Teilnehmer:</span> ${r.student_name || r.student_email || '—'} ·
+                  <span class="label">Eingereicht:</span> ${r.submitted_at ? new Date(r.submitted_at).toLocaleString('de-DE') : '—'}
+                </div>
+                ${(r.answers || [])
+                  .map(
+                    (a: any) => `
+                      <div class="answer">
+                        <div class="question">${a.prompt || 'Frage'}</div>
+                        <div>${a.value || '—'}</div>
+                        ${
+                          a.extra_text_label
+                            ? `<div class="meta"><span class="label">${a.extra_text_label}:</span> ${a.extra_text || '—'}</div>`
+                            : ''
+                        }
+                      </div>
+                    `
+                  )
+                  .join('')}
+              </div>
+            `
+          )
+          .join('') || '<p>Keine Antworten.</p>'}
+      `;
+    })
+    .join('')}
+</body>
+</html>
+    `;
+
+    const w = window.open('', '_blank', 'noopener,noreferrer,width=900,height=1200');
+    if (!w) return;
+    w.document.open();
+    w.document.write(html);
+    w.document.close();
+    w.focus();
+    w.print();
+    // w.close(); // optional, einige Browser blocken close nach print
+  }
+
   return (
     <div className="survey-print-wrap fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 print:bg-white print:static">
       <div className="survey-print w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white text-ink shadow-2xl p-6 relative print:max-h-none print:overflow-visible print:shadow-none print:rounded-none">
@@ -230,7 +302,7 @@ function SurveyModal({ course, onClose }: { course: CourseCard; onClose: () => v
           <div className="no-print text-2xl font-semibold">Fragebogen-Antworten · {course.title}</div>
           <button
             className="no-print rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-100"
-            onClick={() => window.print()}
+            onClick={handlePrint}
           >
             PDF / Drucken
           </button>
