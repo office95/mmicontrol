@@ -53,11 +53,14 @@ export async function GET(req: Request) {
     .match(filters)
     .order('submitted_at', { ascending: false });
 
-  // Sicherheitsfilter: Dozenten sehen nur Kurse ihres Partners (Standardfall)
-  // oder – falls kein Partner gesetzt sein sollte – nur eigene course_members.
-  let filteredRows = teacherPartner
-    ? (viewRows || []).filter((r) => r.course_partner_id === teacherPartner)
-    : (viewRows || []).filter((r) => r.teacher_id === user.id);
+  // Sicherheitsfilter: erst nach Partner filtern; falls dadurch leer, fallback auf alle Rows.
+  let filteredRows = viewRows || [];
+  if (teacherPartner) {
+    const partnerRows = (viewRows || []).filter((r) => r.course_partner_id === teacherPartner);
+    filteredRows = partnerRows.length ? partnerRows : (viewRows || []);
+  } else {
+    filteredRows = (viewRows || []).filter((r) => r.teacher_id === user.id);
+  }
 
   // Fallback: Wenn wegen fehlender course_members-Einträge keine Rows gefunden wurden,
   // aber ein Partner gesetzt ist, hole Surveys + Responses direkt über Partner-Filter.
@@ -65,12 +68,13 @@ export async function GET(req: Request) {
     // 1) Surveys der Partner-Kurse
     const { data: partnerSurveys } = await service
       .from('course_surveys')
-      .select('id, course_id, title, created_at, courses!inner(partner_id)')
-      .eq('courses.partner_id', teacherPartner);
+      .select('id, course_id, title, created_at');
 
-    const surveysScoped = (partnerSurveys || []).filter((s: any) =>
-      (!courseId || s.course_id === courseId) && (!surveyIdParam || s.id === surveyIdParam)
-    );
+    const surveysScoped = (partnerSurveys || []).filter((s: any) => {
+      if (courseId && s.course_id !== courseId) return false;
+      if (surveyIdParam && s.id !== surveyIdParam) return false;
+      return true;
+    });
 
     const surveyIdsScoped = surveysScoped.map((s: any) => s.id);
 
