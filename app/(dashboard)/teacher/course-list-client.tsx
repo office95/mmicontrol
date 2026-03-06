@@ -297,11 +297,7 @@ function SurveyModal({ course, onClose }: { course: CourseCard; onClose: () => v
             }
             /* Nur der Modal-Inhalt bleibt sichtbar */
             body * {
-              visibility: hidden !important;
-            }
-            .survey-print-wrap,
-            .survey-print-wrap * {
-              visibility: visible !important;
+              display: none !important;
             }
             .survey-print-wrap {
               position: static !important;
@@ -312,6 +308,10 @@ function SurveyModal({ course, onClose }: { course: CourseCard; onClose: () => v
               height: auto !important;
               background: white !important;
               display: block !important;
+            }
+            .survey-print-wrap * {
+              display: block !important;
+              visibility: visible !important;
             }
             .survey-print {
               position: static !important;
