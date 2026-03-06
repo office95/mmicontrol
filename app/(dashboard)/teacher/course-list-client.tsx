@@ -232,15 +232,16 @@ function SurveyModal({ course, onClose }: { course: CourseCard; onClose: () => v
   <meta charset="utf-8" />
   <title>${docTitle}</title>
   <style>
-    * { box-sizing: border-box; font-family: Arial, sans-serif; }
-    body { margin: 12mm 10mm 12mm 10mm; color: #111; }
-    h1 { margin: 0 0 6mm 0; font-size: 18pt; }
-    h2 { margin: 4mm 0 2mm; font-size: 14pt; }
-    .response { border: 1px solid #ddd; border-radius: 6px; padding: 8px 10px; margin-bottom: 6mm; }
-    .answer { border: 1px solid #eee; border-radius: 6px; padding: 6px 8px; margin: 4px 0; background: #fafafa; }
-    .meta { font-size: 10pt; color: #444; margin-bottom: 4px; }
-    .label { font-weight: 700; }
-    .question { font-weight: 700; margin-bottom: 2px; }
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+    * { box-sizing: border-box; font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+    body { margin: 12mm 10mm 12mm 10mm; color: #0f172a; font-size: 11pt; line-height: 1.45; }
+    h1 { margin: 0 0 6mm 0; font-size: 18pt; font-weight: 600; letter-spacing: -0.01em; }
+    h2 { margin: 4mm 0 2mm; font-size: 13.5pt; font-weight: 600; letter-spacing: -0.01em; color: #1e293b; }
+    .response { border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px 10px; margin-bottom: 6mm; background: #f8fafc; }
+    .answer { border: 1px solid #e2e8f0; border-radius: 6px; padding: 6px 8px; margin: 4px 0; background: #fff; }
+    .meta { font-size: 9.5pt; color: #475569; margin-bottom: 4px; }
+    .label { font-weight: 600; }
+    .question { font-weight: 600; margin-bottom: 2px; color: #0f172a; }
   </style>
 </head>
 <body>
