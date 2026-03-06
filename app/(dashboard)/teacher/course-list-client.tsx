@@ -223,7 +223,7 @@ function SurveyModal({ course, onClose }: { course: CourseCard; onClose: () => v
   }, [course.id]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 print:bg-white print:static">
+    <div className="survey-print-wrap fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 print:bg-white print:static">
       <div className="survey-print w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white text-ink shadow-2xl p-6 relative print:max-h-none print:overflow-visible print:shadow-none print:rounded-none">
         <button className="absolute top-3 right-3 text-slate-500 hover:text-ink no-print" onClick={onClose}>×</button>
         <div className="flex items-start justify-between gap-3 mb-2">
@@ -244,7 +244,7 @@ function SurveyModal({ course, onClose }: { course: CourseCard; onClose: () => v
               return (
                 <div
                   key={s.id}
-                  className="rounded-xl border border-slate-200 bg-slate-50 p-3 space-y-3"
+                  className="survey-section rounded-xl border border-slate-200 bg-slate-50 p-3 space-y-3"
                   style={sIdx > 0 ? { pageBreakBefore: 'always' } : undefined}
                 >
                   <div className="flex items-center justify-between gap-3">
@@ -287,18 +287,43 @@ function SurveyModal({ course, onClose }: { course: CourseCard; onClose: () => v
         )}
         <style jsx global>{`
           @media print {
+            @page {
+              margin: 10mm;
+            }
+            body {
+              margin: 0;
+              padding: 0;
+            }
             body * {
               visibility: hidden;
             }
-            .survey-print, .survey-print * {
+            .survey-print-wrap,
+            .survey-print-wrap * {
               visibility: visible;
+            }
+            .survey-print-wrap {
+              position: static !important;
+              inset: auto !important;
+              display: block !important;
+              padding: 0 !important;
+              margin: 0 !important;
+              width: 100% !important;
+              height: auto !important;
+              background: white !important;
             }
             .survey-print {
               position: static !important;
-              inset: auto !important;
               width: 100% !important;
               max-width: 100% !important;
+              margin: 0 !important;
+              padding: 16px !important;
               background: white !important;
+              box-shadow: none !important;
+              border-radius: 0 !important;
+              overflow: visible !important;
+            }
+            .survey-section {
+              page-break-inside: avoid;
             }
             .no-print {
               display: none !important;
