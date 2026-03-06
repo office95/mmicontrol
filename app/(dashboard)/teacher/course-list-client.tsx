@@ -239,13 +239,12 @@ function SurveyModal({ course, onClose }: { course: CourseCard; onClose: () => v
         {error && <p className="text-sm text-rose-600">{error}</p>}
         {data && (
           <div className="space-y-4">
-            {(data.surveys || []).map((s, sIdx) => {
+            {(data.surveys || []).map((s) => {
               const rForSurvey = (data.responses || []).filter((r) => r.survey_id === s.id);
               return (
                 <div
                   key={s.id}
                   className="survey-section rounded-xl border border-slate-200 bg-slate-50 p-3 space-y-3"
-                  style={sIdx > 0 ? { pageBreakBefore: 'always' } : undefined}
                 >
                   <div className="flex items-center justify-between gap-3">
                     <p className="text-sm font-semibold text-slate-800">{s.title || 'Fragebogen'}</p>
@@ -305,6 +304,8 @@ function SurveyModal({ course, onClose }: { course: CourseCard; onClose: () => v
               position: static !important;
               inset: auto !important;
               display: block !important;
+              align-items: flex-start !important;
+              justify-content: flex-start !important;
               padding: 0 !important;
               margin: 0 !important;
               width: 100% !important;
@@ -316,14 +317,17 @@ function SurveyModal({ course, onClose }: { course: CourseCard; onClose: () => v
               width: 100% !important;
               max-width: 100% !important;
               margin: 0 !important;
-              padding: 16px !important;
+              padding: 8px 12px !important;
               background: white !important;
               box-shadow: none !important;
               border-radius: 0 !important;
               overflow: visible !important;
+              page-break-inside: auto !important;
             }
             .survey-section {
               page-break-inside: avoid;
+              page-break-before: auto !important;
+              margin-top: 0 !important;
             }
             .no-print {
               display: none !important;
