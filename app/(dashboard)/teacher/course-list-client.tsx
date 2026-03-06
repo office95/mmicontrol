@@ -287,7 +287,7 @@ function SurveyModal({ course, onClose }: { course: CourseCard; onClose: () => v
         <style jsx global>{`
           @media print {
             @page {
-              margin: 10mm;
+              margin: 5mm 8mm 8mm 8mm;
             }
             body {
               margin: 0;
@@ -317,7 +317,7 @@ function SurveyModal({ course, onClose }: { course: CourseCard; onClose: () => v
               width: 100% !important;
               max-width: 100% !important;
               margin: 0 !important;
-              padding: 8px 12px !important;
+              padding: 0 0 8px 0 !important;
               background: white !important;
               box-shadow: none !important;
               border-radius: 0 !important;
@@ -327,7 +327,7 @@ function SurveyModal({ course, onClose }: { course: CourseCard; onClose: () => v
             .survey-section {
               page-break-inside: avoid;
               page-break-before: auto !important;
-              margin-top: 0 !important;
+              margin: 0 0 8px 0 !important;
             }
             .no-print {
               display: none !important;
