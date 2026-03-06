@@ -289,9 +289,11 @@ function SurveyModal({ course, onClose }: { course: CourseCard; onClose: () => v
     w.document.open();
     w.document.write(html);
     w.document.close();
-    w.focus();
-    w.print();
-    // w.close(); // optional, einige Browser blocken close nach print
+    w.onload = () => {
+      w.focus();
+      w.print();
+      // w.close(); // optional
+    };
   }
 
   return (
