@@ -186,13 +186,12 @@ export async function GET(req: Request) {
         submitted_at: r.submitted_at,
         answers: [] as AnswerEntry[],
       };
-      if (r.question_id) {
-        resp.answers.push({
-          question_id: r.question_id,
-          value: r.value,
-          extra_text: r.extra_text,
-        });
-      }
+      // Immer Answer hinzufügen, auch wenn question_id fehlt (sonst verschwinden Items)
+      resp.answers.push({
+        question_id: r.question_id ?? null,
+        value: r.value,
+        extra_text: r.extra_text,
+      });
       responsesMap.set(r.response_id, resp);
     }
   });
