@@ -4,7 +4,7 @@ import { SupabaseProvider } from '@/providers/supabase-provider';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Control | Music Mission Institute',
+  title: 'Music Mission Control',
   description: 'Lernplattform für Kursteilnehmer und Dozenten',
 };
 
