@@ -97,16 +97,24 @@ export async function GET(req: Request) {
       answersByResponse.set(a.response_id, list);
     });
 
+    const getPartnerId = (survey: any) => {
+      if (!survey) return teacherPartner;
+      const c = (survey as any).courses;
+      if (Array.isArray(c)) return c[0]?.partner_id ?? teacherPartner;
+      return c?.partner_id ?? teacherPartner;
+    };
+
     filteredRows = [];
     (responsesRaw || []).forEach((r) => {
       const survey = surveysScoped.find((s: any) => s.id === r.survey_id);
+      const coursePartnerId = getPartnerId(survey);
       const answers = answersByResponse.get(r.id) || [];
       answers.forEach((a: any) => {
         filteredRows!.push({
           teacher_id: user.id,
           survey_id: r.survey_id,
           course_id: survey?.course_id ?? null,
-          course_partner_id: survey?.courses?.partner_id ?? teacherPartner,
+          course_partner_id: coursePartnerId,
           survey_title: survey?.title ?? 'Fragebogen',
           survey_created_at: survey?.created_at ?? null,
           response_id: r.id,
@@ -124,7 +132,7 @@ export async function GET(req: Request) {
           teacher_id: user.id,
           survey_id: r.survey_id,
           course_id: survey?.course_id ?? null,
-          course_partner_id: survey?.courses?.partner_id ?? teacherPartner,
+          course_partner_id: coursePartnerId,
           survey_title: survey?.title ?? 'Fragebogen',
           survey_created_at: survey?.created_at ?? null,
           response_id: r.id,
