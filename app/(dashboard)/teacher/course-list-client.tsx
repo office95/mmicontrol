@@ -297,24 +297,24 @@ function SurveyModal({ course, onClose }: { course: CourseCard; onClose: () => v
             }
             /* Nur der Modal-Inhalt bleibt sichtbar */
             body * {
-              display: none !important;
+              visibility: hidden !important;
+            }
+            .survey-print-wrap,
+            .survey-print-wrap * {
+              visibility: visible !important;
             }
             .survey-print-wrap {
-              position: static !important;
-              inset: auto !important;
+              position: absolute !important;
+              top: 0 !important;
+              left: 0 !important;
               padding: 0 !important;
               margin: 0 !important;
               width: 100% !important;
               height: auto !important;
               background: white !important;
-              display: block !important;
-            }
-            .survey-print-wrap * {
-              display: block !important;
-              visibility: visible !important;
             }
             .survey-print {
-              position: static !important;
+              position: relative !important;
               width: 100% !important;
               max-width: 100% !important;
               margin: 0 !important;
