@@ -680,7 +680,9 @@ export default function CourseDatesPage() {
               <div className="space-y-2">
                 {(responseDetail.answers || []).map((a: any, idx: number) => (
                   <div key={idx} className="border border-slate-200 rounded-lg bg-slate-50 px-3 py-2">
-                    <p className="font-semibold text-slate-800">{a.prompt}</p>
+                    <p className="font-semibold text-slate-800">
+                      {a.prompt && a.prompt.startsWith('(import)') ? `Frage ${idx + 1}` : a.prompt || `Frage ${idx + 1}`}
+                    </p>
                     <p className="text-slate-700">{a.value || '—'}</p>
                     {a.extra_text_label && (
                       <p className="text-slate-600 mt-1">
