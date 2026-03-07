@@ -9,13 +9,45 @@ const service = createClient(
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const responseId = searchParams.get('response_id');
-  if (!responseId) return NextResponse.json({ error: 'response_id required' }, { status: 400 });
+  const surveyId = searchParams.get('survey_id');
+  const bookingId = searchParams.get('booking_id');
+  const studentId = searchParams.get('student_id');
+  const studentEmail = searchParams.get('student_email');
 
-  const { data: resp, error } = await service
-    .from('course_survey_responses')
-    .select('id, survey_id, student_id, booking_id, submitted_at, archived_at')
-    .eq('id', responseId)
-    .maybeSingle();
+  let resp: any = null;
+  let error: any = null;
+
+  if (responseId) {
+    const res = await service
+      .from('course_survey_responses')
+      .select('id, survey_id, student_id, booking_id, submitted_at, archived_at')
+      .eq('id', responseId)
+      .maybeSingle();
+    resp = res.data;
+    error = res.error;
+  } else if (surveyId && (bookingId || studentId || studentEmail)) {
+    let query = service
+      .from('course_survey_responses')
+      .select('id, survey_id, student_id, booking_id, submitted_at, archived_at')
+      .eq('survey_id', surveyId);
+    if (bookingId) query = query.eq('booking_id', bookingId);
+    if (studentId) query = query.eq('student_id', studentId);
+    const res = await query.maybeSingle();
+    resp = res.data;
+    error = res.error;
+    // Wenn kein Treffer und studentEmail vorhanden: versuche Match via booking email
+    if (!resp && studentEmail) {
+      const res2 = await service
+        .from('course_survey_responses')
+        .select('id, survey_id, student_id, booking_id, submitted_at, archived_at, bookings!inner(student_email)')
+        .eq('survey_id', surveyId)
+        .eq('bookings.student_email', studentEmail)
+        .maybeSingle();
+      resp = res2.data;
+      error = res2.error;
+    }
+  }
+
   if (error || !resp) return NextResponse.json({ error: error?.message || 'not found' }, { status: 404 });
 
   const { data: survey } = await service
@@ -31,7 +63,7 @@ export async function GET(req: Request) {
   const { data: answers } = await service
     .from('course_survey_answers')
     .select('question_id, value, extra_text')
-    .eq('response_id', responseId);
+    .eq('response_id', resp.id);
 
   const qIds = Array.from(new Set((answers || []).map((a) => a.question_id).filter(Boolean) as string[]));
   const { data: questions } = qIds.length
@@ -47,7 +79,7 @@ export async function GET(req: Request) {
     submitted_at: resp.submitted_at,
     archived_at: resp.archived_at,
     student_name: student?.name || null,
-    student_email: student?.email || null,
+    student_email: student?.email || studentEmail || null,
     answers: (answers || []).map((a) => ({
       prompt: qMap.get(a.question_id)?.prompt || 'Frage',
       value: a.value,

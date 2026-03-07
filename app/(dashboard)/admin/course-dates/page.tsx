@@ -583,12 +583,23 @@ export default function CourseDatesPage() {
                               className="px-3 py-1 rounded-lg border border-pink-300 text-pink-700 hover:bg-pink-50 disabled:opacity-50"
                               disabled={!row.response_id}
                               onClick={async () => {
-                                if (!row.response_id) return;
+                                const params = new URLSearchParams();
+                                if (row.response_id) params.set('response_id', row.response_id);
+                                if (row.survey_id) params.set('survey_id', row.survey_id);
+                                if (row.booking_id) params.set('booking_id', row.booking_id);
+                                if (row.student_id) params.set('student_id', row.student_id);
+                                if (row.student_email) params.set('student_email', row.student_email);
                                 setResponseModal({ open: true, responseId: row.response_id, title: row.course_title || 'Fragebogen' });
                                 setResponseLoading(true);
-                                const res = await fetch(`/api/admin/surveys/response?response_id=${row.response_id}`);
+                                setResponseDetail(null);
+                                const res = await fetch(`/api/admin/surveys/response?${params.toString()}`);
                                 const data = await res.json().catch(() => ({}));
-                                if (res.ok) setResponseDetail(data);
+                                if (res.ok) {
+                                  setResponseDetail(data);
+                                } else {
+                                  setResponseDetail(null);
+                                  alert(data.error || 'Antwort nicht gefunden');
+                                }
                                 setResponseLoading(false);
                               }}
                             >
