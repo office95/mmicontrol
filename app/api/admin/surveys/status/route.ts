@@ -100,12 +100,16 @@ export async function GET() {
       ? (b.course_dates[0] as any)?.start_date
       : (b.course_dates as any)?.start_date;
 
+    const partnerName = Array.isArray(b.partners)
+      ? (b.partners[0] as any)?.name
+      : (b.partners as any)?.name;
+
     return {
       booking_id: b.id,
       course_id: b.course_id,
       course_title: courseTitle,
       start_date: startDate || null,
-      partner_name: b.partners?.name || null,
+      partner_name: partnerName || null,
       survey_id: chosenSurvey?.id || null,
       response_id: response?.id || null,
       submitted_at: response?.submitted_at || null,
