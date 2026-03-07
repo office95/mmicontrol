@@ -91,10 +91,15 @@ export async function GET() {
         : 'eingereicht'
       : 'offen';
 
+    const courseTitle =
+      b.course_title ||
+      (Array.isArray(b.courses) ? (b.courses[0] as any)?.title : (b.courses as any)?.title) ||
+      'Kurs';
+
     return {
       booking_id: b.id,
       course_id: b.course_id,
-      course_title: b.course_title || b.courses?.title || 'Kurs',
+      course_title: courseTitle,
       start_date: b.course_dates?.start_date || null,
       partner_name: b.partners?.name || null,
       survey_id: chosenSurvey?.id || null,
