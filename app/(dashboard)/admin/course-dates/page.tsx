@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import ButtonLink from '@/components/button-link';
 import CourseDateModal, { CourseDateRow } from '@/components/course-date-modal';
 import AttendanceModal from '@/components/attendance-modal';
+import Spinner from '@/components/spinner';
 
 type CourseDateListRow = {
   id: string;
@@ -32,6 +33,19 @@ const statusColor: Record<string, string> = {
 
 const STATUS_FILTERS = ['offen', 'laufend', 'verschoben', 'abgeschlossen', 'abgesagt'];
 
+const StatusBadge = ({ status }: { status: string }) => {
+  const map: Record<string, string> = {
+    offen: 'bg-amber-100 text-amber-800 border border-amber-200',
+    eingereicht: 'bg-emerald-100 text-emerald-800 border border-emerald-200',
+    archiviert: 'bg-slate-200 text-slate-800 border border-slate-300',
+  };
+  return (
+    <span className={`inline-flex px-2 py-1 rounded-full text-xs font-semibold ${map[status] || 'bg-slate-100 text-slate-700 border border-slate-200'}`}>
+      {status}
+    </span>
+  );
+};
+
 export default function CourseDatesPage() {
   const [items, setItems] = useState<CourseDateListRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -50,6 +64,17 @@ export default function CourseDatesPage() {
   const [resForm, setResForm] = useState({ start_date: '', end_date: '', time_from: '', time_to: '', reason: '', update_bookings: true });
   const [resSaving, setResSaving] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string[]>(['offen', 'laufend', 'verschoben']);
+  // Kursfragebögen
+  const [surveyRows, setSurveyRows] = useState<any[]>([]);
+  const [surveyLoading, setSurveyLoading] = useState(false);
+  const [surveyError, setSurveyError] = useState<string | null>(null);
+  const [responseModal, setResponseModal] = useState<{ open: boolean; responseId: string | null; title: string }>({
+    open: false,
+    responseId: null,
+    title: '',
+  });
+  const [responseDetail, setResponseDetail] = useState<any | null>(null);
+  const [responseLoading, setResponseLoading] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -81,7 +106,22 @@ export default function CourseDatesPage() {
   useEffect(() => {
     load();
     loadReschedules();
+    loadSurveys();
   }, []);
+
+  const loadSurveys = async () => {
+    setSurveyLoading(true);
+    const res = await fetch('/api/admin/surveys/status');
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      setSurveyError(data.error || 'Fehler beim Laden der Fragebögen');
+      setSurveyRows([]);
+    } else {
+      setSurveyError(null);
+      setSurveyRows(data || []);
+    }
+    setSurveyLoading(false);
+  };
 
   const sorted = useMemo(
     () =>
@@ -484,11 +524,104 @@ export default function CourseDatesPage() {
 
         {activeTab === 'surveys' && (
           <div className="rounded-2xl border border-white/10 bg-white/90 shadow-sm p-6 text-slate-900 space-y-4">
-            <h2 className="text-xl font-semibold text-ink">Kursfragebögen</h2>
-            <p className="text-sm text-slate-600">
-              Übersicht aller Teilnehmer-Fragebögen (Status, Partner, Startdatum) folgt hier. Bitte kurz bestätigen, ob wir dafür eine neue Admin-API
-              aufsetzen sollen (Survey-Status, Antworten-Modal, Archivieren). Sobald du grünes Licht gibst, baue ich die Abfrage und das Archiv-Feature ein.
-            </p>
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-semibold text-ink">Kursfragebögen</h2>
+                <p className="text-sm text-slate-600">Teilnehmer, Kurs, Startdatum, Partner, Status · Anzeigen & Archivieren.</p>
+              </div>
+              <button
+                className="text-sm text-pink-700 hover:underline"
+                onClick={loadSurveys}
+              >
+                Neu laden
+              </button>
+            </div>
+
+            {surveyLoading && (
+              <div className="flex items-center gap-2 text-sm text-slate-600">
+                <Spinner /> <span>Lade Fragebögen...</span>
+              </div>
+            )}
+            {surveyError && <p className="text-sm text-red-600">{surveyError}</p>}
+            {!surveyLoading && !surveyError && surveyRows.length === 0 && (
+              <p className="text-sm text-slate-600">Keine Daten vorhanden.</p>
+            )}
+
+            {!surveyLoading && !surveyError && surveyRows.length > 0 && (
+              <div className="overflow-x-auto">
+                <table className="min-w-full text-sm text-slate-800">
+                  <thead>
+                    <tr className="text-left border-b border-slate-200">
+                      <th className="py-2 pr-4">Kursteilnehmer</th>
+                      <th className="py-2 pr-4">Kurs</th>
+                      <th className="py-2 pr-4">Startdatum</th>
+                      <th className="py-2 pr-4">Partner</th>
+                      <th className="py-2 pr-4">Status</th>
+                      <th className="py-2 pr-4">Aktionen</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {surveyRows.map((row) => (
+                      <tr key={`${row.booking_id}-${row.survey_id}-${row.student_email || row.student_name || 'unknown'}`}>
+                        <td className="py-2 pr-4">
+                          <div className="font-semibold">{row.student_name || row.student_email || '—'}</div>
+                          <div className="text-xs text-slate-500">{row.student_email || ''}</div>
+                        </td>
+                        <td className="py-2 pr-4">
+                          <div className="font-semibold">{row.course_title || 'Kurs'}</div>
+                        </td>
+                        <td className="py-2 pr-4 text-slate-700">
+                          {row.start_date ? new Date(row.start_date).toLocaleDateString() : '—'}
+                        </td>
+                        <td className="py-2 pr-4 text-slate-700">{row.partner_name || '—'}</td>
+                        <td className="py-2 pr-4">
+                          <StatusBadge status={row.status} />
+                        </td>
+                        <td className="py-2 pr-4">
+                          <div className="flex flex-wrap gap-2">
+                            <button
+                              className="px-3 py-1 rounded-lg border border-pink-300 text-pink-700 hover:bg-pink-50 disabled:opacity-50"
+                              disabled={!row.response_id}
+                              onClick={async () => {
+                                if (!row.response_id) return;
+                                setResponseModal({ open: true, responseId: row.response_id, title: row.course_title || 'Fragebogen' });
+                                setResponseLoading(true);
+                                const res = await fetch(`/api/admin/surveys/response?response_id=${row.response_id}`);
+                                const data = await res.json().catch(() => ({}));
+                                if (res.ok) setResponseDetail(data);
+                                setResponseLoading(false);
+                              }}
+                            >
+                              Ansehen
+                            </button>
+                            <button
+                              className="px-3 py-1 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100 disabled:opacity-50"
+                              disabled={!row.response_id || row.status === 'archiviert'}
+                              onClick={async () => {
+                                if (!row.response_id) return;
+                                const res = await fetch('/api/admin/surveys/archive', {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ response_id: row.response_id }),
+                                });
+                                const data = await res.json().catch(() => ({}));
+                                if (!res.ok) {
+                                  alert(data.error || 'Archivieren fehlgeschlagen');
+                                } else {
+                                  loadSurveys();
+                                }
+                              }}
+                            >
+                              Archivieren
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -504,21 +637,59 @@ export default function CourseDatesPage() {
         />
       )}
 
-      {attendanceCourse && (
-        <AttendanceModal
-          courseId={attendanceCourse.id}
-          courseTitle={attendanceCourse.title}
-          readOnly
-          onClose={() => setAttendanceCourse(null)}
-        />
-      )}
+  {attendanceCourse && (
+    <AttendanceModal
+      courseId={attendanceCourse.id}
+      courseTitle={attendanceCourse.title}
+      readOnly
+      onClose={() => setAttendanceCourse(null)}
+    />
+  )}
 
-      {feedbackOpen && (
-        <FeedbackModal
-          title={feedbackTitle}
-          loading={feedbackLoading}
-          error={feedbackError}
-          items={feedbackItems}
+  {responseModal.open && (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
+      <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white text-ink shadow-2xl p-6 relative">
+        <button className="absolute top-3 right-3 text-slate-500 hover:text-ink" onClick={() => { setResponseModal({ open: false, responseId: null, title: '' }); setResponseDetail(null); }}>
+          ×
+        </button>
+        <div className="flex items-start justify-between gap-3 mb-2">
+          <h3 className="text-2xl font-semibold">Fragebogen · {responseModal.title}</h3>
+        </div>
+        {responseLoading && <p className="text-sm text-slate-600">Lade...</p>}
+        {!responseLoading && responseDetail && (
+          <div className="space-y-4">
+            <div className="text-sm text-slate-600">
+              Teilnehmer: {responseDetail.student_name || responseDetail.student_email || '—'} ·{' '}
+              {responseDetail.submitted_at ? new Date(responseDetail.submitted_at).toLocaleString() : '—'}
+            </div>
+            <div className="space-y-2">
+              {(responseDetail.answers || []).map((a: any, idx: number) => (
+                <div key={idx} className="border border-slate-200 rounded-lg bg-slate-50 px-3 py-2">
+                  <p className="font-semibold text-slate-800">{a.prompt}</p>
+                  <p className="text-slate-700">{a.value || '—'}</p>
+                  {a.extra_text_label && (
+                    <p className="text-slate-600 mt-1">
+                      <span className="font-semibold">{a.extra_text_label}:</span> {a.extra_text || '—'}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        {!responseLoading && !responseDetail && (
+          <p className="text-sm text-slate-600">Keine Details gefunden.</p>
+        )}
+      </div>
+    </div>
+  )}
+
+  {feedbackOpen && (
+    <FeedbackModal
+      title={feedbackTitle}
+      loading={feedbackLoading}
+      error={feedbackError}
+      items={feedbackItems}
           onClose={() => setFeedbackOpen(false)}
         />
       )}
