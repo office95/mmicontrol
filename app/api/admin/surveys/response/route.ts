@@ -114,6 +114,22 @@ export async function GET(req: Request) {
   const qMap = new Map<string, any>();
   (questions || []).forEach((q) => qMap.set(q.id, q));
 
+  // Hardcoded prompt overrides for Music Producer survey (to compensate placeholder prompts)
+  const promptOverrides: Record<string, string> = {
+    '6665fb14-ed48-4d1a-a34f-52f34d5eaf76': 'Welche Genres oder Musikstile interessieren dich besonders?',
+    '8149367f-18bc-4f14-ac78-595aaf21422b': 'Hast du bereits Erfahrung in der Musikproduktion?',
+    'f2d5b97b-74f1-4c46-bddc-ca3080074c01': 'Nachname',
+    'dc7ec2a7-0be6-4015-8ff2-5683e3ee9d6b': 'Telefonnummer',
+    '41a461a7-2c0b-4fb5-af69-0b6a9f08c69e': 'Wie schätzt du dein aktuelles Wissen in der Musikproduktion ein?',
+    'df557bfe-26af-4746-a00f-4b823e943fac': 'Vorname',
+    '15bdfae7-0e47-4988-8f66-e99ffe0d99ca': 'Falls ja, welche DAWs hast du bereits genutzt?',
+    '85e0c71d-4258-433b-98ae-06fcf7dec5af': 'Falls ja, wie lange beschäftigst du dich schon mit Musikproduktion?',
+    'e8bf8e88-9349-4a48-95aa-d40712842965': 'Was sind deine Hauptziele für diesen Kurs?',
+    'a5ab2139-837d-4af6-9af4-6742c734192c': 'Email',
+    'b79172ee-89b6-4240-bd61-22ff286b8d42': 'Hast du Erfahrung mit DAWs (Digital Audio Workstations)?',
+    '59e17791-5a03-4204-a8ef-869e89c91ded': 'Hast du schon an Musikproduktionskursen teilgenommen?',
+  };
+
   return NextResponse.json({
     response_id: resp.id,
     survey_id: resp.survey_id,
@@ -124,8 +140,9 @@ export async function GET(req: Request) {
     student_email: student?.email || studentEmail || null,
     answers: (answers || []).map((a) => {
       const q = a.question_id ? qMap.get(a.question_id) : null;
+      const override = a.question_id ? promptOverrides[a.question_id] : null;
       return {
-        prompt: q?.prompt || 'Frage',
+        prompt: override || q?.prompt || 'Frage',
         value: a.value,
         extra_text_label: q?.extra_text_label,
         extra_text: a.extra_text,
