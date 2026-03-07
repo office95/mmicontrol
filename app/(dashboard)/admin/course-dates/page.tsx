@@ -38,7 +38,7 @@ export default function CourseDatesPage() {
   const [error, setError] = useState<string | null>(null);
   const [openModal, setOpenModal] = useState(false);
   const [editItem, setEditItem] = useState<CourseDateRow | null>(null);
-  const [activeTab, setActiveTab] = useState<'list' | 'timeline'>('list');
+  const [activeTab, setActiveTab] = useState<'list' | 'timeline' | 'surveys'>('list');
   const [attendanceCourse, setAttendanceCourse] = useState<{ id: string; title: string } | null>(null);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [feedbackLoading, setFeedbackLoading] = useState(false);
@@ -178,6 +178,12 @@ export default function CourseDatesPage() {
           onClick={() => setActiveTab('timeline')}
         >
           Zeitachse
+        </button>
+        <button
+          className={`pb-2 ${activeTab === 'surveys' ? 'text-white border-b-2 border-pink-500' : 'text-slate-400'}`}
+          onClick={() => setActiveTab('surveys')}
+        >
+          Kursfragebögen
         </button>
       </div>
 
@@ -342,7 +348,9 @@ export default function CourseDatesPage() {
               );
             })}
           </div>
-        )}        {activeTab === 'timeline' && (() => {
+        )}
+
+        {activeTab === 'timeline' && (() => {
           const today = new Date();
           const dayMs = 86_400_000;
           const toDate = (d: string | null) => (d ? new Date(d) : null);
@@ -473,6 +481,16 @@ export default function CourseDatesPage() {
             </div>
           );
         })()}
+
+        {activeTab === 'surveys' && (
+          <div className="rounded-2xl border border-white/10 bg-white/90 shadow-sm p-6 text-slate-900 space-y-4">
+            <h2 className="text-xl font-semibold text-ink">Kursfragebögen</h2>
+            <p className="text-sm text-slate-600">
+              Übersicht aller Teilnehmer-Fragebögen (Status, Partner, Startdatum) folgt hier. Bitte kurz bestätigen, ob wir dafür eine neue Admin-API
+              aufsetzen sollen (Survey-Status, Antworten-Modal, Archivieren). Sobald du grünes Licht gibst, baue ich die Abfrage und das Archiv-Feature ein.
+            </p>
+          </div>
+        )}
       </div>
 
       {openModal && (
