@@ -21,7 +21,7 @@ export async function GET() {
       student_email,
       course_title,
       course_dates(start_date),
-      courses(id, title, partner_id),
+      courses(id, title),
       partners:partner_id(name),
       students(name, email)
     `)
