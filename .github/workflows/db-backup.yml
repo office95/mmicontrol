@@ -1,0 +1,64 @@
+name: Nightly DB Backup
+
+on:
+  schedule:
+    - cron: "0 2 * * *" # daily at 02:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install PostgreSQL client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Dump database (custom format)
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          set -euo pipefail
+          if [ -z "${SUPABASE_URL:-}" ] || [ -z "${SUPABASE_SERVICE_ROLE_KEY:-}" ]; then
+            echo "Supabase secrets missing" >&2
+            exit 1
+          fi
+          HOST="$(echo "$SUPABASE_URL" | sed -E 's#https?://##' | cut -d/ -f1)"
+          DBURL="postgres://postgres:${SUPABASE_SERVICE_ROLE_KEY}@${HOST}:5432/postgres"
+          DATE=$(date -u +%F)
+          FILE="backup-${DATE}.dump"
+          echo "Dumping to $FILE"
+          pg_dump --format=custom --no-owner --no-privileges --dbname="$DBURL" --file="$FILE"
+
+      - name: Compress
+        run: |
+          set -euo pipefail
+          FILE=$(ls backup-*.dump)
+          zstd -T0 "$FILE"
+
+      - name: Upload to S3
+        env:
+          BACKUP_S3_BUCKET: ${{ secrets.BACKUP_S3_BUCKET }}
+        run: |
+          set -euo pipefail
+          if [ -z "${BACKUP_S3_BUCKET:-}" ]; then
+            echo "BACKUP_S3_BUCKET secret missing" >&2
+            exit 1
+          fi
+          FILE=$(ls backup-*.dump.zst)
+          aws s3 cp "$FILE" "s3://${BACKUP_S3_BUCKET}/db-backups/${FILE}"
+
+      - name: Clean workspace
+        run: rm -f backup-*.dump*
