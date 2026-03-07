@@ -105,6 +105,8 @@ export async function GET(req: Request) {
   const qMap = new Map<string, any>();
   (questions || []).forEach((q) => qMap.set(q.id, q));
 
+  // Wenn keine questions gefunden wurden (z.B. Daten-Export ohne IDs), fallback: nutze title aus CSV? (nicht verfügbar) -> lasse prompt als 'Frage'
+
   return NextResponse.json({
     response_id: resp.id,
     survey_id: resp.survey_id,
@@ -113,11 +115,14 @@ export async function GET(req: Request) {
     archived_at: resp.archived_at,
     student_name: student?.name || null,
     student_email: student?.email || studentEmail || null,
-    answers: (answers || []).map((a) => ({
-      prompt: qMap.get(a.question_id)?.prompt || 'Frage',
-      value: a.value,
-      extra_text_label: qMap.get(a.question_id)?.extra_text_label,
-      extra_text: a.extra_text,
-    })),
+    answers: (answers || []).map((a) => {
+      const q = a.question_id ? qMap.get(a.question_id) : null;
+      return {
+        prompt: q?.prompt || 'Frage',
+        value: a.value,
+        extra_text_label: q?.extra_text_label,
+        extra_text: a.extra_text,
+      };
+    }),
   });
 }
