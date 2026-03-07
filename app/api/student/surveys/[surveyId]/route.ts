@@ -36,6 +36,7 @@ export async function GET(req: Request, { params }: { params: { surveyId: string
     .from('course_survey_questions')
     .select('id, qtype, prompt, options, required, position')
     .eq('survey_id', survey.id)
+    .eq('archived', false)
     .order('position', { ascending: true });
 
   return NextResponse.json({ survey, questions, booking });

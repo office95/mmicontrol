@@ -22,6 +22,7 @@ create table if not exists public.course_survey_questions (
   extra_text_required boolean default false,
   required boolean default true,
   position int default 1,
+  archived boolean not null default false,
   created_at timestamptz default now()
 );
 
@@ -48,6 +49,17 @@ create table if not exists public.course_survey_answers (
 -- falls extra_text in bestehenden DBs noch fehlt, ergänzen
 alter table if exists public.course_survey_answers
   add column if not exists extra_text text;
+
+-- Archiv-Flag für Fragen (verhindert Löschen alter Antworten)
+alter table if exists public.course_survey_questions
+  add column if not exists archived boolean not null default false;
+
+-- FK so belassen Antworten bei Frage-Löschung erhalten bleiben
+alter table if exists public.course_survey_answers
+  drop constraint if exists course_survey_answers_question_id_fkey;
+alter table if exists public.course_survey_answers
+  add constraint course_survey_answers_question_id_fkey
+    foreign key (question_id) references public.course_survey_questions(id) on delete set null;
 
 -- Automation Settings (global toggles)
 create table if not exists public.automation_settings (

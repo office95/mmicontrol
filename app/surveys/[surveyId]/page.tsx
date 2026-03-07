@@ -18,7 +18,12 @@ export default async function SurveyPage({ params, searchParams }: { params: { s
 
   if (isPreview) {
     const { data: survey, error: surveyErr } = await supabase.from('course_surveys').select('*').eq('id', params.surveyId).single();
-    const { data: questions, error: qErr } = await supabase.from('course_survey_questions').select('*').eq('survey_id', params.surveyId).order('position');
+    const { data: questions, error: qErr } = await supabase
+      .from('course_survey_questions')
+      .select('*')
+      .eq('survey_id', params.surveyId)
+      .eq('archived', false)
+      .order('position');
     if (surveyErr || qErr || !survey) return <div className="text-white p-6">Vorschau nicht möglich.</div>;
     data = { survey, questions, booking: { course_title: survey.course_id } };
   } else {
@@ -41,6 +46,7 @@ export default async function SurveyPage({ params, searchParams }: { params: { s
       .from('course_survey_questions')
       .select('id, qtype, prompt, options, required, position, extra_text_label, extra_text_required')
       .eq('survey_id', survey.id)
+      .eq('archived', false)
       .order('position', { ascending: true });
 
     data = { survey, questions, booking };

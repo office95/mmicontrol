@@ -25,8 +25,9 @@ export default async function CourseSurveyPage({ params }: { params: { courseId:
   const { data: questions } = surveyId
     ? await supabase
         .from('course_survey_questions')
-        .select('id, qtype, prompt, options, required, position')
+        .select('id, qtype, prompt, options, required, position, extra_text_label, extra_text_required, archived')
         .eq('survey_id', surveyId)
+        .eq('archived', false)
         .order('position', { ascending: true })
     : { data: [] as any[] };
 

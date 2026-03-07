@@ -37,10 +37,9 @@ export async function POST(req: Request) {
 
   const surveyId = upserted.id;
 
-  // Überschreiben: alte Fragen löschen, dann neu einfügen
-  await serviceClient.from('course_survey_questions').delete().eq('survey_id', surveyId);
-
-  const payload = (questions || []).map((q: any, idx: number) => ({
+  // Fragen non-destruktiv upserten (IDs behalten) und entfernte Fragen archivieren statt löschen
+  const incoming = (questions || []).map((q: any, idx: number) => ({
+    id: q.id, // wenn vorhanden, behalten
     survey_id: surveyId,
     qtype: q.qtype || 'text',
     prompt: q.prompt || 'Frage',
@@ -49,10 +48,29 @@ export async function POST(req: Request) {
     position: q.position ?? idx + 1,
     extra_text_label: q.extra_text_label || null,
     extra_text_required: q.extra_text_required ?? false,
+    archived: false,
   }));
 
-  if (payload.length) {
-    const { error: qErr } = await serviceClient.from('course_survey_questions').insert(payload);
+  // Archive questions that are not part of the incoming payload
+  const incomingIds = incoming.map((q) => q.id).filter(Boolean);
+  if (incomingIds.length) {
+    await serviceClient
+      .from('course_survey_questions')
+      .update({ archived: true })
+      .eq('survey_id', surveyId)
+      .not('id', 'in', incomingIds as string[]);
+  } else {
+    // Keine IDs übermittelt -> nur neue Fragen, alte bleiben unberührt aber nicht hart gelöscht
+    await serviceClient
+      .from('course_survey_questions')
+      .update({ archived: true })
+      .eq('survey_id', surveyId);
+  }
+
+  if (incoming.length) {
+    const { error: qErr } = await serviceClient
+      .from('course_survey_questions')
+      .upsert(incoming, { onConflict: 'id' });
     if (qErr) return NextResponse.json({ error: qErr.message }, { status: 400 });
   }
 
