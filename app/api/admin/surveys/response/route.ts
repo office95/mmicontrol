@@ -13,6 +13,7 @@ export async function GET(req: Request) {
   const bookingId = searchParams.get('booking_id');
   const studentId = searchParams.get('student_id');
   const studentEmail = searchParams.get('student_email');
+  const courseId = searchParams.get('course_id');
 
   let resp: any = null;
   let error: any = null;
@@ -45,6 +46,38 @@ export async function GET(req: Request) {
         .maybeSingle();
       resp = res2.data;
       error = res2.error;
+    }
+    // Zweiter Fallback: bei booking_id einfach letzte Response zu dieser Booking nehmen
+    if (!resp && bookingId) {
+      const res3 = await service
+        .from('course_survey_responses')
+        .select('id, survey_id, student_id, booking_id, submitted_at, archived_at')
+        .eq('booking_id', bookingId)
+        .order('submitted_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      resp = res3.data;
+      error = res3.error;
+    }
+    // Dritter Fallback: wenn course_id vorhanden, nimm eine Response zu einem Survey dieses Kurses (matching student/booking optional)
+    if (!resp && courseId) {
+      const { data: courseSurveys } = await service
+        .from('course_surveys')
+        .select('id')
+        .eq('course_id', courseId);
+      const courseSurveyIds = (courseSurveys || []).map((c) => c.id);
+      if (courseSurveyIds.length) {
+        let query = service
+          .from('course_survey_responses')
+          .select('id, survey_id, student_id, booking_id, submitted_at, archived_at')
+          .in('survey_id', courseSurveyIds)
+          .order('submitted_at', { ascending: false });
+        if (studentId) query = query.eq('student_id', studentId);
+        if (bookingId) query = query.eq('booking_id', bookingId);
+        const res4 = await query.limit(1).maybeSingle();
+        resp = res4.data;
+        error = res4.error;
+      }
     }
   }
 
