@@ -93,10 +93,19 @@ export async function GET(req: Request) {
     ? await service.from('students').select('id, name, email').eq('id', resp.student_id).maybeSingle()
     : { data: null };
 
-  const { data: answers } = await service
+  let { data: answers } = await service
     .from('course_survey_answers')
     .select('question_id, value, extra_text')
     .eq('response_id', resp.id);
+
+  // Fallback: falls keine Antworten gefunden wurden (z.B. Inkonsistenz), versuche über View v_teacher_course_surveys
+  if (!answers || !answers.length) {
+    const { data: viewRows } = await service
+      .from('v_teacher_course_surveys')
+      .select('question_id, value, extra_text')
+      .eq('response_id', resp.id);
+    answers = viewRows || [];
+  }
 
   const qIds = Array.from(new Set((answers || []).map((a) => a.question_id).filter(Boolean) as string[]));
   const { data: questions } = qIds.length
@@ -104,8 +113,6 @@ export async function GET(req: Request) {
     : { data: [] };
   const qMap = new Map<string, any>();
   (questions || []).forEach((q) => qMap.set(q.id, q));
-
-  // Wenn keine questions gefunden wurden (z.B. Daten-Export ohne IDs), fallback: nutze title aus CSV? (nicht verfügbar) -> lasse prompt als 'Frage'
 
   return NextResponse.json({
     response_id: resp.id,
