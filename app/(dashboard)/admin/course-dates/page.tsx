@@ -673,19 +673,24 @@ export default function CourseDatesPage() {
               Teilnehmer: {responseDetail.student_name || responseDetail.student_email || '—'} ·{' '}
               {responseDetail.submitted_at ? new Date(responseDetail.submitted_at).toLocaleString() : '—'}
             </div>
-            <div className="space-y-2">
-              {(responseDetail.answers || []).map((a: any, idx: number) => (
-                <div key={idx} className="border border-slate-200 rounded-lg bg-slate-50 px-3 py-2">
-                  <p className="font-semibold text-slate-800">{a.prompt}</p>
-                  <p className="text-slate-700">{a.value || '—'}</p>
-                  {a.extra_text_label && (
-                    <p className="text-slate-600 mt-1">
-                      <span className="font-semibold">{a.extra_text_label}:</span> {a.extra_text || '—'}
-                    </p>
-                  )}
-                </div>
-              ))}
-            </div>
+            {(!responseDetail.answers || responseDetail.answers.length === 0) && (
+              <p className="text-sm text-slate-600">Keine Antworten gefunden.</p>
+            )}
+            {responseDetail.answers && responseDetail.answers.length > 0 && (
+              <div className="space-y-2">
+                {(responseDetail.answers || []).map((a: any, idx: number) => (
+                  <div key={idx} className="border border-slate-200 rounded-lg bg-slate-50 px-3 py-2">
+                    <p className="font-semibold text-slate-800">{a.prompt}</p>
+                    <p className="text-slate-700">{a.value || '—'}</p>
+                    {a.extra_text_label && (
+                      <p className="text-slate-600 mt-1">
+                        <span className="font-semibold">{a.extra_text_label}:</span> {a.extra_text || '—'}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
         {!responseLoading && !responseDetail && (
