@@ -48,13 +48,10 @@ export async function GET() {
 
   const surveyIds = (surveys || []).map((s) => s.id);
 
-  // 3) Responses zu diesen Surveys
-  const { data: responses, error: rErr } = surveyIds.length
-    ? await service
-        .from('course_survey_responses')
-        .select('id, survey_id, student_id, booking_id, submitted_at, archived_at')
-        .in('survey_id', surveyIds)
-    : { data: [], error: null };
+  // 3) Responses – wir ziehen alle, die zu den Kurs-Surveys gehören ODER booking_id gesetzt haben (Fallback)
+  const { data: responses, error: rErr } = await service
+    .from('course_survey_responses')
+    .select('id, survey_id, student_id, booking_id, submitted_at, archived_at');
   if (rErr) {
     console.error('survey status responses error', rErr);
     return NextResponse.json({ error: rErr.message }, { status: 500 });
@@ -73,16 +70,24 @@ export async function GET() {
     list.push(r);
     responsesBySurvey.set(r.survey_id, list);
   });
+  const responseByBooking = new Map<string, any>();
+  (responses || []).forEach((r) => {
+    if (r.booking_id) responseByBooking.set(r.booking_id, r);
+  });
 
   const rows = (bookings || []).map((b) => {
+    // 0) Direkter Treffer über booking_id
+    const directResponse = responseByBooking.get(b.id) || null;
+
     const courseSurveyList = surveyByCourse.get(b.course_id) || [];
 
     // Versuche zuerst einen Survey zu finden, der eine Response für diese Booking/Student hat
     let chosenSurvey: any = null;
-    let response: any = null;
+    let response: any = directResponse;
     for (const s of courseSurveyList) {
       const candidates = responsesBySurvey.get(s.id) || [];
       response =
+        response ||
         candidates.find((r) => r.booking_id === b.id) ||
         candidates.find((r) => r.student_id && b.student_id && r.student_id === b.student_id) ||
         null;
