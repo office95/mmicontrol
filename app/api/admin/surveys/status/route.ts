@@ -76,15 +76,26 @@ export async function GET() {
 
   const rows = (bookings || []).map((b) => {
     const courseSurveyList = surveyByCourse.get(b.course_id) || [];
-    const chosenSurvey = courseSurveyList[0]; // älteste/erste
-    let response = null;
-    if (chosenSurvey) {
-      const candidates = responsesBySurvey.get(chosenSurvey.id) || [];
+
+    // Versuche zuerst einen Survey zu finden, der eine Response für diese Booking/Student hat
+    let chosenSurvey: any = null;
+    let response: any = null;
+    for (const s of courseSurveyList) {
+      const candidates = responsesBySurvey.get(s.id) || [];
       response =
         candidates.find((r) => r.booking_id === b.id) ||
         candidates.find((r) => r.student_id && b.student_id && r.student_id === b.student_id) ||
         null;
+      if (response) {
+        chosenSurvey = s;
+        break;
+      }
     }
+    // Fallback: nimm erste Survey, auch wenn keine Response
+    if (!chosenSurvey) {
+      chosenSurvey = courseSurveyList[0] || null;
+    }
+
     const status = response
       ? response.archived_at
         ? 'archiviert'
@@ -123,6 +134,7 @@ export async function GET() {
       archived_at: response?.archived_at || null,
       student_name: studentName || null,
       student_email: studentEmail || b.student_email || null,
+      student_id: b.student_id || null,
       status,
     };
   });
