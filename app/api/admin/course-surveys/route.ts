@@ -52,7 +52,7 @@ export async function POST(req: Request) {
   }));
 
   // Archive questions that are not part of the incoming payload
-  const incomingIds = incoming.map((q) => q.id).filter(Boolean);
+  const incomingIds = incoming.map((q: any) => q.id).filter(Boolean) as string[];
   if (incomingIds.length) {
     await serviceClient
       .from('course_survey_questions')
