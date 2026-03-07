@@ -104,6 +104,13 @@ export async function GET() {
       ? (b.partners[0] as any)?.name
       : (b.partners as any)?.name;
 
+    const studentName = Array.isArray(b.students)
+      ? (b.students[0] as any)?.name
+      : (b.students as any)?.name;
+    const studentEmail = Array.isArray(b.students)
+      ? (b.students[0] as any)?.email
+      : (b.students as any)?.email;
+
     return {
       booking_id: b.id,
       course_id: b.course_id,
@@ -114,8 +121,8 @@ export async function GET() {
       response_id: response?.id || null,
       submitted_at: response?.submitted_at || null,
       archived_at: response?.archived_at || null,
-      student_name: b.students?.name || null,
-      student_email: b.students?.email || b.student_email || null,
+      student_name: studentName || null,
+      student_email: studentEmail || b.student_email || null,
       status,
     };
   });
