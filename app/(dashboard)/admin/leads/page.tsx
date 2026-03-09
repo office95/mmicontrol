@@ -9,6 +9,7 @@ type Lead = LeadRow & {
   lead_code?: string;
   partner?: { id: string; name: string | null };
   requested_at?: string;
+  updated_at?: string;
   interest_titles?: string[];
   notes?: { created_at: string; text: string; todo?: string }[];
 };
@@ -30,6 +31,7 @@ const statusLabel: Record<string, string> = {
   Watchlist: 'Watchlist',
   'Email senden': 'Email senden',
 };
+const CLOSED_STATUSES = ['erledigt', 'löschen', 'nicht erreicht'];
 
 const norm = (v?: string | null) => (v || '').trim().toLowerCase();
 
@@ -48,14 +50,23 @@ export default function LeadsPage() {
   const [analysisYear, setAnalysisYear] = useState<number | null>(currentYear);
 
   const avgLeadDays = (() => {
-    const closed = leads.filter((l) => (l.status || 'offen') !== 'offen' && l.requested_at);
+    const closed = leads.filter(
+      (l) =>
+        CLOSED_STATUSES.includes((l.status || '').toLowerCase()) &&
+        (l.requested_at || l.created_at)
+    );
     if (!closed.length) return null;
-    const sum = closed.reduce((acc, l) => {
-      const start = new Date(l.requested_at as string).getTime();
-      const end = (l as any).updated_at ? new Date((l as any).updated_at as string).getTime() : Date.now();
-      return acc + Math.max(0, (end - start) / (1000 * 60 * 60 * 24));
-    }, 0);
-    return sum / closed.length;
+
+    const days = closed.map((l) => {
+      const startStr = l.requested_at || l.created_at || l.updated_at;
+      const endStr = l.updated_at || l.created_at || l.requested_at;
+      const start = startStr ? new Date(startStr).getTime() : Date.now();
+      const end = endStr ? new Date(endStr).getTime() : Date.now();
+      return Math.max(0, (end - start) / (1000 * 60 * 60 * 24));
+    });
+
+    const sum = days.reduce((acc, d) => acc + d, 0);
+    return sum / days.length;
   })();
 
   const load = async () => {
