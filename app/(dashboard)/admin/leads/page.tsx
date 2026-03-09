@@ -54,13 +54,14 @@ export default function LeadsPage() {
   const avgLeadDays = (() => {
     const closed = leads.filter((l) => {
       const status = (l.status || '').toLowerCase();
-      return CLOSED_STATUSES.includes(status) && l.closed_at && (l.requested_at || l.created_at);
+      const end = l.closed_at || l.updated_at;
+      return CLOSED_STATUSES.includes(status) && end && (l.requested_at || l.created_at);
     });
     if (!closed.length) return null;
 
     const days = closed.map((l) => {
       const startStr = l.requested_at || l.created_at;
-      const endStr = l.closed_at!;
+      const endStr = l.closed_at || l.updated_at!;
       const start = startStr ? new Date(startStr).getTime() : Date.now();
       const end = new Date(endStr).getTime();
       return Math.max(0, (end - start) / (1000 * 60 * 60 * 24));
