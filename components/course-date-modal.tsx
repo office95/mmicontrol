@@ -117,7 +117,10 @@ export default function CourseDateModal({
   }
 
   const courseOptions = useMemo(() => {
-    const active = courses.filter((c) => (c.status || 'active') !== 'archived');
+    const active = courses.filter((c) => {
+      const status = (c.status || 'active').toLowerCase();
+      return status !== 'archived' && status !== 'inactive';
+    });
     return active.sort((a, b) => a.title.localeCompare(b.title));
   }, [courses]);
 
