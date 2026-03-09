@@ -16,6 +16,7 @@ type CoursePriceTier = {
 type Course = {
   id: string;
   title: string;
+  status?: string | null;
   default_price_tier_id?: string | null;
   course_price_tiers?: CoursePriceTier[];
 };
@@ -115,10 +116,10 @@ export default function CourseDateModal({
     setLoading(false);
   }
 
-  const courseOptions = useMemo(
-    () => courses.sort((a, b) => a.title.localeCompare(b.title)),
-    [courses]
-  );
+  const courseOptions = useMemo(() => {
+    const active = courses.filter((c) => (c.status || 'active') !== 'archived');
+    return active.sort((a, b) => a.title.localeCompare(b.title));
+  }, [courses]);
 
   useEffect(() => {
     const course = courses.find((c) => c.id === courseId);
