@@ -9,6 +9,7 @@ type Lead = LeadRow & {
   lead_code?: string;
   partner?: { id: string; name: string | null };
   requested_at?: string;
+  closed_at?: string;
   created_at?: string;
   updated_at?: string;
   interest_titles?: string[];
@@ -51,18 +52,17 @@ export default function LeadsPage() {
   const [analysisYear, setAnalysisYear] = useState<number | null>(currentYear);
 
   const avgLeadDays = (() => {
-    const closed = leads.filter(
-      (l) =>
-        CLOSED_STATUSES.includes((l.status || '').toLowerCase()) &&
-        (l.requested_at || l.created_at)
-    );
+    const closed = leads.filter((l) => {
+      const status = (l.status || '').toLowerCase();
+      return CLOSED_STATUSES.includes(status) && l.closed_at && (l.requested_at || l.created_at);
+    });
     if (!closed.length) return null;
 
     const days = closed.map((l) => {
-      const startStr = l.requested_at || l.created_at || l.updated_at;
-      const endStr = l.updated_at || l.created_at || l.requested_at;
+      const startStr = l.requested_at || l.created_at;
+      const endStr = l.closed_at!;
       const start = startStr ? new Date(startStr).getTime() : Date.now();
-      const end = endStr ? new Date(endStr).getTime() : Date.now();
+      const end = new Date(endStr).getTime();
       return Math.max(0, (end - start) / (1000 * 60 * 60 * 24));
     });
 

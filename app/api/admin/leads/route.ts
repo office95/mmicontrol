@@ -8,7 +8,7 @@ const service = createClient(
 );
 
 const baseSelect =
-  'id, lead_code, salutation, skills, requested_at, name, email, phone, country, state, interest_courses, interest_other, partner_id, source, source_note, lead_quality, newsletter, is_customer, status, notes, created_at, partner:partners(id,name)';
+  'id, lead_code, salutation, skills, requested_at, closed_at, updated_at, name, email, phone, country, state, interest_courses, interest_other, partner_id, source, source_note, lead_quality, newsletter, is_customer, status, notes, created_at, partner:partners(id,name)';
 
 async function enrich(leads: any[]) {
   // Pseudo-Kurse, die nicht in der courses-Tabelle stehen
