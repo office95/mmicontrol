@@ -12,6 +12,7 @@ type Lead = LeadRow & {
   closed_at?: string;
   created_at?: string;
   updated_at?: string;
+  first_status_change_at?: string;
   interest_titles?: string[];
   notes?: { created_at: string; text: string; todo?: string }[];
 };
@@ -54,14 +55,14 @@ export default function LeadsPage() {
 
   const avgLeadDays = (() => {
     const processed = leads.filter((l) => {
-      const end = l.closed_at || l.updated_at;
+      const end = l.first_status_change_at || l.closed_at || l.updated_at;
       return end && (l.requested_at || l.created_at);
     });
     if (!processed.length) return null;
 
     const days = processed.map((l) => {
       const startStr = l.requested_at || l.created_at;
-      const endStr = l.closed_at || l.updated_at!;
+      const endStr = l.first_status_change_at || l.closed_at || l.updated_at!;
       const start = startStr ? new Date(startStr).getTime() : Date.now();
       const end = new Date(endStr).getTime();
       return Math.max(0, (end - start) / (1000 * 60 * 60 * 24));
