@@ -1,4 +1,6 @@
 'use client';
+export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
 import AuthCard from '@/components/auth-card';
 import { useSupabase } from '@/providers/supabase-provider';
 import { useState } from 'react';

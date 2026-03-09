@@ -112,20 +112,11 @@ export default function PartnerModal({
   const [ratingReliability, setRatingReliability] = useState('0');
   const [ratingEngagement, setRatingEngagement] = useState('0');
 
-  const [activeTab, setActiveTab] = useState<'details' | 'vertrag' | 'bank' | 'media' | 'dozent' | 'website' | 'rating'>('details');
+  const [activeTab, setActiveTab] = useState<'details' | 'vertrag' | 'bank' | 'rating'>('details');
   const [bookings, setBookings] = useState<
     { id: string; booking_date: string | null; course_title: string | null; course_start: string | null; student_name: string | null; status: string; amount: number | null }[]
   >([]);
-  const [logoPath, setLogoPath] = useState<string | null>(null);
-  const [hero1Path, setHero1Path] = useState<string | null>(null);
-  const [hero2Path, setHero2Path] = useState<string | null>(null);
-  const [galleryPaths, setGalleryPaths] = useState<string[]>([]);
-  const [teachers, setTeachers] = useState<{ name: string; image_path: string | null; description: string }[]>([
-    { name: '', image_path: null, description: '' },
-  ]);
-  const [websiteSlogan, setWebsiteSlogan] = useState<string>('');
-  const [websiteDescription, setWebsiteDescription] = useState<string>('');
-  const [websiteTags, setWebsiteTags] = useState<string[]>([]);
+  const [showPastBookings, setShowPastBookings] = useState(false);
 
   const stateOptions = useMemo(() => (country === 'Österreich' ? STATES_AT : STATES_DE), [country]);
 
@@ -155,43 +146,6 @@ export default function PartnerModal({
   };
 
   const partnerId = partner?.id;
-
-  const uploadFile = async (file: File, kind: 'logo' | 'hero1' | 'hero2' | 'teacher', onPath: (p: string) => void) => {
-    if (!partnerId) {
-      setError('Bitte Partner zuerst speichern, dann Medien hochladen.');
-      return;
-    }
-    setError(null);
-    const ext = file.name.split('.').pop() || 'jpg';
-    const path = `partners/${partnerId}/${kind}-${Date.now()}.${ext}`;
-    const { error } = await supabase.storage.from('media').upload(path, file, { upsert: true });
-    if (error) {
-      setError(error.message);
-      return;
-    }
-    onPath(path);
-  };
-
-  const uploadGallery = async (files: FileList | null) => {
-    if (!files || !files.length) return;
-    if (!partnerId) {
-      setError('Bitte Partner zuerst speichern, dann Medien hochladen.');
-      return;
-    }
-    setError(null);
-    const newPaths: string[] = [];
-    for (const file of Array.from(files)) {
-      const ext = file.name.split('.').pop() || 'jpg';
-      const path = `partners/${partnerId}/gallery-${Date.now()}-${file.name.replace(/\s+/g, '_')}`;
-      const { error } = await supabase.storage.from('media').upload(path, file, { upsert: true });
-      if (error) {
-        setError(error.message);
-        return;
-      }
-      newPaths.push(path);
-    }
-    setGalleryPaths((prev) => [...prev, ...newPaths]);
-  };
 
   useEffect(() => {
     if (!partner) return;
@@ -224,28 +178,6 @@ export default function PartnerModal({
     setRatingTeacher(partner.rating_teacher?.toString() ?? '0');
     setRatingReliability(partner.rating_reliability?.toString() ?? '0');
     setRatingEngagement(partner.rating_engagement?.toString() ?? '0');
-    setLogoPath(partner.logo_path ?? null);
-    setHero1Path(partner.hero1_path ?? null);
-    setHero2Path(partner.hero2_path ?? null);
-    setGalleryPaths(partner.gallery_paths ?? []);
-    const loadedTeachers =
-      partner.teacher_profiles && partner.teacher_profiles.length
-        ? partner.teacher_profiles.map((t) => ({
-            name: t.name || '',
-            image_path: t.image_path ?? null,
-            description: t.description || '',
-          }))
-        : [
-            {
-              name: partner.teacher_name ?? '',
-              image_path: partner.teacher_image_path ?? null,
-              description: partner.teacher_description ?? '',
-            },
-          ];
-    setTeachers(loadedTeachers.length ? loadedTeachers : [{ name: '', image_path: null, description: '' }]);
-    setWebsiteSlogan(partner.website_slogan ?? '');
-    setWebsiteDescription(partner.website_description ?? '');
-    setWebsiteTags(partner.website_tags ?? []);
   }, [partner]);
 
   useEffect(() => {
@@ -260,6 +192,19 @@ export default function PartnerModal({
     }
     if (partner?.id) loadBookings();
   }, [partner, supabase]);
+
+  const filteredBookings = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Start des heutigen Tages
+
+    return bookings.filter((b) => {
+      if (showPastBookings) return true;
+      const dateStr = b.course_start || b.booking_date;
+      if (!dateStr) return false; // Ohne Datum ausblenden, kann per Toggle eingeblendet werden
+      const d = new Date(dateStr);
+      return d >= today;
+    });
+  }, [bookings, showPastBookings]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -299,17 +244,6 @@ export default function PartnerModal({
         rating_teacher: Number(ratingTeacher) || 0,
         rating_reliability: Number(ratingReliability) || 0,
         rating_engagement: Number(ratingEngagement) || 0,
-        logo_path: logoPath,
-        hero1_path: hero1Path,
-        hero2_path: hero2Path,
-        gallery_paths: galleryPaths,
-        teacher_name: teachers[0]?.name || null,
-        teacher_image_path: teachers[0]?.image_path || null,
-        teacher_description: teachers[0]?.description || null,
-        teacher_profiles: teachers,
-        website_slogan: websiteSlogan || null,
-        website_description: websiteDescription || null,
-        website_tags: websiteTags.slice(0, 10),
       }),
     });
     const data = await res.json();
@@ -383,27 +317,6 @@ export default function PartnerModal({
             type="button"
           >
             Bankverbindung
-          </button>
-          <button
-            className={`pb-2 border-b-2 ${activeTab === 'media' ? 'border-pink-500 text-pink-600' : 'border-transparent'}`}
-            onClick={() => setActiveTab('media')}
-            type="button"
-          >
-            Medien
-          </button>
-          <button
-            className={`pb-2 border-b-2 ${activeTab === 'dozent' ? 'border-pink-500 text-pink-600' : 'border-transparent'}`}
-            onClick={() => setActiveTab('dozent')}
-            type="button"
-          >
-            Dozent
-          </button>
-          <button
-            className={`pb-2 border-b-2 ${activeTab === 'website' ? 'border-pink-500 text-pink-600' : 'border-transparent'}`}
-            onClick={() => setActiveTab('website')}
-            type="button"
-          >
-            Website
           </button>
           <button
             className={`pb-2 border-b-2 ${activeTab === 'rating' ? 'border-pink-500 text-pink-600' : 'border-transparent'}`}
@@ -508,10 +421,26 @@ export default function PartnerModal({
 
               <section className="rounded-xl border border-slate-200 bg-slate-50/70 p-4 shadow-sm space-y-3">
                 <p className="text-sm font-semibold text-ink">Buchungen</p>
+                <div className="flex items-center justify-between gap-3 text-xs text-slate-600">
+                  <p>
+                    Zeige {filteredBookings.length} von {bookings.length} Buchung{bookings.length === 1 ? '' : 'en'}
+                    {!showPastBookings && bookings.length > filteredBookings.length && ` · Vergangene ausgeblendet`}
+                  </p>
+                  {bookings.length > 0 && (
+                    <button
+                      type="button"
+                      className="underline-offset-2 hover:underline"
+                      onClick={() => setShowPastBookings((v) => !v)}
+                    >
+                      {showPastBookings ? 'Vergangene ausblenden' : 'Vergangene einblenden'}
+                    </button>
+                  )}
+                </div>
+
                 {bookings.length === 0 && <p className="text-sm text-slate-500">Keine Buchungen für diesen Anbieter.</p>}
                 {bookings.length > 0 && (
                   <div className="max-h-64 overflow-auto divide-y divide-slate-200">
-                    {bookings.map((b) => (
+                    {filteredBookings.map((b) => (
                       <div key={b.id} className="py-2 flex items-center justify-between text-sm text-slate-700">
                         <div className="space-y-0.5">
                           <p className="font-semibold text-ink">{b.course_title ?? 'Kurs'}</p>
@@ -601,170 +530,6 @@ export default function PartnerModal({
             </section>
           )}
 
-          {activeTab === 'dozent' && (
-            <section className="rounded-xl border border-slate-200 bg-white/90 p-5 shadow-sm space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500">Dozent</p>
-                  <h4 className="text-lg font-semibold text-ink">Ansprechpartner / Dozentenprofil</h4>
-                  <p className="text-xs text-slate-600">Beliebig viele Einträge mit Bild & Beschreibung.</p>
-                </div>
-                {!partnerId && (
-                  <span className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-3 py-1">
-                    Partner zuerst speichern
-                  </span>
-                )}
-              </div>
-
-              <div className="space-y-4">
-                {teachers.map((t, idx) => (
-                  <div key={idx} className="rounded-lg border border-slate-200 bg-slate-50 p-3 shadow-sm space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div className="text-sm font-semibold text-ink">Dozent #{idx + 1}</div>
-                      {teachers.length > 1 && (
-                        <button
-                          type="button"
-                          className="text-xs text-red-600 hover:text-red-700"
-                          onClick={() => setTeachers((prev) => prev.filter((_, i) => i !== idx))}
-                        >
-                          Entfernen
-                        </button>
-                      )}
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <Field label="Name">
-                        <input
-                          className="input"
-                          value={t.name}
-                          onChange={(e) =>
-                            setTeachers((prev) =>
-                              prev.map((p, i) => (i === idx ? { ...p, name: e.target.value } : p))
-                            )
-                          }
-                        />
-                      </Field>
-                      <Field label="Portrait (PNG/JPG)">
-                        <div className="space-y-2">
-                          <label className={`block w-full rounded-lg border border-dashed ${partnerId ? 'border-slate-300 hover:border-pink-400 cursor-pointer' : 'border-slate-200 cursor-not-allowed'} bg-slate-50 text-center text-sm text-slate-500 py-3`}>
-                            <input
-                              type="file"
-                              className="hidden"
-                              accept="image/png,image/jpeg"
-                              disabled={!partnerId}
-                              onChange={(e) => {
-                                const file = e.target.files?.[0];
-                                if (file)
-                                  uploadFile(file, 'teacher', (path) =>
-                                    setTeachers((prev) => prev.map((p, i) => (i === idx ? { ...p, image_path: path } : p)))
-                                  );
-                              }}
-                            />
-                            <span className="font-semibold text-pink-600">Upload</span> oder hier ablegen
-                          </label>
-                          {t.image_path && (
-                            <div className="rounded-lg border border-slate-200 bg-white p-2 flex items-center gap-3">
-                              {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img
-                                src={`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/media/${t.image_path}`}
-                                alt="Dozent"
-                                className="h-16 w-16 object-cover rounded-full border border-slate-200"
-                              />
-                              <p className="text-[11px] text-slate-500 break-all">{t.image_path}</p>
-                            </div>
-                          )}
-                        </div>
-                      </Field>
-                    </div>
-                    <Field label="Kurzbeschreibung">
-                      <textarea
-                        className="input min-h-[100px]"
-                        value={t.description}
-                        onChange={(e) =>
-                          setTeachers((prev) =>
-                            prev.map((p, i) => (i === idx ? { ...p, description: e.target.value } : p))
-                          )
-                        }
-                        placeholder="Erfahrung, Spezialisierung, Referenzen…"
-                      />
-                    </Field>
-                  </div>
-                ))}
-              </div>
-
-              <button
-                type="button"
-                className="inline-flex items-center gap-2 rounded-full px-4 py-2 bg-pink-600 text-white text-sm font-semibold hover:bg-pink-500"
-                onClick={() => setTeachers((prev) => [...prev, { name: '', image_path: null, description: '' }])}
-              >
-                + Dozent hinzufügen
-              </button>
-            </section>
-          )}
-
-          {activeTab === 'website' && (
-            <section className="rounded-xl border border-slate-200 bg-slate-50 p-5 shadow-sm space-y-4">
-              <div>
-                <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500">Website</p>
-                <h4 className="text-lg font-semibold text-ink">Darstellung auf der Website</h4>
-                <p className="text-xs text-slate-600">Slogan, Kurztext und bis zu 10 Tags.</p>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Field label="Slogan">
-                  <input
-                    className="input"
-                    value={websiteSlogan}
-                    onChange={(e) => setWebsiteSlogan(e.target.value)}
-                    placeholder={`z.B. "Next Level Live Sound"`}
-                  />
-                </Field>
-                <Field label="Tags (max. 10)">
-                  <div className="space-y-2">
-                    <div className="flex gap-2">
-                      <input
-                        className="input"
-                        placeholder="Tag hinzufügen und Enter"
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            e.preventDefault();
-                            const val = (e.currentTarget.value || '').trim();
-                            if (!val) return;
-                            if (websiteTags.length >= 10) return;
-                            setWebsiteTags((prev) => Array.from(new Set([...prev, val])));
-                            e.currentTarget.value = '';
-                          }
-                        }}
-                      />
-                      <span className="text-xs text-slate-500 self-center">{websiteTags.length}/10</span>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {websiteTags.map((t) => (
-                        <span key={t} className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-white border border-slate-200 text-xs text-slate-700">
-                          {t}
-                          <button
-                            type="button"
-                            className="text-slate-500 hover:text-pink-600"
-                            onClick={() => setWebsiteTags((prev) => prev.filter((x) => x !== t))}
-                          >
-                            ×
-                          </button>
-                        </span>
-                      ))}
-                      {!websiteTags.length && <span className="text-xs text-slate-500">Noch keine Tags</span>}
-                    </div>
-                  </div>
-                </Field>
-              </div>
-              <Field label="Beschreibung">
-                <textarea
-                  className="input min-h-[140px]"
-                  value={websiteDescription}
-                  onChange={(e) => setWebsiteDescription(e.target.value)}
-                  placeholder="Kurzbeschreibung, USP, Besonderheiten …"
-                />
-              </Field>
-            </section>
-          )}
-
           {activeTab === 'rating' && (
             <section className="rounded-xl border border-slate-200 bg-slate-50/70 p-4 shadow-sm space-y-4">
               <p className="text-sm font-semibold text-ink">Bewertung</p>
@@ -792,102 +557,6 @@ export default function PartnerModal({
               </div>
               <div className="text-sm text-slate-600">
                 Gesamt: <span className="font-semibold text-ink">{ratingLabel(avgRating)}</span> ({avgRating.toFixed(1)} / 5)
-              </div>
-            </section>
-          )}
-
-          {activeTab === 'media' && (
-            <section className="rounded-xl border border-slate-200 bg-gradient-to-br from-slate-50 via-white to-slate-100 p-5 shadow-sm space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500">Medien</p>
-                  <h4 className="text-lg font-semibold text-ink">Logo, Hero & Galerie</h4>
-                  <p className="text-xs text-slate-600">Unterstützt PNG/JPG. Hero-Bilder ideal 16:9.</p>
-                </div>
-                {!partnerId && (
-                  <span className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-3 py-1">
-                    Partner zuerst speichern
-                  </span>
-                )}
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {[
-                  { label: 'Logo', value: logoPath, setter: setLogoPath, kind: 'logo' as const, helper: 'Quadratisch bevorzugt' },
-                  { label: 'Hero Bild 1', value: hero1Path, setter: setHero1Path, kind: 'hero1' as const, helper: 'Startseite / Header' },
-                  { label: 'Hero Bild 2', value: hero2Path, setter: setHero2Path, kind: 'hero2' as const, helper: 'Alternative Bühne' },
-                ].map((item) => (
-                  <div key={item.kind} className="rounded-lg border border-slate-200 bg-white p-3 space-y-2 shadow-sm">
-                    <div className="flex items-center justify-between">
-                      <div className="text-sm font-semibold text-ink">{item.label}</div>
-                      <span className="text-[11px] text-slate-500">{item.helper}</span>
-                    </div>
-                    <label className={`block w-full rounded-lg border border-dashed ${partnerId ? 'border-slate-300 hover:border-pink-400 cursor-pointer' : 'border-slate-200 cursor-not-allowed'} bg-slate-50 text-center text-sm text-slate-500 py-4`}>
-                      <input
-                        type="file"
-                        className="hidden"
-                        accept="image/png,image/jpeg"
-                        disabled={!partnerId}
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) uploadFile(file, item.kind, item.setter);
-                        }}
-                      />
-                      <span className="font-semibold text-pink-600">Upload</span> oder hier ablegen
-                    </label>
-                    {item.value && (
-                      <div className="rounded-lg border border-slate-200 bg-white p-2">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/media/${item.value}`}
-                          alt={item.label}
-                          className={`${item.kind === 'logo' ? 'h-24 object-contain mx-auto' : 'h-28 w-full object-cover rounded'}`}
-                        />
-                        <p className="text-[11px] text-slate-500 break-all mt-1">{item.value}</p>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-
-              <div className="rounded-lg border border-slate-200 bg-white p-3 space-y-3 shadow-sm">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-semibold text-ink">Galerie</p>
-                    <p className="text-xs text-slate-600">Mehrere Bilder hinzufügen</p>
-                  </div>
-                  <label className={`inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-semibold ${partnerId ? 'bg-pink-600 text-white cursor-pointer hover:bg-pink-500' : 'bg-slate-200 text-slate-500 cursor-not-allowed'}`}>
-                    <input
-                      type="file"
-                      multiple
-                      accept="image/png,image/jpeg"
-                      className="hidden"
-                      disabled={!partnerId}
-                      onChange={(e) => uploadGallery(e.target.files)}
-                    />
-                    + Upload
-                  </label>
-                </div>
-                {galleryPaths.length > 0 ? (
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    {galleryPaths.map((p) => (
-                      <div key={p} className="relative rounded-lg border border-slate-200 bg-slate-50 p-2 shadow-sm">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/media/${p}`} alt="Gallery" className="h-24 w-full object-cover rounded" />
-                        <button
-                          type="button"
-                          className="absolute top-1 right-1 bg-white/90 border border-slate-300 rounded-full px-2 text-xs text-slate-600 hover:border-pink-400"
-                          onClick={() => setGalleryPaths((prev) => prev.filter((x) => x !== p))}
-                        >
-                          ×
-                        </button>
-                        <p className="text-[10px] text-slate-500 break-all mt-1">{p}</p>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-sm text-slate-500">Noch keine Galerie-Bilder hochgeladen.</p>
-                )}
               </div>
             </section>
           )}

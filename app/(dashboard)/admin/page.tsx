@@ -148,15 +148,15 @@ export default async function AdminPage() {
   }).sort((a, b) => b.avg - a.avg);
 
   return (
-    <div className="space-y-6 bg-transparent text-white min-h-screen px-4 sm:px-6 lg:px-10 py-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6 bg-transparent text-white min-h-screen px-4 sm:px-6 lg:px-10 py-6 max-w-7xl mx-auto w-full">
+      <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-xs uppercase tracking-[0.2em] text-pink-600">Admin</p>
           <h1 className="text-3xl font-semibold">Dashboard</h1>
         </div>
       </div>
 
-      <div className="grid gap-6 md:gap-8 grid-cols-1 md:grid-cols-4 text-[17px] md:text-[18px]">
+      <div className="grid gap-6 md:gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 text-[17px] md:text-[18px]">
         <StatCard label="Offene Freigaben" value={pending?.length ?? 0} />
         <StatCard label="Gesamt Dozenten" value={teachers?.length ?? 0} />
         <StatCard label="Gesamt Teilnehmer" value={students?.length ?? 0} />
@@ -169,15 +169,15 @@ export default async function AdminPage() {
         const newest = openTickets[0] as any;
         return (
           <div className="rounded-2xl bg-white border border-slate-200 p-6 space-y-4 text-slate-900 shadow-xl">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <h2 className="text-lg font-semibold text-slate-900">
                 {openTickets.length} neues Ticket{openTickets.length > 1 ? 's' : ''} · #{newest.id?.slice(0, 8)?.toUpperCase() || '—'}
               </h2>
-              <div className="flex gap-2">
-                <Link href={`/admin/support/${newest.id}`} className="inline-flex items-center rounded-lg bg-pink-600 text-white px-4 py-2 text-sm font-semibold hover:bg-pink-500">
+              <div className="flex flex-wrap gap-2 sm:justify-end">
+                <Link href={`/admin/support/${newest.id}`} className="inline-flex items-center justify-center rounded-lg bg-pink-600 text-white px-4 py-2 text-sm font-semibold hover:bg-pink-500 w-full sm:w-auto">
                   Ticket öffnen
                 </Link>
-                <Link href="/admin/support" className="inline-flex items-center rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100">
+                <Link href="/admin/support" className="inline-flex items-center justify-center rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 w-full sm:w-auto">
                   Alle Tickets
                 </Link>
               </div>
@@ -226,13 +226,13 @@ export default async function AdminPage() {
 
       <div className="rounded-2xl bg-transparent text-white border border-white/15 p-6 space-y-4">
         <h2 className="text-lg font-semibold">Partner KPIs</h2>
-        <div className="grid gap-4 grid-cols-1 xl:grid-cols-2">
+        <div className="grid gap-4 grid-cols-1 md:grid-cols-2 xl:grid-cols-2">
           {perPartner.map((p) => (
             <div key={p.id} className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur p-5 shadow-lg space-y-3">
               <div className="flex items-center justify-between">
                 <h3 className="text-xl font-semibold text-white">{p.name}</h3>
               </div>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm text-white/90">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 text-sm text-white/90">
                 <KpiBox label="Buchungen Monat" value={p.bookingsMonth} prev={p.bookingsMonthPrev} />
                 <KpiBox label="Buchungen Jahr" value={p.bookingsYear} prev={p.bookingsYearPrev} />
                 <KpiBox label="Umsatz Monat" value={p.revenueMonth} prev={p.revenueMonthPrev} money />
