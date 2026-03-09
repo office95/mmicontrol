@@ -93,7 +93,7 @@ export default function LeadModal({
   const [partnerId, setPartnerId] = useState('');
   const [source, setSource] = useState<string[]>([]);
   const [sourceNote, setSourceNote] = useState('');
-  const [leadQuality, setLeadQuality] = useState('offen');
+  const [leadQuality, setLeadQuality] = useState('C');
   const [newsletter, setNewsletter] = useState(false);
   const [isCustomer, setIsCustomer] = useState(false);
   const [requestedAt, setRequestedAt] = useState('');
@@ -130,7 +130,7 @@ export default function LeadModal({
     setPartnerId(initial.partner_id || '');
     setSource(initial.source || []);
     setSourceNote(initial.source_note || '');
-    setLeadQuality(initial.lead_quality || 'offen');
+    setLeadQuality(initial.lead_quality || 'C');
     setNewsletter(Boolean(initial.newsletter));
     setIsCustomer(Boolean(initial.is_customer));
     setRequestedAt(initial.requested_at || new Date().toISOString().slice(0, 10));
@@ -385,10 +385,9 @@ export default function LeadModal({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Field label="Lead-Qualität">
                 <select className="input" value={leadQuality} onChange={(e) => setLeadQuality(e.target.value)}>
-                  <option value="offen">Offen (Standard)</option>
                   <option value="A">A – sehr wahrscheinlich</option>
                   <option value="B">B – wahrscheinlich</option>
-                  <option value="C">C – möglich</option>
+                  <option value="C">C – möglich (Standard)</option>
                   <option value="D">D – unwahrscheinlich</option>
                   <option value="E">E – Flop</option>
                 </select>
