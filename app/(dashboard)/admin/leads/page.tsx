@@ -54,21 +54,22 @@ export default function LeadsPage() {
   const [analysisYear, setAnalysisYear] = useState<number | null>(currentYear);
 
   const avgLeadDays = (() => {
-    const processed = leads.filter(
-      (l) => l.first_status_change_at && (l.requested_at || l.created_at)
-    );
+    const processed = leads
+      .map((l) => {
+        const startStr = l.requested_at || l.created_at;
+        const endStr = l.first_status_change_at;
+        if (!startStr || !endStr) return null;
+        const start = new Date(startStr).getTime();
+        const end = new Date(endStr).getTime();
+        const days = (end - start) / (1000 * 60 * 60 * 24);
+        return { days };
+      })
+      // Nur Leads mit erfasstem Erst-Wechsel und plausiblen Werten (0–180 Tage)
+      .filter((v): v is { days: number } => v !== null && v.days >= 0 && v.days <= 180);
     if (!processed.length) return null;
 
-    const days = processed.map((l) => {
-      const startStr = l.requested_at || l.created_at;
-      const endStr = l.first_status_change_at!;
-      const start = startStr ? new Date(startStr).getTime() : Date.now();
-      const end = new Date(endStr).getTime();
-      return Math.max(0, (end - start) / (1000 * 60 * 60 * 24));
-    });
-
-    const sum = days.reduce((acc, d) => acc + d, 0);
-    return sum / days.length;
+    const sum = processed.reduce((acc, { days }) => acc + days, 0);
+    return sum / processed.length;
   })();
 
   const load = async () => {
