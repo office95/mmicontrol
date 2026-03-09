@@ -54,15 +54,14 @@ export default function LeadsPage() {
   const [analysisYear, setAnalysisYear] = useState<number | null>(currentYear);
 
   const avgLeadDays = (() => {
-    const processed = leads.filter((l) => {
-      const end = l.first_status_change_at || l.closed_at || l.updated_at;
-      return end && (l.requested_at || l.created_at);
-    });
+    const processed = leads.filter(
+      (l) => l.first_status_change_at && (l.requested_at || l.created_at)
+    );
     if (!processed.length) return null;
 
     const days = processed.map((l) => {
       const startStr = l.requested_at || l.created_at;
-      const endStr = l.first_status_change_at || l.closed_at || l.updated_at!;
+      const endStr = l.first_status_change_at!;
       const start = startStr ? new Date(startStr).getTime() : Date.now();
       const end = new Date(endStr).getTime();
       return Math.max(0, (end - start) / (1000 * 60 * 60 * 24));
