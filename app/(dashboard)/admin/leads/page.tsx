@@ -33,7 +33,8 @@ const statusLabel: Record<string, string> = {
   Watchlist: 'Watchlist',
   'Email senden': 'Email senden',
 };
-const CLOSED_STATUSES = ['erledigt', 'löschen', 'nicht erreicht'];
+// Jede Statusänderung zählt als „bearbeitet“
+const CLOSED_STATUSES: string[] = []; // leer = kein Statusfilter
 
 const norm = (v?: string | null) => (v || '').trim().toLowerCase();
 
@@ -52,14 +53,13 @@ export default function LeadsPage() {
   const [analysisYear, setAnalysisYear] = useState<number | null>(currentYear);
 
   const avgLeadDays = (() => {
-    const closed = leads.filter((l) => {
-      const status = (l.status || '').toLowerCase();
+    const processed = leads.filter((l) => {
       const end = l.closed_at || l.updated_at;
-      return CLOSED_STATUSES.includes(status) && end && (l.requested_at || l.created_at);
+      return end && (l.requested_at || l.created_at);
     });
-    if (!closed.length) return null;
+    if (!processed.length) return null;
 
-    const days = closed.map((l) => {
+    const days = processed.map((l) => {
       const startStr = l.requested_at || l.created_at;
       const endStr = l.closed_at || l.updated_at!;
       const start = startStr ? new Date(startStr).getTime() : Date.now();
