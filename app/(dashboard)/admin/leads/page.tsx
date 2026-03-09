@@ -9,6 +9,7 @@ type Lead = LeadRow & {
   lead_code?: string;
   partner?: { id: string; name: string | null };
   requested_at?: string;
+  created_at?: string;
   updated_at?: string;
   interest_titles?: string[];
   notes?: { created_at: string; text: string; todo?: string }[];
