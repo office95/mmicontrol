@@ -127,14 +127,18 @@ export async function GET() {
   ];
   const colWidths = [50, 52, 52, 90, 60, 60, 34, 46, 60, 60, 44, 60];
   const gapLastCols = 8;
+  const tableWidth = colWidths.reduce((s, w) => s + w, 0) + gapLastCols;
+  const contentWidth = () => doc.page.width - doc.page.margins.left - doc.page.margins.right;
+  const tableStartX = () => doc.page.margins.left + Math.max(0, (contentWidth() - tableWidth) / 2);
 
   const pageBottom = () => doc.page.height - doc.page.margins.bottom;
 
   const drawHeader = () => {
     const baseY = doc.y;
     const lineH = 6.4;
+    const startX = tableStartX();
     headers.forEach((lines, idx) => {
-      const baseX = doc.page.margins.left + colWidths.slice(0, idx).reduce((s, w) => s + w, 0);
+      const baseX = startX + colWidths.slice(0, idx).reduce((s, w) => s + w, 0);
       const x = idx === headers.length - 1 ? baseX + gapLastCols : baseX;
       lines.forEach((ln, i) => {
         doc.font('Helvetica-Bold').fontSize(6.0).fillColor('#0a0f1a');
@@ -189,7 +193,7 @@ export async function GET() {
       y = doc.y;
     }
 
-    let x = doc.page.margins.left;
+    let x = tableStartX();
     vals.forEach((v, idx) => {
       if (idx === headers.length - 1) x += gapLastCols;
       doc.text(v, x, y, {
