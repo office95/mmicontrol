@@ -97,7 +97,8 @@ export default async function PrintBookings() {
         dangerouslySetInnerHTML={{
           __html: `
         @page { size: A4 landscape; margin: 12mm; }
-        body { font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #0f172a; }
+        body { font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #0f172a; margin: 0; background: white !important; }
+        header, aside, .no-print { display: none !important; }
         h1 { margin: 0 0 6px 0; font-size: 20px; letter-spacing: 0.02em; }
         .meta { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 6px 10px; font-size: 11px; margin-bottom: 10px; }
         .meta strong { display: block; font-size: 11.5px; }
