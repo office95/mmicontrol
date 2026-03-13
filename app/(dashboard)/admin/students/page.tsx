@@ -187,6 +187,23 @@ export default function StudentsPage() {
                   >
                     Buchung erfassen
                   </button>
+                  {s.latest_booking && (
+                    <button
+                      className="px-3 py-1 rounded-lg border border-red-300 text-red-600 hover:bg-red-50"
+                      onClick={async () => {
+                        if (!confirm('Letzte Buchung dieses Teilnehmers wirklich löschen?')) return;
+                        const res = await fetch(`/api/admin/bookings?id=${s.latest_booking?.id}`, { method: 'DELETE' });
+                        if (res.ok) {
+                          load();
+                        } else {
+                          const d = await res.json().catch(() => ({}));
+                          alert(d.error || 'Buchung konnte nicht gelöscht werden.');
+                        }
+                      }}
+                    >
+                      Buchung löschen
+                    </button>
+                  )}
                   <button
                     className="px-3 py-1 rounded-lg bg-emerald-600 text-white font-semibold hover:bg-emerald-700 shadow-sm"
                     onClick={async () => {

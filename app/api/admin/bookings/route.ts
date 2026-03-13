@@ -236,3 +236,17 @@ export async function PATCH(req: Request) {
   const enriched = await fillAmounts(data);
   return NextResponse.json(enriched);
 }
+
+export async function DELETE(req: Request) {
+  const { searchParams } = new URL(req.url);
+  const id = searchParams.get('id');
+  if (!id) return NextResponse.json({ error: 'id fehlt' }, { status: 400 });
+
+  // Zahlungen zuordnen entfernen (falls keine FK-Cascade konfiguriert)
+  await service.from('payments').delete().eq('booking_id', id);
+
+  const { error } = await service.from('bookings').delete().eq('id', id);
+  if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+
+  return NextResponse.json({ success: true });
+}
