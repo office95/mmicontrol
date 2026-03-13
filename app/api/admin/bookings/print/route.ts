@@ -126,20 +126,20 @@ export async function GET() {
     'Tage üf.',
     'Status',
   ];
-  const colWidths = [78, 85, 50, 55, 55, 55, 48, 36, 50, 55, 55, 55, 40, 50];
+  const colWidths = [78, 85, 52, 60, 60, 60, 50, 40, 52, 58, 58, 58, 42, 50];
 
   const pageBottom = () => doc.page.height - doc.page.margins.bottom;
 
   const drawHeader = () => {
     let hx = doc.x;
     let hy = doc.y;
-    doc.fontSize(7).fillColor('#0a0f1a').font('Helvetica-Bold');
+    doc.fontSize(6.5).fillColor('#0a0f1a').font('Helvetica-Bold');
     headers.forEach((h, idx) => {
-      doc.text(h, hx, hy, { width: colWidths[idx], continued: idx !== headers.length - 1 });
+      doc.text(h, hx, hy, { width: colWidths[idx] });
       hx += colWidths[idx];
     });
-    doc.moveDown(0.2);
-    doc.font('Helvetica').fillColor('#111827').fontSize(7);
+    doc.moveDown(0.15);
+    doc.font('Helvetica').fillColor('#111827').fontSize(6.5);
   };
 
   drawHeader();
@@ -163,8 +163,15 @@ export async function GET() {
       r.status ?? '—',
     ];
 
-    // Feste Zeilenhöhe
-    const rowHeight = 12;
+    // Dynamische Zeilenhöhe pro Zeile (max Höhe der Zellen)
+    const heights = vals.map((v, idx) =>
+      doc.heightOfString(v, {
+        width: colWidths[idx],
+        lineGap: 0.5,
+        align: idx >= 6 && idx <= 12 ? 'right' : 'left',
+      })
+    );
+    const rowHeight = Math.max(...heights) + 2; // kleiner Puffer
 
     if (y + rowHeight > pageBottom()) {
       doc.addPage({ size: 'A4', layout: 'landscape', margin: 30 });
@@ -176,7 +183,6 @@ export async function GET() {
     vals.forEach((v, idx) => {
       doc.text(v, x, y, {
         width: colWidths[idx],
-        height: rowHeight,
         align: idx >= 6 && idx <= 12 ? 'right' : 'left',
       });
       x += colWidths[idx];
