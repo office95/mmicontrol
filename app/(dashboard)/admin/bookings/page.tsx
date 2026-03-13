@@ -192,7 +192,13 @@ export default function BookingsPage() {
   const derivedDeposit = selected?.deposit ?? 0;
   const derivedDuration = selected?.duration_hours ?? 0;
 
+  // Bildschirmansicht (respektiert Filter/Suche)
   const openItems = filtered.filter((b) => (b.open_amount ?? b.saldo ?? 0) > 0.001);
+  // Druckansicht (immer alle offenen Posten, unabhängig von Filtern)
+  const openItemsAll = useMemo(
+    () => items.filter((b) => (b.open_amount ?? b.saldo ?? 0) > 0.001),
+    [items]
+  );
 
   const today = new Date();
   const todayYmd = today.toISOString().slice(0, 10);
@@ -209,7 +215,7 @@ export default function BookingsPage() {
       bucket_61_90: 0,
       bucket_91: 0,
     };
-    openItems.forEach((b) => {
+    openItemsAll.forEach((b) => {
       const open = Number(b.open_amount ?? b.saldo ?? 0) || 0;
       if (!open) return;
       sums.total += open;
@@ -226,7 +232,7 @@ export default function BookingsPage() {
       else sums.bucket_91 += open;
     });
     return sums;
-  }, [openItems, todayMs, today]);
+  }, [openItemsAll, todayMs, today]);
 
   const dueStats = useMemo(() => {
     let dueSoon = 0;
@@ -387,7 +393,7 @@ export default function BookingsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {openItems.map((b) => {
+                  {openItemsAll.map((b) => {
                     const open = Number(b.open_amount ?? b.saldo ?? 0) || 0;
                     const amountGross = b.amount != null ? Number(b.amount) : null;
                     const due = b.due_date ? new Date(b.due_date) : null;
