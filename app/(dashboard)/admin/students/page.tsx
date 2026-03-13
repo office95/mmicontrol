@@ -177,55 +177,19 @@ export default function StudentsPage() {
                 </p>
               </div>
               <div className="w-full grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-3 items-start">
-                <BookingsList bookings={s.bookings} studentId={s.id} />
+                <BookingsList bookings={s.bookings} studentId={s.id} onChange={load} />
                 <div className="flex items-center gap-2 text-xs justify-start lg:justify-end flex-wrap">
                   <button
                     className="px-3 py-1 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100"
                     onClick={() => openFor(s)}
                   >
-                    Bearbeiten
+                    Teilnehmer bearbeiten
                   </button>
                   <button
                     className="px-3 py-1 rounded-lg border border-slate-300 text-indigo-600 hover:bg-indigo-50"
                     onClick={() => setBookingFor(s)}
                   >
                     Buchung erfassen
-                  </button>
-                  {s.latest_booking && (
-                    <button
-                      className="px-3 py-1 rounded-lg border border-red-300 text-red-600 hover:bg-red-50"
-                      onClick={async () => {
-                        if (!confirm('Letzte Buchung dieses Teilnehmers wirklich löschen?')) return;
-                        const res = await fetch(`/api/admin/bookings?id=${s.latest_booking?.id}`, { method: 'DELETE' });
-                        if (res.ok) {
-                          load();
-                        } else {
-                          const d = await res.json().catch(() => ({}));
-                          alert(d.error || 'Buchung konnte nicht gelöscht werden.');
-                        }
-                      }}
-                    >
-                      Buchung löschen
-                    </button>
-                  )}
-                  <button
-                    className="px-3 py-1 rounded-lg bg-emerald-600 text-white font-semibold hover:bg-emerald-700 shadow-sm"
-                    onClick={async () => {
-                      const res = await fetch(`/api/admin/bookings?student_id=${s.id}`);
-                      if (!res.ok) return alert('Buchungen konnten nicht geladen werden.');
-                      const data = await res.json();
-                      if (!Array.isArray(data) || data.length === 0) return alert('Keine Buchungen für diesen Teilnehmer.');
-                      const byOpen = data.sort((a: any, b: any) => {
-                        const openA = a.open_amount ?? a.amount ?? 0;
-                        const openB = b.open_amount ?? b.amount ?? 0;
-                        if (openB !== openA) return openB - openA; // offene zuerst
-                        return new Date(b.booking_date || 0).getTime() - new Date(a.booking_date || 0).getTime();
-                      });
-                      const target = byOpen[0];
-                      router.push(`/admin/bookings?id=${target.id}`);
-                    }}
-                  >
-                    Buchung ansehen
                   </button>
                   <button
                     className="px-3 py-1 rounded-lg border border-red-300 text-red-600 hover:bg-red-50"
@@ -239,7 +203,7 @@ export default function StudentsPage() {
                       }
                     }}
                   >
-                    Löschen
+                    Teilnehmer löschen
                   </button>
                 </div>
               </div>
@@ -269,7 +233,7 @@ export default function StudentsPage() {
   );
 }
 
-function BookingsList({ bookings, studentId }: { bookings?: BookingItem[]; studentId: string }) {
+function BookingsList({ bookings, studentId, onChange }: { bookings?: BookingItem[]; studentId: string; onChange?: () => void }) {
   if (!bookings || !bookings.length) {
     return <div className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-500">Noch keine Buchungen</div>;
   }
@@ -305,7 +269,7 @@ function BookingsList({ bookings, studentId }: { bookings?: BookingItem[]; stude
                     className="text-indigo-600 hover:underline"
                     onClick={() => window.open(`/admin/bookings?id=${b.id}`, '_self')}
                   >
-                    Ansehen
+                    Bearbeiten
                   </button>
                   <button
                     className="text-red-600 hover:underline"
@@ -313,7 +277,7 @@ function BookingsList({ bookings, studentId }: { bookings?: BookingItem[]; stude
                       if (!confirm('Diese Buchung wirklich löschen?')) return;
                       const res = await fetch(`/api/admin/bookings?id=${b.id}`, { method: 'DELETE' });
                       if (res.ok) {
-                        window.location.reload();
+                        onChange?.();
                       } else {
                         const d = await res.json().catch(() => ({}));
                         alert(d.error || 'Buchung konnte nicht gelöscht werden.');
