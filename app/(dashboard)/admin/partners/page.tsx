@@ -41,7 +41,8 @@ type Partner = {
   rating_reliability: number | null;
   rating_engagement: number | null;
   rating_avg?: number | null;
-  active_courses?: number;
+  bookings_count?: number;
+  open_sum?: number;
 };
 
 import type { PartnerRow } from '@/components/partner-modal';
@@ -172,8 +173,8 @@ export default function PartnersPage() {
                   </div>
                   <div className="flex flex-col items-start md:items-end gap-3 text-xs text-slate-700 w-full md:w-auto">
                     <div className="flex flex-wrap items-center gap-2 justify-end w-full">
-                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full border border-slate-200 bg-white">Buchungen: {p.active_courses ?? 0}</span>
-                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full border border-slate-200 bg-white">Offen: 0.00 €</span>
+                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full border border-slate-200 bg-white">Buchungen: {p.bookings_count ?? 0}</span>
+                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full border border-slate-200 bg-white">Offen: {(p.open_sum ?? 0).toFixed(2)} €</span>
                       {p.rating_avg !== null && p.rating_avg !== undefined && (
                         <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[11px] border border-slate-200 text-slate-700 bg-white">
                           {renderStars(p.rating_avg)}

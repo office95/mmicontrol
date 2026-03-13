@@ -13,18 +13,33 @@ export async function GET() {
   const { data, error } = await service.from('partners').select(PARTNER_COLUMNS).order('created_at', { ascending: false });
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
 
-  // Aktive Kurse je Partner (course_dates.status in offen/laufend)
   const ids = (data ?? []).map((p) => p.id).filter(Boolean);
-  let activeMap: Record<string, number> = {};
+  let bookingCountMap: Record<string, number> = {};
+  let openSumMap: Record<string, number> = {};
+
   if (ids.length) {
-    const { data: cd } = await service
-      .from('course_dates')
-      .select('partner_id, status')
-      .in('partner_id', ids)
-      .in('status', ['offen', 'laufend']);
-    cd?.forEach((c) => {
-      if (!c.partner_id) return;
-      activeMap[c.partner_id] = (activeMap[c.partner_id] || 0) + 1;
+    const { data: bookings } = await service
+      .from('bookings')
+      .select('id, partner_id, amount')
+      .in('partner_id', ids);
+
+    const bookingIds = (bookings ?? []).map((b) => b.id);
+    const { data: payments } = await service
+      .from('payments')
+      .select('booking_id, amount')
+      .in('booking_id', bookingIds.length ? bookingIds : ['00000000-0000-0000-0000-000000000000']);
+
+    const payMap = (payments ?? []).reduce<Record<string, number>>((acc, p: any) => {
+      acc[p.booking_id] = (acc[p.booking_id] || 0) + Number(p.amount || 0);
+      return acc;
+    }, {});
+
+    (bookings ?? []).forEach((b) => {
+      const paid = payMap[b.id] || 0;
+      const open = Math.max(0, Number((Number(b.amount ?? 0) - paid).toFixed(2)));
+      if (!b.partner_id) return;
+      bookingCountMap[b.partner_id] = (bookingCountMap[b.partner_id] || 0) + 1;
+      openSumMap[b.partner_id] = Number(((openSumMap[b.partner_id] || 0) + open).toFixed(2));
     });
   }
 
@@ -36,7 +51,8 @@ export async function GET() {
     return {
       ...p,
       rating_avg,
-      active_courses: activeMap[p.id] || 0,
+      bookings_count: bookingCountMap[p.id] || 0,
+      open_sum: openSumMap[p.id] || 0,
     };
   });
 
