@@ -398,19 +398,18 @@ export default function BookingsPage() {
         <table className="print-table">
           <thead>
             <tr>
-              <th style={{ width: '12%' }}>Kunde</th>
-              <th style={{ width: '12%' }}>Kurs</th>
-              <th style={{ width: '7%' }}>Re.-Nr.</th>
-              <th style={{ width: '7%' }}>Buchungsdat.</th>
-              <th style={{ width: '7%' }}>Fällig</th>
-              <th className="print-num" style={{ width: '6%' }}>Kursbeitrag netto</th>
-              <th className="print-num" style={{ width: '5%' }}>USt %</th>
-              <th className="print-num" style={{ width: '6%' }}>Anzahlung</th>
-              <th className="print-num" style={{ width: '7%' }}>Kursbeitrag brutto</th>
-              <th className="print-num" style={{ width: '7%' }}>Bezahlt</th>
-              <th className="print-num" style={{ width: '7%' }}>Offen</th>
-              <th className="print-num" style={{ width: '5%' }}>Tage üf.</th>
-              <th style={{ width: '5%' }}>Status</th>
+              <th style={{ width: '8%' }}>Re.-Nr.</th>
+              <th style={{ width: '9%' }}>Buchungsdat.</th>
+              <th style={{ width: '9%' }}>Fällig</th>
+              <th style={{ width: '16%' }}>Kunde</th>
+              <th className="print-num" style={{ width: '10%' }}>Betrag</th>
+              <th className="print-num" style={{ width: '10%' }}>Kursbeitrag netto</th>
+              <th className="print-num" style={{ width: '6%' }}>USt %</th>
+              <th className="print-num" style={{ width: '8%' }}>Anzahlung</th>
+              <th className="print-num" style={{ width: '8%' }}>Bezahlt</th>
+              <th className="print-num" style={{ width: '8%' }}>Offen</th>
+              <th className="print-num" style={{ width: '6%' }}>Tage üf.</th>
+              <th style={{ width: '6%' }}>Status</th>
             </tr>
           </thead>
           <tbody>
@@ -431,15 +430,14 @@ export default function BookingsPage() {
               })();
               return (
                 <tr key={b.id} className={rowClass}>
-                  <td>{b.student_name ?? '—'}</td>
-                  <td>{b.course_title ?? '—'}</td>
                   <td>{b.invoice_number ?? '—'}</td>
                   <td className="print-date">{formatDate(b.booking_date)}</td>
                   <td className="print-date">{formatDate(b.due_date as string | null)}</td>
+                  <td>{b.student_name ?? '—'}</td>
+                  <td className="print-num">{amountGross != null ? amountGross.toFixed(2) : '—'}</td>
                   <td className="print-num">{net != null ? net.toFixed(2) : '—'}</td>
                   <td className="print-num">{vatPercent != null ? vatPercent.toFixed(1) : '—'}</td>
                   <td className="print-num">{deposit != null ? deposit.toFixed(2) : '—'}</td>
-                  <td className="print-num">{amountGross != null ? amountGross.toFixed(2) : '—'}</td>
                   <td className="print-num">{paid != null ? paid.toFixed(2) : '—'}</td>
                   <td className="print-num">{open.toFixed(2)}</td>
                   <td className="print-num">{daysOver != null && b.due_date && b.due_date < todayYmd ? daysOver : '—'}</td>

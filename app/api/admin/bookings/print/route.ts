@@ -112,21 +112,20 @@ export async function GET() {
 
   // Tabellenkopf und Zeilen mit Pagination
   const headers: string[][] = [
-    ['Kunde'],
-    ['Kurs'],
     ['Re.-Nr.'],
     ['Buchungs', 'datum'],
     ['Fällig', 'am'],
+    ['Kunde'],
+    ['Betrag'],
     ['Kursbeitrag', 'netto'],
     ['USt %'],
     ['Anzahlung'],
-    ['Betrag'],
     ['Bezahlt'],
     ['Offen'],
     ['Tage üf.'],
     ['Status'],
   ];
-  const colWidths = [72, 78, 44, 52, 52, 54, 32, 46, 52, 52, 52, 54, 64];
+  const colWidths = [50, 52, 52, 90, 60, 60, 34, 46, 60, 60, 44, 60];
   const gapLastCols = 8;
 
   const pageBottom = () => doc.page.height - doc.page.margins.bottom;
@@ -145,7 +144,7 @@ export async function GET() {
           baseY + i * lineH,
           {
             width: colWidths[idx] - (idx === headers.length - 1 ? 2 : 0), // etwas luft für letzte Spalte
-            align: idx >= 5 && idx <= 11 ? 'right' : 'left',
+            align: idx >= 4 && idx <= 10 ? 'right' : 'left',
             lineBreak: false,
           }
         );
@@ -160,15 +159,14 @@ export async function GET() {
 
   rows.forEach((r) => {
     const vals = [
-      r.student_name ?? '—',
-      r.course_title ?? '—',
       r.invoice_number ?? '—',
       formatDate(r.booking_date),
       formatDate(r.due_date),
+      r.student_name ?? '—',
+      r.gross != null ? r.gross.toFixed(2) : '—',
       r.price_net != null ? r.price_net.toFixed(2) : '—',
       r.vat_rate != null ? (Number(r.vat_rate) * 100).toFixed(1) : '—',
       r.deposit != null ? r.deposit.toFixed(2) : '—',
-      r.gross != null ? r.gross.toFixed(2) : '—',
       r.paid != null ? r.paid.toFixed(2) : '—',
       r.open != null ? r.open.toFixed(2) : '—',
       r.daysOver != null ? String(r.daysOver) : '—',
@@ -180,7 +178,7 @@ export async function GET() {
       doc.heightOfString(v, {
         width: colWidths[idx],
         lineGap: 0.2,
-        align: idx >= 5 && idx <= 11 ? 'right' : 'left',
+        align: idx >= 4 && idx <= 10 ? 'right' : 'left',
       })
     );
     const rowHeight = Math.max(...heights, 7) + 1.2; // kleiner Puffer + Mindesthöhe
@@ -196,7 +194,7 @@ export async function GET() {
       if (idx === headers.length - 1) x += gapLastCols;
       doc.text(v, x, y, {
         width: colWidths[idx],
-        align: idx >= 5 && idx <= 11 ? 'right' : 'left',
+        align: idx >= 4 && idx <= 10 ? 'right' : 'left',
         lineBreak: true,
         ellipsis: false,
       });
