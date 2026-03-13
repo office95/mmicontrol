@@ -43,7 +43,8 @@ export async function middleware(req: NextRequest) {
     .select('role')
     .eq('id', session.user.id)
     .maybeSingle();
-  const role = profile?.role || session.user.user_metadata?.role || null;
+  // Sicherheit: keine Rolle aus user_metadata akzeptieren (manipulierbar)
+  const role = profile?.role ?? null;
 
   const isAdminPath = pathname.startsWith('/admin');
   const isAdminApi = pathname.startsWith('/api/admin');
