@@ -407,7 +407,7 @@ export default function BookingsPage() {
               <th className="print-num" style={{ width: '6%' }}>Netto</th>
               <th className="print-num" style={{ width: '5%' }}>USt %</th>
               <th className="print-num" style={{ width: '6%' }}>Anzahlung</th>
-              <th className="print-num" style={{ width: '7%' }}>Betrag</th>
+              <th className="print-num" style={{ width: '7%' }}>Kursbeitrag brutto</th>
               <th className="print-num" style={{ width: '7%' }}>Bezahlt</th>
               <th className="print-num" style={{ width: '7%' }}>Offen</th>
               <th className="print-num" style={{ width: '5%' }}>Tage üf.</th>
@@ -646,7 +646,7 @@ export default function BookingsPage() {
                       ['Kursstart', selected.course_start ? new Date(selected.course_start).toLocaleDateString() : '—'],
                       ['Anbieter', selected.partner_name ?? '—'],
                       ['USt-Satz', derivedVat != null ? `${(Number(derivedVat) * 100).toFixed(1)} %` : '—'],
-                      ['Netto', derivedNet != null ? `${Number(derivedNet).toFixed(2)} €` : '—'],
+                      ['Kursbeitrag netto', derivedNet != null ? `${Number(derivedNet).toFixed(2)} €` : '—'],
                       ['Anzahlung', derivedDeposit != null ? `${Number(derivedDeposit).toFixed(2)} €` : '—'],
                       ['Saldo', derivedSaldo != null ? `${Number(derivedSaldo).toFixed(2)} €` : '—'],
                       ['Dauer (h)', derivedDuration != null ? `${derivedDuration} h` : '—'],
