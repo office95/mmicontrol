@@ -598,7 +598,11 @@ export default function BookingsPage() {
               <InfoCard label="Kursbeitrag netto" value={derivedNet != null ? `${Number(derivedNet).toFixed(2)} €` : '—'} />
               <InfoCard label="USt-Satz" value={derivedVat != null ? `${(Number(derivedVat) * 100).toFixed(1)} %` : '—'} />
               <InfoCard label="Anzahlung" value={derivedDeposit != null ? `${Number(derivedDeposit).toFixed(2)} €` : '—'} />
-              <InfoCard label="Saldo" value={derivedSaldo != null ? `${Number(derivedSaldo).toFixed(2)} €` : '—'} />
+              <InfoCard
+                label="Saldo"
+                value={derivedSaldo != null ? `${Number(derivedSaldo).toFixed(2)} €` : '—'}
+                tone={derivedSaldo != null ? (Number(derivedSaldo) > 0.001 ? 'warn' : 'good') : undefined}
+              />
               <InfoCard label="Anbieter" value={selected.partner_name ?? '—'} />
               <InfoCard label="Status" value={selected.status} />
               <InfoCard label="Kursstart" value={selected.course_start ? new Date(selected.course_start).toLocaleDateString() : '—'} />
