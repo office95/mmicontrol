@@ -127,7 +127,7 @@ export async function GET() {
     'Tage üf.',
     'Status',
   ];
-  const colWidths = [78, 88, 52, 60, 60, 60, 50, 40, 55, 58, 58, 58, 42, 60];
+  const colWidths = [78, 90, 54, 62, 62, 62, 50, 40, 56, 60, 60, 60, 42, 60];
 
   const pageBottom = () => doc.page.height - doc.page.margins.bottom;
 
@@ -136,7 +136,7 @@ export async function GET() {
     let hy = doc.y;
     doc.fontSize(6.3).fillColor('#0a0f1a').font('Helvetica-Bold');
     headers.forEach((h, idx) => {
-      doc.text(h, hx, hy, { width: colWidths[idx] });
+      doc.text(h, hx, hy, { width: colWidths[idx], lineBreak: true, ellipsis: false });
       hx += colWidths[idx];
     });
     doc.moveDown(0.12);
@@ -185,6 +185,8 @@ export async function GET() {
       doc.text(v, x, y, {
         width: colWidths[idx],
         align: idx >= 6 && idx <= 12 ? 'right' : 'left',
+        lineBreak: true,
+        ellipsis: false,
       });
       x += colWidths[idx];
     });
