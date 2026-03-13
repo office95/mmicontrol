@@ -33,6 +33,7 @@ type BookingRow = {
   last_dunning_date?: string | null;
   dunning_level?: string | null;
   currency?: string | null;
+  writeoff_reason?: string | null;
 };
 
 type Metrics = {
@@ -43,7 +44,7 @@ type Metrics = {
   by_status: Record<string, number>;
 };
 
-const STATUSES = ['alle', 'offen', 'Anzahlung erhalten', 'abgeschlossen', 'Zahlungserinnerung', '1. Mahnung', '2. Mahnung', 'Inkasso', 'Storno', 'Archiv'];
+const STATUSES = ['alle', 'offen', 'Anzahlung erhalten', 'abgeschlossen', 'Zahlungserinnerung', '1. Mahnung', '2. Mahnung', 'Inkasso', 'Storno', 'Archiv', 'uneinbringlich'];
 
 type PaymentRow = {
   id: string;
@@ -872,6 +873,17 @@ export default function BookingsPage() {
                         ))}
                       </select>
                     </div>
+                    {selected.status === 'uneinbringlich' && (
+                      <div>
+                        <label className="text-xs uppercase tracking-[0.12em] text-slate-500">Begründung</label>
+                        <input
+                          className="input"
+                          value={(selected as any).writeoff_reason || ''}
+                          onChange={(e) => setSelected((prev: any) => prev ? { ...prev, writeoff_reason: e.target.value } : prev)}
+                          placeholder="Begründung für uneinbringlich"
+                        />
+                      </div>
+                    )}
                     <div>
                       <label className="text-xs uppercase tracking-[0.12em] text-slate-500">Nächste Mahnung am</label>
                       <input
@@ -896,6 +908,10 @@ export default function BookingsPage() {
                       disabled={statusSaving}
                       onClick={async () => {
                         if (!selected) return;
+                        if (selected.status === 'uneinbringlich' && !(selected as any).writeoff_reason?.trim()) {
+                          alert('Bitte Begründung für uneinbringlich angeben.');
+                          return;
+                        }
                         setStatusSaving(true);
                         // Invoice/Due-Date speichern
                         const invoiceClean = (selected.invoice_number || '').trim();
@@ -910,6 +926,7 @@ export default function BookingsPage() {
                             status: selected.status,
                             next_dunning_at: (selected as any).next_dunning_at || null,
                             auto_dunning_enabled: (selected as any).auto_dunning_enabled ?? null,
+                            writeoff_reason: selected.status === 'uneinbringlich' ? (selected as any).writeoff_reason || '' : null,
                           }),
                         });
                         setStatusSaving(false);

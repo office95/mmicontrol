@@ -9,7 +9,7 @@ const service = createClient(
 const SELECT =
   `id, booking_code, booking_date, amount, status, student_id, course_id, course_date_id, partner_id,
    course_title, course_start, partner_name, student_name, student_email, vat_rate, price_net, deposit, saldo, duration_hours, invoice_number, due_date,
-   next_dunning_at, auto_dunning_enabled`;
+   next_dunning_at, auto_dunning_enabled, writeoff_reason`;
 
 async function fillAmounts(rows: any | any[]) {
   const list = Array.isArray(rows) ? [...rows] : rows ? [{ ...rows }] : [];
@@ -113,6 +113,7 @@ export async function POST(req: Request) {
     student_name: stu?.name ?? null,
     student_email: stu?.email ?? null,
     price_tier_id: tierId,
+    writeoff_reason: body.writeoff_reason ?? null,
   };
   const { data, error } = await service.from('bookings').insert(payload).select(SELECT).single();
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
