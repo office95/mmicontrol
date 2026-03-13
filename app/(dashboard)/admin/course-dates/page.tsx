@@ -549,18 +549,18 @@ export default function CourseDatesPage() {
 
             {!surveyLoading && !surveyError && surveyRows.length > 0 && (
               <div className="overflow-x-auto">
-                <table className="min-w-full text-sm text-slate-800">
+                <table className="table-modern">
                   <thead>
-                    <tr className="text-left border-b border-slate-200">
-                      <th className="py-2 pr-4">Kursteilnehmer</th>
-                      <th className="py-2 pr-4">Kurs</th>
-                      <th className="py-2 pr-4">Startdatum</th>
-                      <th className="py-2 pr-4">Partner</th>
-                      <th className="py-2 pr-4">Status</th>
-                      <th className="py-2 pr-4">Aktionen</th>
+                    <tr>
+                      <th>Kursteilnehmer</th>
+                      <th>Kurs</th>
+                      <th>Startdatum</th>
+                      <th>Partner</th>
+                      <th>Status</th>
+                      <th>Aktionen</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100">
+                  <tbody>
                     {surveyRows.map((row) => (
                       <tr key={`${row.booking_id}-${row.survey_id}-${row.student_email || row.student_name || 'unknown'}`}>
                         <td className="py-2 pr-4">

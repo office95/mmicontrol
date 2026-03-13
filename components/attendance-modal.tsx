@@ -204,15 +204,15 @@ export default function AttendanceModal({
           <div className="relative z-10 px-6 pb-6">
             <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-inner">
               <div className="overflow-x-auto">
-                <table className="min-w-full text-sm text-slate-800">
+                <table className="table-modern">
                   <thead>
-                    <tr className="text-left uppercase text-[11px] tracking-[0.12em] text-slate-600">
-                      <th className="py-2 pr-3">Teilnehmer</th>
-                      <th className="py-2 pr-3">Status</th>
-                      <th className="py-2 pr-3">Notiz</th>
+                    <tr>
+                      <th>Teilnehmer</th>
+                      <th>Status</th>
+                      <th>Notiz</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-200">
+                  <tbody>
                     {displayParticipants.map((p) => {
                       const key = entryKey(p.student_id, undefined);
                       const entry = entryMap.get(key) || null;

@@ -511,31 +511,28 @@ export default function BookingsPage() {
             {!loading && !filtered.length && <p className="text-sm text-slate-500">Keine Buchungen gefunden.</p>}
 
             {!loading && filtered.length > 0 && (
-              <table className="min-w-full text-sm border-separate border-spacing-0">
+              <table className="table-modern">
                 <thead>
-                  <tr className="text-left text-white bg-gradient-to-r from-pink-600 via-fuchsia-600 to-indigo-600">
-                    <th className="py-3 pr-4 pl-4 font-semibold uppercase tracking-[0.12em] text-[11px] rounded-tl-xl">Buchungsdatum</th>
-                    <th className="py-3 pr-4 font-semibold uppercase tracking-[0.12em] text-[11px]">Kursteilnehmer</th>
-                    <th className="py-3 pr-4 font-semibold uppercase tracking-[0.12em] text-[11px]">Kurs</th>
-                    <th className="py-3 pr-4 font-semibold uppercase tracking-[0.12em] text-[11px]">Kursstart</th>
-                    <th className="py-3 pr-4 font-semibold uppercase tracking-[0.12em] text-[11px]">Fälligkeit</th>
-                    <th className="py-3 pr-4 font-semibold uppercase tracking-[0.12em] text-[11px]">Kursbeitrag Brutto</th>
-                    <th className="py-3 pr-4 font-semibold uppercase tracking-[0.12em] text-[11px]">Anbieter</th>
-                    <th className="py-3 pr-4 font-semibold uppercase tracking-[0.12em] text-[11px]">Status</th>
-                    <th className="py-3 pr-4 pr-6 font-semibold uppercase tracking-[0.12em] text-[11px] rounded-tr-xl">Aktionen</th>
+                  <tr>
+                    <th>Buchungsdatum</th>
+                    <th>Kursteilnehmer</th>
+                    <th>Kurs</th>
+                    <th>Kursstart</th>
+                    <th>Fälligkeit</th>
+                    <th>Kursbeitrag Brutto</th>
+                    <th>Anbieter</th>
+                    <th>Status</th>
+                    <th>Aktionen</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 bg-white">
-                  {filtered.map((b, idx) => (
-                    <tr
-                      key={b.id}
-                      className={`align-top transition-colors ${idx % 2 === 0 ? 'bg-slate-50/60' : 'bg-white'} hover:bg-pink-50`}
-                    >
-                      <td className="py-3 pr-4 pl-4 text-slate-800 whitespace-nowrap">{b.booking_date ? new Date(b.booking_date).toLocaleDateString() : '—'}</td>
-                      <td className="py-3 pr-4 text-slate-900">{b.student_name ?? '—'}</td>
-                      <td className="py-3 pr-4 text-slate-900">{b.course_title ?? '—'}</td>
-                      <td className="py-3 pr-4 text-slate-800 whitespace-nowrap">{b.course_start ? new Date(b.course_start).toLocaleDateString() : '—'}</td>
-                      <td className="py-3 pr-4 text-slate-800 whitespace-nowrap">
+                <tbody>
+                  {filtered.map((b) => (
+                    <tr key={b.id}>
+                      <td className="whitespace-nowrap">{b.booking_date ? new Date(b.booking_date).toLocaleDateString() : '—'}</td>
+                      <td>{b.student_name ?? '—'}</td>
+                      <td>{b.course_title ?? '—'}</td>
+                      <td className="whitespace-nowrap">{b.course_start ? new Date(b.course_start).toLocaleDateString() : '—'}</td>
+                      <td className="whitespace-nowrap">
                         {b.due_date
                           ? new Date(b.due_date).toLocaleDateString()
                           : '—'}
@@ -551,19 +548,19 @@ export default function BookingsPage() {
                           return null;
                         })()}
                       </td>
-                      <td className="py-3 pr-4 text-slate-900 font-semibold">
+                      <td className="text-slate-900 font-semibold">
                         {b.amount != null && !isNaN(Number(b.amount))
                           ? `${Number(b.amount).toFixed(2)} €`
                           : '—'}
                       </td>
-                      <td className="py-3 pr-4 text-slate-800">{b.partner_name ?? '—'}</td>
-                      <td className="py-3 pr-4">
+                      <td className="text-slate-800">{b.partner_name ?? '—'}</td>
+                      <td>
                         <span className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700 border border-slate-200">
                           <span className={`h-2 w-2 rounded-full ${b.status === 'abgeschlossen' ? 'bg-emerald-500' : b.status?.includes('Anzahlung') ? 'bg-amber-500' : 'bg-slate-400'}`} />
                           {b.status}
                         </span>
                       </td>
-                      <td className="py-3 pr-6">
+                      <td>
                         <button
                           type="button"
                           onClick={(e) => { e.preventDefault(); loadOne(b.id); }}

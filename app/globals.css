@@ -28,6 +28,35 @@ body {
   @apply w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder-slate-400 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100;
 }
 
+/* Einheitlicher Tabellen-Look für Admin/Teacher-Ansichten */
+.table-modern {
+  @apply min-w-full text-sm border-separate border-spacing-0;
+}
+
+.table-modern thead tr {
+  @apply bg-slate-900 text-white;
+}
+
+.table-modern thead th {
+  @apply py-3 pr-4 font-semibold uppercase tracking-[0.12em] text-[11px] first:pl-4 last:pr-6;
+}
+
+.table-modern tbody tr {
+  @apply align-top transition-colors;
+}
+
+.table-modern tbody tr:nth-child(even) {
+  background: #f8fafc;
+}
+
+.table-modern tbody tr:hover {
+  background: #f1f5f9;
+}
+
+.table-modern tbody td {
+  @apply py-3 pr-4 text-slate-900 first:pl-4 last:pr-6;
+}
+
 /* Marquee helper (z.B. Benefits im Student-Dashboard) */
 @keyframes marquee {
   0% { transform: translateX(0); }

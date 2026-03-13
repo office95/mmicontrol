@@ -212,21 +212,21 @@ const stateOptions = (country?: string | null) =>
 
         {!loading && !error && !!items.length && (
           <div className="overflow-x-auto">
-            <table className="min-w-full text-sm text-white/90">
-              <thead className="text-xs uppercase tracking-[0.14em] text-white/60">
+            <table className="table-modern">
+              <thead>
                 <tr>
-                  <th className="px-3 py-2 text-left">Name</th>
-                  <th className="px-3 py-2 text-left">Logo</th>
-                  <th className="px-3 py-2 text-left">Status</th>
-                  <th className="px-3 py-2 text-left">Zielgruppe</th>
-                  <th className="px-3 py-2 text-left">Vorteil</th>
-                  <th className="px-3 py-2 text-left">Code</th>
-                  <th className="px-3 py-2 text-left">Gültig bis</th>
-                  <th className="px-3 py-2 text-left">Land</th>
-                  <th className="px-3 py-2 text-right">Aktion</th>
+                  <th>Name</th>
+                  <th>Logo</th>
+                  <th>Status</th>
+                  <th>Zielgruppe</th>
+                  <th>Vorteil</th>
+                  <th>Code</th>
+                  <th>Gültig bis</th>
+                  <th>Land</th>
+                  <th className="text-right">Aktion</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/10">
+              <tbody>
                 {items.map((b) => (
                   <tr key={b.id} className="hover:bg-white/5">
                     <td className="px-3 py-2 font-semibold text-white">{b.name}</td>

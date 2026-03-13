@@ -194,23 +194,23 @@ export default function RolesPage() {
           {loading && <p className="text-sm text-slate-500">Lade...</p>}
           {error && <p className="text-sm text-red-600">{error}</p>}
           {!loading && (
-            <table className="min-w-full text-sm">
+            <table className="table-modern">
               <thead>
-                <tr className="text-left text-slate-500">
-                  <th className="py-2 pr-4">Seite</th>
-                  <th className="py-2 pr-4">Admin</th>
-                  <th className="py-2 pr-4">Dozent</th>
-                  <th className="py-2 pr-4">Teilnehmer</th>
+                <tr>
+                  <th>Seite</th>
+                  <th>Admin</th>
+                  <th>Dozent</th>
+                  <th>Teilnehmer</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody>
                 {PAGES.map((p) => (
                   <tr key={p.slug}>
-                    <td className="py-3 pr-4 font-semibold text-ink">{p.label}</td>
+                    <td className="font-semibold text-ink">{p.label}</td>
                     {(['admin', 'teacher', 'student'] as Role[]).map((role) => {
                       const val = valueOf(role, p.slug);
                       return (
-                        <td key={role} className="py-3 pr-4">
+                        <td key={role}>
                           <label className="inline-flex items-center gap-2 text-slate-700">
                             <input
                               type="checkbox"

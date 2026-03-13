@@ -135,29 +135,29 @@ export default function CourseListClient({ courses }: { courses: CourseCard[] })
             </div>
 
             <div className="overflow-x-auto">
-              <table className="min-w-full text-sm">
+              <table className="table-modern">
                 <thead>
-                  <tr className="text-left text-slate-500">
-                    <th className="py-2 pr-4">Buchungsdatum</th>
-                    <th className="py-2 pr-4">Teilnehmer</th>
-                    <th className="py-2 pr-4">Telefon</th>
-                    <th className="py-2 pr-4">E-Mail</th>
+                  <tr>
+                    <th>Buchungsdatum</th>
+                    <th>Teilnehmer</th>
+                    <th>Telefon</th>
+                    <th>E-Mail</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody>
                   {selected.participants.length === 0 && (
                     <tr>
-                      <td className="py-2 pr-4 text-slate-500" colSpan={4}>Keine Teilnehmer eingetragen.</td>
+                      <td className="text-slate-500" colSpan={4}>Keine Teilnehmer eingetragen.</td>
                     </tr>
                   )}
                   {selected.participants.map((p, idx) => (
                     <tr key={idx}>
-                      <td className="py-2 pr-4 text-slate-600">
+                      <td className="text-slate-600">
                         {p.booking_date ? new Date(p.booking_date).toLocaleDateString() : '—'}
                       </td>
-                      <td className="py-2 pr-4 text-ink">{p.name}</td>
-                      <td className="py-2 pr-4 text-slate-600">{p.phone || '—'}</td>
-                      <td className="py-2 pr-4 text-pink-600">{p.email}</td>
+                      <td className="text-ink">{p.name}</td>
+                      <td className="text-slate-600">{p.phone || '—'}</td>
+                      <td className="text-pink-600">{p.email}</td>
                     </tr>
                   ))}
                 </tbody>
