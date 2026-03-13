@@ -6,7 +6,7 @@ export default function PendingPage() {
   return (
     <main className="min-h-screen flex items-center justify-center px-4">
       <div className="card max-w-lg w-full p-8 space-y-4 text-center">
-        <p className="text-sm uppercase tracking-[0.2em] text-brand-600">LearnSpace</p>
+        <p className="text-sm uppercase tracking-[0.2em] text-pink-500">Music Mission Control</p>
         <h1 className="text-2xl font-semibold text-ink">Warten auf Freigabe</h1>
         <p className="text-slate-600">
           Dein Account wurde erstellt und wartet auf Admin-Approval. Du erhältst Zugriff, sobald du

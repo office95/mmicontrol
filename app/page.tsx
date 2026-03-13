@@ -4,8 +4,8 @@ export default function Home() {
   return (
     <main className="min-h-screen flex items-center justify-center px-4">
       <div className="card max-w-xl w-full p-8 space-y-6 text-center">
-        <p className="text-sm uppercase tracking-[0.25em] text-brand-600">Music Mission Institute</p>
-        <h1 className="text-3xl font-semibold text-ink">LearnSpace</h1>
+        <p className="text-sm uppercase tracking-[0.25em] text-pink-500">Music Mission Institute</p>
+        <h1 className="text-3xl font-semibold text-ink">Music Mission Control</h1>
         <p className="text-slate-600">
           Zentraler Zugang für Admins, Dozenten und Teilnehmer. Melde dich an oder registriere dich,
           um freigeschaltet zu werden.
