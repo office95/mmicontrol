@@ -191,6 +191,7 @@ export default function BookingsPage() {
 
   const today = new Date();
   const todayYmd = today.toISOString().slice(0, 10);
+  const todayMs = today.getTime();
   const in7 = new Date(today.getTime() + 7 * 86400000).toISOString().slice(0, 10);
 
   const dueStats = useMemo(() => {
@@ -314,23 +315,34 @@ export default function BookingsPage() {
               <table className="print-table">
                 <thead>
                   <tr>
-                    <th>Buchungsdatum</th>
+                    <th>Rechnungsnr.</th>
                     <th>Teilnehmer</th>
-                    <th>Kurs</th>
-                    <th>Status</th>
-                    <th>Offener Betrag</th>
+                    <th>Leistung/Kurs</th>
+                    <th>Rechnungsdatum</th>
+                    <th>Fälligkeit</th>
+                    <th>Tage überfällig</th>
+                    <th>Betrag brutto</th>
+                    <th>Offen</th>
+                    <th>Mahnstufe/Status</th>
                   </tr>
                 </thead>
                 <tbody>
                   {openItems.map((b) => {
                     const open = Number(b.open_amount ?? b.saldo ?? 0) || 0;
+                    const amountGross = b.amount != null ? Number(b.amount) : null;
+                    const due = b.due_date ? new Date(b.due_date) : null;
+                    const daysOver = due ? Math.max(0, Math.floor((todayMs - due.getTime()) / 86400000)) : null;
                     return (
                       <tr key={b.id}>
-                        <td>{b.booking_date ? new Date(b.booking_date).toLocaleDateString() : '—'}</td>
+                        <td>{b.invoice_number ?? '—'}</td>
                         <td>{b.student_name ?? '—'}</td>
                         <td>{b.course_title ?? '—'}</td>
-                        <td>{b.status}</td>
+                        <td>{b.booking_date ? new Date(b.booking_date).toLocaleDateString() : '—'}</td>
+                        <td>{b.due_date ? new Date(b.due_date).toLocaleDateString() : '—'}</td>
+                        <td>{daysOver != null && b.due_date && b.due_date < todayYmd ? daysOver : '—'}</td>
+                        <td>{amountGross != null && !isNaN(amountGross) ? `${amountGross.toFixed(2)} €` : '—'}</td>
                         <td>{open.toFixed(2)} €</td>
+                        <td>{b.status}</td>
                       </tr>
                     );
                   })}
