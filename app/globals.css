@@ -34,11 +34,13 @@ body {
 }
 
 .table-modern thead tr {
-  @apply bg-slate-900 text-white;
+  background: #f1f5f9; /* hellgrau */
+  color: #0f172a;
+  border-bottom: 1px solid #e2e8f0;
 }
 
 .table-modern thead th {
-  @apply py-3 pr-4 font-semibold uppercase tracking-[0.12em] text-[11px] first:pl-4 last:pr-6;
+  @apply py-3 pr-4 font-semibold uppercase tracking-[0.12em] text-[11px] text-slate-700 first:pl-4 last:pr-6 text-left;
 }
 
 .table-modern tbody tr {
@@ -54,7 +56,7 @@ body {
 }
 
 .table-modern tbody td {
-  @apply py-3 pr-4 text-slate-900 first:pl-4 last:pr-6;
+  @apply py-3 pr-4 text-slate-900 first:pl-4 last:pr-6 text-left;
 }
 
 /* Marquee helper (z.B. Benefits im Student-Dashboard) */
