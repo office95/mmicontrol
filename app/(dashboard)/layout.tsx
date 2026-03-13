@@ -215,7 +215,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
           className={`w-full ${
             isTeacher || isStudent
               ? 'max-w-6xl'
-              : 'max-w-[96vw] xl:max-w-[92vw] 2xl:max-w-[1700px]'
+              : 'max-w-[98vw] xl:max-w-[96vw] 2xl:max-w-[1900px]'
           } mx-auto flex gap-8 ${!isTeacher && !isStudent ? 'md:pl-72' : ''}`}
         >
           {!isTeacher && !isStudent && (
