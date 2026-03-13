@@ -155,69 +155,73 @@ export default function StudentsPage() {
           {filtered.map((s) => (
             <div
               key={s.id}
-              className="rounded-2xl border border-slate-200 bg-white shadow-md p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4"
+              className="rounded-2xl border border-slate-200 bg-white shadow-md p-5 flex flex-col gap-3"
             >
-              <div className="space-y-1 text-black">
-                <button
-                  onClick={() => openFor(s)}
-                  className={`text-left text-lg font-semibold ${s.is_problem ? 'text-rose-700' : 'text-black'} hover:underline`}
-                >
-                  {s.name}
-                  {s.is_problem && (
-                    <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-rose-100 text-rose-700 border border-rose-200">
-                      Problemkunde
-                    </span>
-                  )}
-                </button>
-                <p className="text-xs text-slate-700">
-                  {s.state ?? '—'} · {s.country ?? '—'}
-                </p>
-                <p className="text-[11px] text-slate-600">
-                  {statusLabel[s.status] ?? s.status} · Angelegt: {new Date(s.created_at).toLocaleDateString()}
-                </p>
-              </div>
-              <div className="w-full grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-3 items-start">
-                <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-800 flex flex-wrap items-center gap-2">
-                  <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full border border-slate-200 bg-white text-slate-800">
-                    Buchungen: {s.bookings?.length ?? 0}
-                  </span>
-                  <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full border border-slate-200 bg-white text-slate-800">
-                    Offen: {(s.bookings || []).reduce((sum, b) => sum + (b.open_amount ?? 0), 0).toFixed(2)} €
-                  </span>
-                </div>
-                <div className="flex items-center gap-2 text-xs justify-start lg:justify-end flex-wrap">
-                  <button
-                    className="px-3 py-1 rounded-lg border border-slate-300 text-black hover:bg-slate-100"
-                    onClick={() => openFor(s)}
-                  >
-                    Teilnehmer bearbeiten
-                  </button>
-                  <button
-                    className="px-3 py-1 rounded-lg border border-indigo-300 text-indigo-800 hover:bg-indigo-50"
-                    onClick={() => setBookingFor(s)}
-                  >
-                    Buchung erfassen
-                  </button>
-                  <button
-                    className="px-3 py-1 rounded-lg border border-indigo-300 text-indigo-800 hover:bg-indigo-50"
-                    onClick={() => router.push(`/admin/bookings?student_id=${s.id}`)}
-                  >
-                    Buchungen öffnen
-                  </button>
-                  <button
-                    className="px-3 py-1 rounded-lg border border-rose-300 text-rose-800 hover:bg-rose-50"
-                    onClick={async () => {
-                      if (!confirm('Diesen Kursteilnehmer löschen?')) return;
-                      const res = await fetch(`/api/admin/students?id=${s.id}`, { method: 'DELETE' });
-                      if (res.ok) load();
-                      else {
-                        const d = await res.json().catch(() => ({}));
-                        alert(d.error || 'Löschen fehlgeschlagen');
-                      }
-                    }}
-                  >
-                    Teilnehmer löschen
-                  </button>
+              <div className="flex flex-col gap-2">
+                <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
+                  <div className="space-y-1 flex-1 min-w-0">
+                    <button
+                      onClick={() => openFor(s)}
+                      className={`block text-left text-lg font-semibold ${s.is_problem ? 'text-rose-700' : 'text-black'} truncate`}
+                      title={s.name}
+                    >
+                      {s.name}
+                      {s.is_problem && (
+                        <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-rose-100 text-rose-700 border border-rose-200">
+                          Problemkunde
+                        </span>
+                      )}
+                    </button>
+                    <div className="flex flex-wrap items-center gap-3 text-sm text-slate-700">
+                      <span>{s.state ?? '—'} · {s.country ?? '—'}</span>
+                      <span className="text-slate-500">Angelegt: {new Date(s.created_at).toLocaleDateString()}</span>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2 text-xs text-slate-700">
+                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full border border-slate-200 bg-slate-50 text-slate-800">
+                        Buchungen: {s.bookings?.length ?? 0}
+                      </span>
+                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full border border-slate-200 bg-slate-50 text-slate-800">
+                        Offen: {(s.bookings || []).reduce((sum, b) => sum + (b.open_amount ?? 0), 0).toFixed(2)} €
+                      </span>
+                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full border border-slate-200 bg-slate-50 text-slate-800">
+                        Status: {statusLabel[s.status] ?? s.status}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs justify-start md:justify-end flex-wrap">
+                    <button
+                      className="px-3 py-1 rounded-lg border border-slate-300 text-black hover:bg-slate-100"
+                      onClick={() => openFor(s)}
+                    >
+                      Teilnehmer bearbeiten
+                    </button>
+                    <button
+                      className="px-3 py-1 rounded-lg border border-indigo-300 text-indigo-800 hover:bg-indigo-50"
+                      onClick={() => setBookingFor(s)}
+                    >
+                      Buchung erfassen
+                    </button>
+                    <button
+                      className="px-3 py-1 rounded-lg border border-indigo-300 text-indigo-800 hover:bg-indigo-50"
+                      onClick={() => router.push(`/admin/bookings?student_id=${s.id}`)}
+                    >
+                      Buchungen öffnen
+                    </button>
+                    <button
+                      className="px-3 py-1 rounded-lg border border-rose-300 text-rose-800 hover:bg-rose-50"
+                      onClick={async () => {
+                        if (!confirm('Diesen Kursteilnehmer löschen?')) return;
+                        const res = await fetch(`/api/admin/students?id=${s.id}`, { method: 'DELETE' });
+                        if (res.ok) load();
+                        else {
+                          const d = await res.json().catch(() => ({}));
+                          alert(d.error || 'Löschen fehlgeschlagen');
+                        }
+                      }}
+                    >
+                      Teilnehmer löschen
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
