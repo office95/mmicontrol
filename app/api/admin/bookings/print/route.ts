@@ -1,9 +1,11 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import PDFDocument from 'pdfkit';
+import PDFDocument from 'pdfkit/js/pdfkit.standalone.js';
 import { PassThrough } from 'stream';
 
 export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 type BookingRow = {
   id: string;
