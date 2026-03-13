@@ -2,6 +2,7 @@ import './globals.css';
 import QueryProvider from '@/providers/query-provider';
 import { SupabaseProvider } from '@/providers/supabase-provider';
 import type { Metadata } from 'next';
+import { Analytics } from '@vercel/analytics/next';
 
 export const metadata: Metadata = {
   title: 'Music Mission Control',
@@ -15,6 +16,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <SupabaseProvider>
           <QueryProvider>{children}</QueryProvider>
         </SupabaseProvider>
+        <Analytics />
       </body>
     </html>
   );
