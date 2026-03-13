@@ -646,7 +646,7 @@ export default function BookingsPage() {
                       ['Kursstart', selected.course_start ? new Date(selected.course_start).toLocaleDateString() : '—'],
                       ['Anbieter', selected.partner_name ?? '—'],
                       ['USt-Satz', derivedVat != null ? `${(Number(derivedVat) * 100).toFixed(1)} %` : '—'],
-                      ['Netto', derivedNet != null ? `${Number(derivedNet).toFixed(2)} €` : '—'],
+                      ['Kursbeitrag Brutto', derivedNet != null ? `${Number(derivedNet).toFixed(2)} €` : '—'],
                       ['Anzahlung', derivedDeposit != null ? `${Number(derivedDeposit).toFixed(2)} €` : '—'],
                       ['Saldo', derivedSaldo != null ? `${Number(derivedSaldo).toFixed(2)} €` : '—'],
                       ['Dauer (h)', derivedDuration != null ? `${derivedDuration} h` : '—'],
