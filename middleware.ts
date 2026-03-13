@@ -5,6 +5,14 @@ export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
   const pathname = req.nextUrl.pathname;
 
+  // Dev-Bypass: lokal /api/admin/bookings ohne Login
+  const isDevBypass =
+    process.env.NODE_ENV !== 'production' &&
+    pathname.startsWith('/api/admin/bookings');
+  if (isDevBypass) {
+    return res;
+  }
+
   // Auth-Seiten und statische Pfade überspringen, damit kein Redirect-Loop entsteht
   const PUBLIC_PATHS = ['/login', '/register', '/forgot', '/reset', '/pending'];
   if (PUBLIC_PATHS.some((p) => pathname.startsWith(p))) {
