@@ -127,7 +127,7 @@ export async function GET() {
     ['Tage üf.'],
     ['Status'],
   ];
-  const colWidths = [70, 80, 46, 53, 53, 53, 44, 34, 48, 53, 53, 53, 45, 50];
+  const colWidths = [70, 80, 46, 53, 53, 53, 44, 34, 48, 53, 53, 53, 48, 50];
 
   const pageBottom = () => doc.page.height - doc.page.margins.bottom;
 
@@ -138,11 +138,16 @@ export async function GET() {
       const x = doc.page.margins.left + colWidths.slice(0, idx).reduce((s, w) => s + w, 0);
       lines.forEach((ln, i) => {
         doc.font('Helvetica-Bold').fontSize(6.0).fillColor('#0a0f1a');
-        doc.text(ln, x, baseY + i * lineH, {
-          width: colWidths[idx],
-          align: idx >= 6 && idx <= 12 ? 'right' : 'left',
-          lineBreak: false,
-        });
+        doc.text(
+          ln,
+          x,
+          baseY + i * lineH,
+          {
+            width: colWidths[idx] - (idx === headers.length - 1 ? 2 : 0), // etwas luft für letzte Spalte
+            align: idx >= 6 && idx <= 12 ? 'right' : 'left',
+            lineBreak: false,
+          }
+        );
       });
     });
     doc.y = baseY + lineH * 2 + 1.5; // max 2 Zeilen + kleiner Abstand
