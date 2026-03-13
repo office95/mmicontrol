@@ -84,18 +84,18 @@ export async function GET() {
   });
 
   // PDF generieren
-  const doc = new PDFDocument({ size: 'A4', layout: 'landscape', margin: 30 });
+  const doc = new PDFDocument({ size: 'A4', layout: 'landscape', margin: 18 });
   const stream = new PassThrough();
   doc.pipe(stream);
 
-  doc.font('Helvetica-Bold').fontSize(16).fillColor('#0a0f1a').text('Offene Forderungen', { align: 'left' });
-  doc.moveDown(0.3);
-  doc.font('Helvetica').fontSize(10).fillColor('#1f2937');
+  doc.font('Helvetica-Bold').fontSize(14).fillColor('#0a0f1a').text('Offene Forderungen', { align: 'left' });
+  doc.moveDown(0.2);
+  doc.font('Helvetica').fontSize(9).fillColor('#1f2937');
   doc.text(`Stichtag: ${today.toLocaleDateString('de-DE')}`);
   doc.text(`Datensätze: ${rows.length}`);
   const sumOpen = rows.reduce((s, r) => s + r.open, 0);
   doc.text(`Summe offen: ${sumOpen.toFixed(2)} €`);
-  doc.moveDown(0.5);
+  doc.moveDown(0.3);
 
   if (!rows.length) {
     doc.fontSize(11).fillColor('#111827').text('Keine Buchungen gefunden.', { align: 'left' });
@@ -126,20 +126,20 @@ export async function GET() {
     'Tage üf.',
     'Status',
   ];
-  const colWidths = [90, 100, 60, 65, 65, 65, 55, 45, 65, 65, 65, 65, 50, 60];
+  const colWidths = [80, 90, 55, 60, 60, 60, 50, 40, 55, 60, 60, 60, 45, 55];
 
   const pageBottom = () => doc.page.height - doc.page.margins.bottom;
 
   const drawHeader = () => {
     let hx = doc.x;
     let hy = doc.y;
-    doc.fontSize(9).fillColor('#0a0f1a').font('Helvetica-Bold');
+    doc.fontSize(8).fillColor('#0a0f1a').font('Helvetica-Bold');
     headers.forEach((h, idx) => {
       doc.text(h, hx, hy, { width: colWidths[idx], continued: idx !== headers.length - 1 });
       hx += colWidths[idx];
     });
-    doc.moveDown(0.5);
-    doc.font('Helvetica').fillColor('#111827').fontSize(9);
+    doc.moveDown(0.25);
+    doc.font('Helvetica').fillColor('#111827').fontSize(8);
   };
 
   drawHeader();
