@@ -341,7 +341,10 @@ export default function RolesPage() {
                     <button
                       key={r}
                       className={`px-3 py-1 rounded-lg border ${m.role === r ? 'border-pink-300 text-pink-700 bg-pink-50' : 'border-slate-300 text-slate-700 hover:bg-slate-100'}`}
-                      onClick={() => handleMemberRole(m.id, r)}
+                      onClick={() => {
+                        if (r === 'admin' && !confirm(`${m.full_name || m.email || 'Dieser Nutzer'} wirklich als Admin freischalten?`)) return;
+                        handleMemberRole(m.id, r);
+                      }}
                       disabled={savingMember === m.id}
                     >
                       {r}
