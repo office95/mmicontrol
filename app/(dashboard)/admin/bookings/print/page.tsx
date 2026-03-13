@@ -97,9 +97,9 @@ export default async function PrintBookings() {
         dangerouslySetInnerHTML={{
           __html: `
         @page { size: A4 landscape; margin: 12mm; }
-        body { font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #0f172a; margin: 0; background: white !important; }
+        body { font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #0b1220; margin: 0; background: white !important; }
         header, aside, .no-print { display: none !important; }
-        h1 { margin: 0 0 6px 0; font-size: 20px; letter-spacing: 0.02em; }
+        h1 { margin: 0 0 4px 0; font-size: 20px; letter-spacing: 0.01em; }
         .meta { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 6px 10px; font-size: 11px; margin-bottom: 10px; }
         .meta strong { display: block; font-size: 11.5px; }
         table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 11px; }
@@ -109,7 +109,7 @@ export default async function PrintBookings() {
         .date { text-align: right; white-space: nowrap; }
         tr.overdue td { background: #fff1f2; }
         tr.due-soon td { background: #fff7ed; }
-        .print-container { padding: 12mm; }
+        .print-container { padding: 6mm 10mm 10mm 10mm; }
       `,
         }}
       />
