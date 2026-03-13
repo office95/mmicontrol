@@ -20,8 +20,9 @@ export async function GET() {
   if (ids.length) {
     const { data: bookings } = await service
       .from('bookings')
-      .select('id, partner_id, amount')
-      .in('partner_id', ids);
+      .select('id, partner_id, amount, status')
+      .in('partner_id', ids)
+      .in('status', ['offen', 'laufend', 'verschoben']);
 
     const bookingIds = (bookings ?? []).map((b) => b.id);
     const { data: payments } = await service
