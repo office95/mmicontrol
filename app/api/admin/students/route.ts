@@ -22,19 +22,18 @@ export async function GET(req: Request) {
 
   const { data: bookings } = await service
     .from('bookings')
-    .select('id, student_id, course_title, course_start, partner_name, status, amount')
+    .select('id, student_id, course_title, course_start, booking_date, partner_name, status, amount')
     .in('student_id', studentIds)
     .order('booking_date', { ascending: false });
 
-  const latestByStudent = new Map<string, any>();
+  const bookingsByStudent = new Map<string, any[]>();
   (bookings ?? []).forEach((b) => {
-    const existing = latestByStudent.get(b.student_id);
-    if (!existing || new Date(b.course_start || 0) > new Date(existing.course_start || 0)) {
-      latestByStudent.set(b.student_id, b);
-    }
+    const list = bookingsByStudent.get(b.student_id) || [];
+    list.push(b);
+    bookingsByStudent.set(b.student_id, list);
   });
 
-  const bookingIds = Array.from(latestByStudent.values()).map((b: any) => b.id);
+  const bookingIds = (bookings ?? []).map((b) => b.id);
   const { data: payments } = await service
     .from('payments')
     .select('booking_id, amount')
@@ -45,11 +44,20 @@ export async function GET(req: Request) {
   }, {});
 
   const enriched = (data ?? []).map((s) => {
-    const b = latestByStudent.get(s.id);
-    if (!b) return s;
-    const paid = payMap[b.id] || 0;
-    const open = Number(((b.amount ?? 0) - paid).toFixed(2));
-    return { ...s, latest_booking: { ...b, paid_total: paid, open_amount: open } };
+    const list = (bookingsByStudent.get(s.id) || []).sort(
+      (a, b) => new Date(b.booking_date || 0).getTime() - new Date(a.booking_date || 0).getTime()
+    );
+    if (!list.length) return s;
+    const withSums = list.map((b) => {
+      const paid = payMap[b.id] || 0;
+      const open = Number(((b.amount ?? 0) - paid).toFixed(2));
+      return { ...b, paid_total: paid, open_amount: open };
+    });
+    return {
+      ...s,
+      latest_booking: withSums[0],
+      bookings: withSums,
+    };
   });
 
   return NextResponse.json(enriched);

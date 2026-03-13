@@ -27,16 +27,20 @@ type StudentListRow = {
   is_problem: boolean;
   problem_note: string | null;
   created_at: string;
-  latest_booking?: {
-    id: string;
-    course_title: string | null;
-    course_start: string | null;
-    partner_name: string | null;
-    status: string | null;
-    amount: number | null;
-    paid_total: number;
-    open_amount: number;
-  };
+  bookings?: BookingItem[];
+  latest_booking?: BookingItem;
+};
+
+type BookingItem = {
+  id: string;
+  course_title: string | null;
+  course_start: string | null;
+  booking_date: string | null;
+  partner_name: string | null;
+  status: string | null;
+  amount: number | null;
+  paid_total: number;
+  open_amount: number;
 };
 
 const statusLabel: Record<string, string> = { active: 'Aktiv', inactive: 'Inaktiv' };
@@ -173,7 +177,7 @@ export default function StudentsPage() {
                 </p>
               </div>
               <div className="w-full grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-3 items-start">
-                <BookingRow booking={s.latest_booking} />
+                <BookingsList bookings={s.bookings} studentId={s.id} />
                 <div className="flex items-center gap-2 text-xs justify-start lg:justify-end flex-wrap">
                   <button
                     className="px-3 py-1 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100"
@@ -265,48 +269,71 @@ export default function StudentsPage() {
   );
 }
 
-function BookingRow({ booking }: { booking?: StudentListRow['latest_booking'] }) {
-  const chips = booking
-    ? [
-        { label: 'Kurs', value: booking.course_title ?? '—' },
-        { label: 'Start', value: booking.course_start ? new Date(booking.course_start).toLocaleDateString() : '—' },
-        { label: 'Anbieter', value: booking.partner_name ?? '—' },
-        { label: 'Status', value: booking.status ?? '—' },
-        {
-          label: 'Saldo',
-          value: `${(booking.open_amount ?? 0).toFixed(2)} €`,
-          tone: (booking.open_amount ?? 0) <= 0 ? 'good' : 'warn',
-        },
-      ]
-    : [
-        { label: 'Kurs', value: '—' },
-        { label: 'Start', value: '—' },
-        { label: 'Anbieter', value: '—' },
-        { label: 'Status', value: '—' },
-        { label: 'Saldo', value: '—' },
-      ];
+function BookingsList({ bookings, studentId }: { bookings?: BookingItem[]; studentId: string }) {
+  if (!bookings || !bookings.length) {
+    return <div className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-500">Noch keine Buchungen</div>;
+  }
+
+  const maxRows = 4;
+  const visible = bookings.slice(0, maxRows);
+  const remaining = bookings.length - visible.length;
 
   return (
-    <div className="w-full overflow-hidden rounded-2xl border border-slate-200/70 bg-white/80 backdrop-blur-xl shadow-lg">
-      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-0 divide-x divide-slate-200 text-sm text-slate-900">
-        {chips.map((c, idx) => (
-          <div key={idx} className="p-3">
-            <p className="text-[11px] uppercase tracking-[0.14em] text-slate-500 mb-1">{c.label}</p>
-            <p
-              className={`font-semibold ${
-                c.tone === 'good' ? 'text-emerald-600' : c.tone === 'warn' ? 'text-amber-600' : 'text-slate-900'
-              }`}
-            >
-              {c.value}
-            </p>
-          </div>
-        ))}
+    <div className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700">
+      <div className="overflow-x-auto">
+        <table className="min-w-full text-xs">
+          <thead>
+            <tr className="text-slate-500">
+              <th className="py-1 pr-2 text-left">Kurs</th>
+              <th className="py-1 pr-2 text-left">Start</th>
+              <th className="py-1 pr-2 text-left">Status</th>
+              <th className="py-1 pr-2 text-left">Saldo</th>
+              <th className="py-1 pr-2 text-left">Aktion</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-100">
+            {visible.map((b) => (
+              <tr key={b.id} className="align-top">
+                <td className="py-1 pr-2 max-w-[180px] truncate">{b.course_title ?? '—'}</td>
+                <td className="py-1 pr-2">{b.course_start ? new Date(b.course_start).toLocaleDateString() : '—'}</td>
+                <td className="py-1 pr-2">{b.status ?? '—'}</td>
+                <td className={`py-1 pr-2 font-semibold ${b.open_amount > 0 ? 'text-amber-700' : 'text-emerald-700'}`}>
+                  {(b.open_amount ?? 0).toFixed(2)} €
+                </td>
+                <td className="py-1 pr-2 space-x-2 whitespace-nowrap">
+                  <button
+                    className="text-indigo-600 hover:underline"
+                    onClick={() => window.open(`/admin/bookings?id=${b.id}`, '_self')}
+                  >
+                    Ansehen
+                  </button>
+                  <button
+                    className="text-red-600 hover:underline"
+                    onClick={async () => {
+                      if (!confirm('Diese Buchung wirklich löschen?')) return;
+                      const res = await fetch(`/api/admin/bookings?id=${b.id}`, { method: 'DELETE' });
+                      if (res.ok) {
+                        window.location.reload();
+                      } else {
+                        const d = await res.json().catch(() => ({}));
+                        alert(d.error || 'Buchung konnte nicht gelöscht werden.');
+                      }
+                    }}
+                  >
+                    Löschen
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
-      {booking && (
-        <div className="px-3 py-2 text-[11px] text-slate-600 flex items-center gap-3 bg-slate-50 border-t border-slate-200">
-          <span>Bezahlt: {(booking.paid_total ?? 0).toFixed(2)} €</span>
-          <span className="h-1 w-1 rounded-full bg-white/40" />
-          <span>Betrag: {(booking.amount ?? 0).toFixed(2)} €</span>
+      {remaining > 0 && (
+        <div className="mt-2 text-[11px] text-slate-500">
+          + {remaining} weitere Buchung(en).{' '}
+          <a className="text-indigo-600 hover:underline" href={`/admin/bookings?student_id=${studentId}`}>
+            Alle anzeigen
+          </a>
         </div>
       )}
     </div>
