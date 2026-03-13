@@ -648,7 +648,6 @@ export default function BookingsPage() {
                     </div>
                     {[
                       ['Kursteilnehmer', selected.student_name ?? '—'],
-                      ['Buchungscode', selected.booking_code ?? '—'],
                       ['Kurs', selected.course_title ?? '—'],
                       ['Dauer (h)', derivedDuration != null ? `${derivedDuration} h` : '—'],
                     ].map(([label, value]) => (
