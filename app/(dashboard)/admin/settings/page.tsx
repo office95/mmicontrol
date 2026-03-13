@@ -116,7 +116,7 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [logoUploading, setLogoUploading] = useState(false);
-  const [automationSettings, setAutomationSettings] = useState<{ id: string; title: string; description: string; active: boolean }[]>([]);
+  const [automationSettings, setAutomationSettings] = useState<{ id: string; title: string; description?: string | null; active: boolean }[]>([]);
   const [mediaItems, setMediaItems] = useState<{ name: string; path: string; url: string }[]>([]);
   const [mediaLoading, setMediaLoading] = useState(false);
   const [mediaMsg, setMediaMsg] = useState<string | null>(null);
@@ -170,7 +170,7 @@ export default function SettingsPage() {
       }));
       setOpening(nextHours.length ? nextHours : defaultOpening);
     }
-    // Automationen laden
+    // Automationen laden (aus DB)
     const resAuto = await fetch('/api/admin/settings/automations');
     if (resAuto.ok) {
       const data = await resAuto.json();
@@ -538,12 +538,29 @@ export default function SettingsPage() {
             </p>
           </Section>
 
-          <div className="grid gap-4">
-            {automations.map((a) => {
-              const live = automationSettings.find((s) => s.id === a.id);
-              const active = live ? live.active : true;
-              return (
-              <div key={a.id} className="rounded-lg border border-slate-200 bg-white/90 p-4 shadow-sm">
+          {(() => {
+            // Merge statische Liste + alle DB-Einträge, damit neue Automationen immer sichtbar sind
+            const extras = automationSettings.filter((s) => !automations.some((a) => a.id === s.id));
+            const merged = [
+              ...automations,
+              ...extras.map((s) => ({
+                id: s.id,
+                title: s.title || s.id,
+                when: 'Noch nicht beschrieben – bitte ergänzen in den Einstellungen.',
+                action: s.description || 'Beschreibung fehlt. Bitte kurz dokumentieren.',
+                data: 'n/a',
+                status: 'aktiv' as const,
+                notes: 'Neu hinzugefügt (DB)',
+              })),
+            ];
+
+            return (
+              <div className="grid gap-4">
+                {merged.map((a) => {
+                  const live = automationSettings.find((s) => s.id === a.id);
+                  const active = live ? live.active : true;
+                  return (
+                  <div key={a.id} className="rounded-lg border border-slate-200 bg-white/90 p-4 shadow-sm">
                 <div className="flex flex-wrap items-center gap-3 justify-between">
                   <div>
                     <p className="text-xs uppercase tracking-[0.14em] text-slate-500">Automation</p>
@@ -574,7 +591,9 @@ export default function SettingsPage() {
                 </div>
               </div>
             )})}
-          </div>
+              </div>
+            );
+          })()}
         </div>
       )}
     </div>
