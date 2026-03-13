@@ -125,18 +125,9 @@ export async function GET() {
 
   drawHeader();
   let y = doc.y;
-  const rowHeight = doc.currentLineHeight() + 2;
-  doc.font('Helvetica').fillColor('#111827');
+  doc.font('Helvetica').fillColor('#111827').fontSize(9);
 
   rows.forEach((r) => {
-    // Prüfen, ob genug Platz für nächste Zeile, sonst neue Seite + Header
-    if (y + rowHeight > doc.page.height - doc.page.margins.bottom) {
-      doc.addPage({ size: 'A4', layout: 'landscape', margin: 30 });
-      drawHeader();
-      y = doc.y;
-      doc.font('Helvetica').fillColor('#111827');
-    }
-
     const vals = [
       r.student_name ?? '—',
       r.course_title ?? '—',
@@ -153,6 +144,21 @@ export async function GET() {
       r.daysOver != null ? String(r.daysOver) : '—',
       r.status ?? '—',
     ];
+
+    // Höhe der Zeile abschätzen (max pro Zelle)
+    const heights = vals.map((v, idx) =>
+      doc.heightOfString(v, { width: colWidths[idx], align: idx >= 6 && idx <= 12 ? 'right' : 'left' })
+    );
+    const rowHeight = Math.max(...heights) + 2;
+
+    // Wenn nicht genug Platz, neue Seite + Header
+    if (y + rowHeight > doc.page.height - doc.page.margins.bottom) {
+      doc.addPage({ size: 'A4', layout: 'landscape', margin: 30 });
+      drawHeader();
+      y = doc.y;
+      doc.font('Helvetica').fillColor('#111827').fontSize(9);
+    }
+
     let x = doc.x;
     vals.forEach((v, idx) => {
       doc.text(v, x, y, {
