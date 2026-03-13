@@ -141,6 +141,13 @@ export async function GET() {
     const baseY = doc.y;
     const lineH = 6.8;
     const startX = tableStartX();
+    const headerHeight = lineH * 2 + 1.2;
+
+    // Hintergrund hellpink für Tabellenkopf
+    doc.save();
+    doc.rect(startX - 1, baseY - 0.6, tableWidth + 2, headerHeight + 0.6).fill('#ffe6ee');
+    doc.restore();
+
     headers.forEach((lines, idx) => {
       const baseX = startX + colWidths.slice(0, idx).reduce((s, w) => s + w, 0);
       const x = idx === headers.length - 1 ? baseX + gapLastCols : baseX;
@@ -158,7 +165,7 @@ export async function GET() {
         );
       });
     });
-    doc.y = baseY + lineH * 2 + 1.2; // max 2 Zeilen + kleiner Abstand
+    doc.y = baseY + headerHeight; // max 2 Zeilen + kleiner Abstand
     doc.font('Helvetica').fillColor('#111827').fontSize(6.4);
   };
 

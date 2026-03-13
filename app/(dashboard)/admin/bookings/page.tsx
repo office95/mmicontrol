@@ -306,7 +306,7 @@ export default function BookingsPage() {
           table.print-table { width: 100%; border-collapse: collapse; font-size: 11px; table-layout: fixed; }
           table.print-table thead { display: table-header-group; }
           table.print-table th, table.print-table td { padding: 6px 6px; border-bottom: 1px solid #dbe2f0; }
-          table.print-table th { background: #f3f6fb; color: #0b1c3f; font-weight: 700; }
+          table.print-table th { background: #ffe6ee; color: #0b1c3f; font-weight: 700; }
           .print-num { text-align: right; white-space: nowrap; }
           .print-date { text-align: right; white-space: nowrap; }
           tr.overdue td { background: #fff1f2; }
