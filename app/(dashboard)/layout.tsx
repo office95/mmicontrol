@@ -219,7 +219,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
           } flex gap-8 ${!isTeacher && !isStudent ? 'md:pl-72' : ''}`}
         >
           {!isTeacher && !isStudent && (
-            <aside className="hidden md:flex fixed top-28 bottom-6 left-4 w-64 flex-col rounded-2xl border border-white/15 bg-white/10 backdrop-blur-xl text-white shadow-2xl text-[17px]">
+            <aside className="hidden md:flex fixed top-28 bottom-6 left-4 w-64 flex-col rounded-2xl border border-white/15 bg-white/10 backdrop-blur-xl text-white shadow-2xl text-[16px]">
               <nav className="flex-1 px-4 py-6 space-y-2">
                 {(roleLabel
                   ? (() => {
