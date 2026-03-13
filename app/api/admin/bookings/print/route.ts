@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import PDFDocument from 'pdfkit';
 import { PassThrough } from 'stream';
-import path from 'path';
 
 export const runtime = 'nodejs';
 
@@ -86,11 +85,6 @@ export async function GET() {
   const doc = new PDFDocument({ size: 'A4', layout: 'landscape', margin: 30 });
   const stream = new PassThrough();
   doc.pipe(stream);
-
-  const helveticaPath = path.join(process.cwd(), 'public', 'fonts', 'Helvetica.afm');
-
-  doc.registerFont('Helvetica', helveticaPath);
-  doc.registerFont('Helvetica-Bold', helveticaPath);
 
   doc.font('Helvetica-Bold').fontSize(16).fillColor('#0a0f1a').text('Offene Forderungen', { align: 'left' });
   doc.moveDown(0.3);
