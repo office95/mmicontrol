@@ -151,9 +151,9 @@ export default function PartnersPage() {
         <div className="divide-y divide-slate-200">
           {filtered.map((p) => (
             <div key={p.id} className="py-4 flex flex-col gap-3">
-              <div className="flex flex-col gap-2">
-                <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-2">
-                  <div className="space-y-1 md:flex-1">
+              <div className="flex flex-col gap-3">
+                <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
+                  <div className="space-y-1 md:flex-1 min-w-0">
                     <button
                       onClick={() => {
                         setEditPartner(p);
@@ -175,63 +175,64 @@ export default function PartnersPage() {
                     </div>
                     <p className="text-xs text-slate-500">Angelegt am {new Date(p.created_at).toLocaleDateString()}</p>
                   </div>
-                  <div className="flex flex-wrap items-center gap-2 text-xs text-slate-700 justify-start md:justify-end">
-                    <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full border border-slate-200 bg-white">Buchungen: {p.active_courses ?? 0}</span>
-                    <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full border border-slate-200 bg-white">Offen: 0.00 €</span>
-                    {p.rating_avg !== null && p.rating_avg !== undefined && (
-                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[11px] border border-slate-200 text-slate-700 bg-white">
-                        {renderStars(p.rating_avg)}
-                        <span className="font-semibold text-pink-600">{p.rating_avg.toFixed(1)}</span>
-                      </span>
-                    )}
+                  <div className="flex flex-col items-start md:items-end gap-2 text-xs text-slate-700">
+                    <div className="flex flex-wrap items-center gap-2 justify-end">
+                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full border border-slate-200 bg-white">Buchungen: {p.active_courses ?? 0}</span>
+                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full border border-slate-200 bg-white">Offen: 0.00 €</span>
+                      {p.rating_avg !== null && p.rating_avg !== undefined && (
+                        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[11px] border border-slate-200 text-slate-700 bg-white">
+                          {renderStars(p.rating_avg)}
+                          <span className="font-semibold text-pink-600">{p.rating_avg.toFixed(1)}</span>
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2 justify-end">
+                      <button
+                        className="px-3 py-2 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100"
+                        onClick={() => {
+                          setEditPartner(p);
+                          setOpenModal(true);
+                        }}
+                      >
+                        Bearbeiten
+                      </button>
+                      <button
+                        className="px-3 py-2 rounded-lg border border-pink-300 text-pink-700 hover:bg-pink-50"
+                        onClick={async () => {
+                          setFeedbackTitle(`Kurs-Feedback · ${p.name}`);
+                          setFeedbackOpen(true);
+                          setFeedbackLoading(true);
+                          setFeedbackError(null);
+                          const res = await fetch(`/api/admin/feedback?partner_id=${p.id}`);
+                          const data = await res.json();
+                          if (!res.ok) {
+                            setFeedbackError(data.error || 'Fehler beim Laden');
+                            setFeedbackItems([]);
+                          } else {
+                            setFeedbackItems(data);
+                          }
+                          setFeedbackLoading(false);
+                        }}
+                      >
+                        Kurs-Feedback
+                      </button>
+                      <button
+                        className="px-3 py-2 rounded-lg border border-red-300 text-red-600 hover:bg-red-50"
+                        onClick={async () => {
+                          if (!confirm('Diesen Partner wirklich löschen?')) return;
+                          const res = await fetch(`/api/admin/partners?id=${p.id}`, { method: 'DELETE' });
+                            if (res.ok) {
+                              load();
+                            } else {
+                              const d = await res.json().catch(() => ({}));
+                              alert(d.error || 'Löschen fehlgeschlagen');
+                            }
+                          }}
+                        >
+                          Löschen
+                        </button>
+                    </div>
                   </div>
-                </div>
-
-                <div className="flex items-center gap-2 text-xs">
-                  <button
-                    className="px-3 py-2 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100"
-                    onClick={() => {
-                    setEditPartner(p);
-                    setOpenModal(true);
-                  }}
-                >
-                  Bearbeiten
-                </button>
-                <button
-                  className="px-3 py-2 rounded-lg border border-pink-300 text-pink-700 hover:bg-pink-50"
-                  onClick={async () => {
-                    setFeedbackTitle(`Kurs-Feedback · ${p.name}`);
-                    setFeedbackOpen(true);
-                    setFeedbackLoading(true);
-                    setFeedbackError(null);
-                    const res = await fetch(`/api/admin/feedback?partner_id=${p.id}`);
-                    const data = await res.json();
-                    if (!res.ok) {
-                      setFeedbackError(data.error || 'Fehler beim Laden');
-                      setFeedbackItems([]);
-                    } else {
-                      setFeedbackItems(data);
-                    }
-                    setFeedbackLoading(false);
-                  }}
-                >
-                  Kurs-Feedback
-                </button>
-                <button
-                  className="px-3 py-2 rounded-lg border border-red-300 text-red-600 hover:bg-red-50"
-                  onClick={async () => {
-                    if (!confirm('Diesen Partner wirklich löschen?')) return;
-                    const res = await fetch(`/api/admin/partners?id=${p.id}`, { method: 'DELETE' });
-                      if (res.ok) {
-                        load();
-                      } else {
-                        const d = await res.json().catch(() => ({}));
-                        alert(d.error || 'Löschen fehlgeschlagen');
-                      }
-                    }}
-                  >
-                    Löschen
-                  </button>
                 </div>
               </div>
             </div>
