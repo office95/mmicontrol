@@ -31,6 +31,16 @@ export default function RegisterPage() {
       setError(error.message);
       return;
     }
+    // Info-Mail ans Office: neuer User wartet auf Freigabe
+    try {
+      await fetch('/api/notify-pending', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: fullName, email }),
+      });
+    } catch (err) {
+      console.warn('notify pending failed', err);
+    }
     router.push('/pending');
   }
 
