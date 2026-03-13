@@ -244,8 +244,8 @@ export default function BookingsPage() {
 
   // Bildschirmansicht (respektiert Filter/Suche)
   const openItems = filtered.filter((b) => computeOpen(b) > 0.001);
-  // Druckansicht: alle Buchungen (ungefiltert), damit immer etwas gedruckt wird
-  const openItemsAll = items;
+  // Druckansicht: alle Buchungen außer "abgeschlossen"
+  const openItemsAll = items.filter((b) => (b.status ?? '').toLowerCase() !== 'abgeschlossen');
 
   const today = new Date();
   const todayYmd = today.toISOString().slice(0, 10);

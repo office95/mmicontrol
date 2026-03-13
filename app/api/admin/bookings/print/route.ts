@@ -72,7 +72,7 @@ export async function GET() {
   const today = new Date();
   const todayYmd = today.toISOString().slice(0, 10);
 
-  const rows = list.map((b) => {
+  const rowsAll = list.map((b) => {
     const paid = paidMap[b.id] ?? 0;
     const gross = b.amount ?? 0;
     const open = Math.max(0, Number((gross - paid).toFixed(2)));
@@ -82,6 +82,9 @@ export async function GET() {
         : null;
     return { ...b, paid, open, daysOver, gross };
   });
+
+  // Abgeschlossene ausblenden
+  const rows = rowsAll.filter((r) => (r.status ?? '').toLowerCase() !== 'abgeschlossen');
 
   // PDF generieren
   const doc = new PDFDocument({ size: 'A4', layout: 'landscape', margin: 14 });
