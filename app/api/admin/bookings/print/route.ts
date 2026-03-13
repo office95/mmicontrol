@@ -94,13 +94,13 @@ export async function GET() {
     .fontSize(13.5)
     .fillColor('#0a0f1a')
     .text('Offene Forderungen – Music Mission GmbH', { align: 'left' });
-  doc.moveDown(0.1);
+  doc.moveDown(0.15);
   doc.font('Helvetica').fontSize(8.0).fillColor('#1f2937');
   doc.text(`Stichtag: ${today.toLocaleDateString('de-DE')}`);
   doc.text(`Datensätze: ${rows.length}`);
   const sumOpen = rows.reduce((s, r) => s + r.open, 0);
   doc.text(`Summe offen: ${sumOpen.toFixed(2)} €`);
-  doc.moveDown(0.2);
+  doc.moveDown(0.6); // etwas mehr Abstand vor der Tabelle
 
   if (!rows.length) {
     doc.fontSize(11).fillColor('#111827').text('Keine Buchungen gefunden.', { align: 'left' });

@@ -303,7 +303,7 @@ export default function BookingsPage() {
           .no-print { display: none !important; }
           .print-open-saldo { display: block !important; }
           @page { size: A4 landscape; margin: 12mm; }
-          table.print-table { width: 100%; border-collapse: collapse; font-size: 11px; table-layout: fixed; }
+          table.print-table { width: 100%; border-collapse: collapse; font-size: 11px; table-layout: fixed; margin-top: 10px; }
           table.print-table thead { display: table-header-group; }
           table.print-table th, table.print-table td { padding: 6px 6px; border-bottom: 1px solid #dbe2f0; }
           table.print-table th { background: #ffe6ee; color: #0b1c3f; font-weight: 700; }
