@@ -183,6 +183,8 @@ export default function SettingsPage() {
   const save = async () => {
     setLoading(true);
     setMessage(null);
+
+    // 1) Firmendaten etc.
     const res = await fetch('/api/admin/settings', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -194,22 +196,22 @@ export default function SettingsPage() {
       }),
     });
     const data = await res.json().catch(() => ({}));
-    if (res.ok) {
-      setMessage('Gespeichert');
-      await load();
-    } else {
+    if (!res.ok) {
       setMessage(data.error || 'Fehler beim Speichern');
+      setLoading(false);
+      return;
     }
 
-    // Automationen speichern
-    if (automationSettings.length) {
-      await fetch('/api/admin/settings/automations', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ automations: automationSettings }),
-      });
-    }
+    // 2) Automationen vor Reload sichern (sonst würden wir die Live-Werte überschreiben)
+    await fetch('/api/admin/settings/automations', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ automations: automationSettings }),
+    });
 
+    // 3) Frische Daten laden
+    await load();
+    setMessage('Gespeichert');
     setLoading(false);
   };
 
