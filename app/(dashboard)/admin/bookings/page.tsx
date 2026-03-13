@@ -9,6 +9,7 @@ type BookingRow = {
   booking_code: string | null;
   booking_date: string | null;
   amount: number | null;
+  student_id?: string | null;
   course_id?: string | null;
   status: string;
   student_name: string | null;
@@ -61,6 +62,7 @@ export default function BookingsPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [items, setItems] = useState<BookingRow[]>([]);
+  const [filterStudentId, setFilterStudentId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
@@ -86,7 +88,8 @@ export default function BookingsPage() {
 
   const load = async () => {
     setLoading(true);
-    const res = await fetch('/api/admin/bookings');
+    const query = filterStudentId ? `?student_id=${filterStudentId}` : '';
+    const res = await fetch(`/api/admin/bookings${query}`);
     const data = await res.json();
     if (!res.ok) {
       setError(data.error || 'Fehler beim Laden');
@@ -104,7 +107,12 @@ export default function BookingsPage() {
     }
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    const presetId = searchParams.get('student_id');
+    if (presetId) setFilterStudentId(presetId);
+  }, [searchParams]);
+
+  useEffect(() => { load(); }, [filterStudentId]);
 
   // Partner-Liste für Honorarnoten
   useEffect(() => {
@@ -171,12 +179,13 @@ export default function BookingsPage() {
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase();
     return items.filter((b) => {
+      if (filterStudentId && b.student_id !== filterStudentId) return false;
       const statusOk = status === 'alle' ? true : b.status === status;
       const text = `${b.student_name ?? ''} ${b.course_title ?? ''} ${b.partner_name ?? ''} ${b.booking_code ?? ''} ${b.invoice_number ?? ''}`.toLowerCase();
       const searchOk = term === '' ? true : text.includes(term);
       return statusOk && searchOk;
     });
-  }, [items, search, status]);
+  }, [items, search, status, filterStudentId]);
 
   const derivedVat = selected?.vat_rate ?? (selected?.amount != null ? 0.2 : null);
   const derivedNet =
@@ -372,13 +381,24 @@ export default function BookingsPage() {
         />
       </div>
       {viewTab === 'overview' && (
-        <div className="flex gap-3 text-xs text-slate-200">
+        <div className="flex gap-3 text-xs text-slate-200 flex-wrap">
           <span className={`inline-flex items-center gap-2 rounded-full px-3 py-1 border ${dueStats.overdue ? 'border-rose-200 bg-rose-500/20 text-rose-100' : 'border-white/15 bg-white/10 text-white/80'}`}>
             Überfällig: {dueStats.overdue}
           </span>
           <span className={`inline-flex items-center gap-2 rounded-full px-3 py-1 border ${dueStats.dueSoon ? 'border-amber-200 bg-amber-500/20 text-amber-100' : 'border-white/15 bg-white/10 text-white/80'}`}>
             Fällig ≤7 Tage: {dueStats.dueSoon}
           </span>
+          {filterStudentId && (
+            <span className="inline-flex items-center gap-2 rounded-full px-3 py-1 border border-indigo-200 bg-indigo-500/10 text-indigo-100">
+              Gefiltert auf Teilnehmer
+              <button
+                className="text-indigo-50 underline"
+                onClick={() => setFilterStudentId(null)}
+              >
+                Filter zurücksetzen
+              </button>
+            </span>
+          )}
         </div>
       )}
 
