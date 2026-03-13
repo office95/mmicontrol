@@ -92,7 +92,10 @@ export default async function PrintBookings() {
   return (
     <div className="print-container">
       <PrintTrigger />
-      <style>{`
+      <style
+        suppressHydrationWarning
+        dangerouslySetInnerHTML={{
+          __html: `
         @page { size: A4 landscape; margin: 12mm; }
         body { font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #0f172a; }
         h1 { margin: 0 0 6px 0; font-size: 20px; letter-spacing: 0.02em; }
@@ -106,7 +109,9 @@ export default async function PrintBookings() {
         tr.overdue td { background: #fff1f2; }
         tr.due-soon td { background: #fff7ed; }
         .print-container { padding: 12mm; }
-      `}</style>
+      `,
+        }}
+      />
       <h1>Offene Forderungen</h1>
       <div className="meta">
         <div><strong>Stichtag</strong> {today.toLocaleDateString('de-DE')}</div>
