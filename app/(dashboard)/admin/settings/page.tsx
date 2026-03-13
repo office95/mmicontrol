@@ -294,7 +294,7 @@ export default function SettingsPage() {
       </div>
 
       {tab === 'company' && (
-        <div className="card p-6 shadow-xl text-slate-900 space-y-6">
+        <div className="card p-5 shadow-xl text-slate-900 space-y-6">
           <Section title="Firma">
             <div className="grid md:grid-cols-2 gap-4">
               <Input label="Firma" value={company.company_name} onChange={(v) => setCompany({ ...company, company_name: v })} placeholder="Music Mission Institute" />
@@ -416,7 +416,7 @@ export default function SettingsPage() {
       )}
 
       {tab === 'bank' && (
-        <div className="card p-6 shadow-xl text-slate-900 space-y-6">
+        <div className="card p-5 shadow-xl text-slate-900 space-y-6">
           <Section title="Bank">
             <div className="grid md:grid-cols-3 gap-4">
               <Input label="Bank" value={company.bank_name} onChange={(v) => setCompany({ ...company, bank_name: v })} placeholder="Meine Bank" />
@@ -428,7 +428,7 @@ export default function SettingsPage() {
       )}
 
       {tab === 'tax' && (
-        <div className="card p-6 shadow-xl text-slate-900 space-y-6">
+        <div className="card p-5 shadow-xl text-slate-900 space-y-6">
           <Section title="Steuerberater">
             <Input label="Name" placeholder="Kanzlei" />
             <div className="space-y-4 mt-4">
@@ -458,7 +458,7 @@ export default function SettingsPage() {
       )}
 
       {tab === 'legal' && (
-        <div className="card p-6 shadow-xl text-slate-900 space-y-6">
+        <div className="card p-5 shadow-xl text-slate-900 space-y-6">
           <Section title="Rechtliche Dokumente">
             <div className="space-y-4">
               <div>

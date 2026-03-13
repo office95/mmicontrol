@@ -254,7 +254,7 @@ export default function CourseDatesPage() {
         </button>
       </div>
 
-      <div className="card p-6 shadow-xl text-slate-900">
+      <div className="card p-5 shadow-xl text-slate-900">
         {loading && <p className="text-sm text-slate-500">Lade Kurstermine...</p>}
         {error && <p className="text-sm text-red-600">{error}</p>}
         {!loading && !filtered.length && <p className="text-sm text-slate-500">Keine Kurstermine in diesem Filter.</p>}

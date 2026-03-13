@@ -145,7 +145,7 @@ export default function PartnersPage() {
         />
       </div>
 
-      <div className="card p-6 shadow-xl text-slate-900 space-y-3">
+      <div className="card p-5 shadow-xl text-slate-900 space-y-5">
         {loading && <p className="text-sm text-slate-500">Lade Partner...</p>}
         {error && <p className="text-sm text-red-600">{error}</p>}
         {!loading && !filtered.length && <p className="text-sm text-slate-500">Keine Partner vorhanden.</p>}

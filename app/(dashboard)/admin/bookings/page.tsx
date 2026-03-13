@@ -475,7 +475,7 @@ export default function BookingsPage() {
         </table>
       </div>
 
-      <div className="card p-6 shadow-xl text-slate-900 overflow-x-auto">
+      <div className="card p-5 shadow-xl text-slate-900 overflow-x-auto">
         <div className="flex gap-3 mb-4 text-sm font-semibold text-slate-600">
           {(['overview', 'open'] as const).map((t) => (
             <button

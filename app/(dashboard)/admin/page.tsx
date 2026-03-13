@@ -257,7 +257,7 @@ export default async function AdminPage() {
 
 function StatCard({ label, value }: { label: string; value: number }) {
   return (
-    <div className="card p-7 space-y-3 text-[17px] md:text-[18px]">
+    <div className="card p-5 space-y-4 text-[17px] md:text-[18px]">
       <p className="text-[15px] md:text-[16px] text-slate-500">{label}</p>
       <p className="text-4xl md:text-5xl font-semibold text-ink">{value}</p>
     </div>
