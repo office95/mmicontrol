@@ -123,9 +123,15 @@ export async function GET() {
     doc.moveDown(0.5);
   };
 
-  drawHeader();
+  const pageBottom = () => doc.page.height - doc.page.margins.bottom;
+
+  const writeHeader = () => {
+    drawHeader();
+    doc.font('Helvetica').fillColor('#111827').fontSize(9);
+  };
+
+  writeHeader();
   let y = doc.y;
-  doc.font('Helvetica').fillColor('#111827').fontSize(9);
 
   rows.forEach((r) => {
     const vals = [
@@ -145,7 +151,7 @@ export async function GET() {
       r.status ?? '—',
     ];
 
-    // Höhe der Zeile mit max 2 Zeilen pro Zelle kalkulieren, dann aufrunden
+    // Zeilenhöhe berechnen
     const heights = vals.map((v, idx) =>
       doc.heightOfString(v, {
         width: colWidths[idx],
@@ -155,12 +161,10 @@ export async function GET() {
     );
     const rowHeight = Math.max(...heights, doc.currentLineHeight()) + 2;
 
-    // Wenn nicht genug Platz, neue Seite + Header
-    if (y + rowHeight > doc.page.height - doc.page.margins.bottom) {
+    if (y + rowHeight > pageBottom()) {
       doc.addPage({ size: 'A4', layout: 'landscape', margin: 30 });
-      drawHeader();
+      writeHeader();
       y = doc.y;
-      doc.font('Helvetica').fillColor('#111827').fontSize(9);
     }
 
     let x = doc.x;
@@ -172,6 +176,7 @@ export async function GET() {
       });
       x += colWidths[idx];
     });
+    // Nach Zeile neue Basis-Y setzen
     y = doc.y;
   });
 
