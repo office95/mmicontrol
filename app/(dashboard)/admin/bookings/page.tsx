@@ -384,6 +384,7 @@ export default function BookingsPage() {
       {/* Immer vorhandene, aber nur im Druck sichtbare Version */}
       <div className="print-open-saldo mt-6">
         <h2 className="print-title">Offene Forderungen</h2>
+        <p className="text-sm text-slate-600">Datensätze: {openItemsAll.length}</p>
         <div className="print-meta">
           <div><strong>Stichtag</strong> {formatDate(todayYmd)}</div>
           <div><strong>Summe offen</strong> {openAging.total.toFixed(2)} €</div>
@@ -448,6 +449,11 @@ export default function BookingsPage() {
                 </tr>
               );
             })}
+            {!openItemsAll.length && (
+              <tr>
+                <td colSpan={14} className="text-center py-6 text-slate-600">Keine Buchungen gefunden</td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
@@ -469,12 +475,14 @@ export default function BookingsPage() {
           <>
             <div className="flex items-center justify-between mb-3 text-sm text-slate-700">
               <div>Offene Salden: {openItems.length} Buchungen · Gesamt: {openItems.reduce((s, b) => s + (Number(b.open_amount ?? b.saldo ?? 0) || 0), 0).toFixed(2)} €</div>
-              <button
+              <a
                 className="no-print inline-flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-semibold text-slate-700 hover:bg-slate-100"
-                onClick={() => window.print()}
+                href="/admin/bookings/print"
+                target="_blank"
+                rel="noreferrer"
               >
                 Drucken (A4)
-              </button>
+              </a>
             </div>
             <OpenSaldoTable items={openItems} />
           </>
