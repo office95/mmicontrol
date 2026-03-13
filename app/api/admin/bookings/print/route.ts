@@ -192,11 +192,11 @@ export async function GET() {
     const heights = vals.map((v, idx) =>
       doc.heightOfString(v, {
         width: colWidths[idx],
-        lineGap: 0.25,
+        lineGap: 0.3,
         align: idx >= 4 && idx <= 10 ? 'right' : 'left',
       })
     );
-    const rowHeight = Math.max(...heights, 7) + 2.0; // mehr Puffer für Zeilenabstand
+    const rowHeight = Math.max(...heights, 7) + 3.0; // noch mehr Puffer für Zeilenabstand
 
     if (y + rowHeight > pageBottom()) {
       doc.addPage({ size: 'A4', layout: 'landscape', margin: 30 });
