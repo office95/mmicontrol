@@ -28,6 +28,11 @@ type BookingRow = {
   open_amount?: number;
   next_dunning_at?: string | null;
   auto_dunning_enabled?: boolean | null;
+  customer_no?: string | null;
+  last_payment_date?: string | null;
+  last_dunning_date?: string | null;
+  dunning_level?: string | null;
+  currency?: string | null;
 };
 
 type Metrics = {
@@ -194,6 +199,35 @@ export default function BookingsPage() {
   const todayMs = today.getTime();
   const in7 = new Date(today.getTime() + 7 * 86400000).toISOString().slice(0, 10);
 
+  const openAging = useMemo(() => {
+    const sums = {
+      total: 0,
+      notDue: 0,
+      overdue: 0,
+      bucket_1_30: 0,
+      bucket_31_60: 0,
+      bucket_61_90: 0,
+      bucket_91: 0,
+    };
+    openItems.forEach((b) => {
+      const open = Number(b.open_amount ?? b.saldo ?? 0) || 0;
+      if (!open) return;
+      sums.total += open;
+      const due = b.due_date ? new Date(b.due_date) : null;
+      if (!due || due >= today) {
+        sums.notDue += open;
+        return;
+      }
+      sums.overdue += open;
+      const days = Math.max(0, Math.floor((todayMs - due.getTime()) / 86400000));
+      if (days <= 30) sums.bucket_1_30 += open;
+      else if (days <= 60) sums.bucket_31_60 += open;
+      else if (days <= 90) sums.bucket_61_90 += open;
+      else sums.bucket_91 += open;
+    });
+    return sums;
+  }, [openItems, todayMs, today]);
+
   const dueStats = useMemo(() => {
     let dueSoon = 0;
     let overdue = 0;
@@ -206,6 +240,8 @@ export default function BookingsPage() {
     return { dueSoon, overdue };
   }, [items, todayYmd, in7]);
 
+  const formatDate = (val: string | null | undefined) => (val ? new Date(val).toLocaleDateString('de-DE') : '—');
+
   return (
     <div className="space-y-6">
       <style>{`
@@ -213,9 +249,18 @@ export default function BookingsPage() {
           body { background: white !important; color: #111 !important; }
           .no-print { display: none !important; }
           .print-open-saldo { display: block !important; }
-          table.print-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-          table.print-table th, table.print-table td { padding: 6px 4px; text-align: left; border-bottom: 1px solid #ccc; }
-          h2.print-title { font-size: 16px; margin: 0 0 8px 0; }
+          @page { size: A4 landscape; margin: 12mm; }
+          table.print-table { width: 100%; border-collapse: collapse; font-size: 11px; table-layout: fixed; }
+          table.print-table thead { display: table-header-group; }
+          table.print-table th, table.print-table td { padding: 6px 6px; border-bottom: 1px solid #dbe2f0; }
+          table.print-table th { background: #f3f6fb; color: #0b1c3f; font-weight: 700; }
+          .print-num { text-align: right; white-space: nowrap; }
+          .print-date { text-align: right; white-space: nowrap; }
+          tr.overdue td { background: #fff1f2; }
+          tr.due-soon td { background: #fff7ed; }
+          h2.print-title { font-size: 16px; margin: 0 0 8px 0; letter-spacing: 0.02em; }
+          .print-meta { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px 10px; font-size: 11px; margin-bottom: 8px; }
+          .print-meta strong { display: block; font-size: 11.5px; }
         }
         @media screen {
           .print-open-saldo { display: none; }
@@ -311,19 +356,34 @@ export default function BookingsPage() {
 
             {/* Druckansicht ohne Boxen */}
             <div className="print-open-saldo mt-6">
-              <h2 className="print-title">Offene Saldenliste</h2>
+              <h2 className="print-title">Offene Forderungen</h2>
+              <div className="print-meta">
+                <div><strong>Stichtag</strong> {formatDate(todayYmd)}</div>
+                <div><strong>Summe offen</strong> {openAging.total.toFixed(2)} €</div>
+                <div><strong>Noch nicht fällig</strong> {openAging.notDue.toFixed(2)} €</div>
+                <div><strong>Überfällig</strong> {openAging.overdue.toFixed(2)} €</div>
+                <div><strong>1–30 Tage üf.</strong> {openAging.bucket_1_30.toFixed(2)} €</div>
+                <div><strong>31–60 Tage üf.</strong> {openAging.bucket_31_60.toFixed(2)} €</div>
+                <div><strong>61–90 Tage üf.</strong> {openAging.bucket_61_90.toFixed(2)} €</div>
+                <div><strong>> 90 Tage üf.</strong> {openAging.bucket_91.toFixed(2)} €</div>
+              </div>
               <table className="print-table">
                 <thead>
                   <tr>
-                    <th>Rechnungsnr.</th>
-                    <th>Teilnehmer</th>
-                    <th>Leistung/Kurs</th>
-                    <th>Rechnungsdatum</th>
-                    <th>Fälligkeit</th>
-                    <th>Tage überfällig</th>
-                    <th>Betrag brutto</th>
-                    <th>Offen</th>
-                    <th>Mahnstufe/Status</th>
+                    <th style={{ width: '16%' }}>Kunde</th>
+                    <th style={{ width: '6%' }}>Kd.-Nr.</th>
+                    <th style={{ width: '8%' }}>Re.-Nr.</th>
+                    <th style={{ width: '6%' }}>Kursstart</th>
+                    <th style={{ width: '6%' }}>Re.-Datum</th>
+                    <th style={{ width: '6%' }}>Fällig</th>
+                    <th className="print-num" style={{ width: '7%' }}>Betrag</th>
+                    <th className="print-num" style={{ width: '7%' }}>Bezahlt</th>
+                    <th className="print-num" style={{ width: '7%' }}>Offen</th>
+                    <th style={{ width: '4%' }}>Währ.</th>
+                    <th className="print-num" style={{ width: '6%' }}>Tage üf.</th>
+                    <th style={{ width: '7%' }}>Letzte Zahlung</th>
+                    <th style={{ width: '8%' }}>Mahnstufe / letzte Mahnung</th>
+                    <th style={{ width: '6%' }}>Status</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -332,16 +392,38 @@ export default function BookingsPage() {
                     const amountGross = b.amount != null ? Number(b.amount) : null;
                     const due = b.due_date ? new Date(b.due_date) : null;
                     const daysOver = due ? Math.max(0, Math.floor((todayMs - due.getTime()) / 86400000)) : null;
+                    const paid =
+                      b.paid_total != null
+                        ? Number(b.paid_total)
+                        : amountGross != null
+                          ? Math.max(0, amountGross - open)
+                          : null;
+                    const rowClass =
+                      due && open > 0
+                        ? b.due_date < todayYmd
+                          ? 'overdue'
+                          : b.due_date <= in7
+                            ? 'due-soon'
+                            : ''
+                        : '';
                     return (
-                      <tr key={b.id}>
-                        <td>{b.invoice_number ?? '—'}</td>
+                      <tr key={b.id} className={rowClass}>
                         <td>{b.student_name ?? '—'}</td>
-                        <td>{b.course_title ?? '—'}</td>
-                        <td>{b.booking_date ? new Date(b.booking_date).toLocaleDateString() : '—'}</td>
-                        <td>{b.due_date ? new Date(b.due_date).toLocaleDateString() : '—'}</td>
-                        <td>{daysOver != null && b.due_date && b.due_date < todayYmd ? daysOver : '—'}</td>
-                        <td>{amountGross != null && !isNaN(amountGross) ? `${amountGross.toFixed(2)} €` : '—'}</td>
-                        <td>{open.toFixed(2)} €</td>
+                        <td>{b.customer_no ?? '—'}</td>
+                        <td>{b.invoice_number ?? '—'}</td>
+                        <td className="print-date">{formatDate(b.course_start)}</td>
+                        <td className="print-date">{formatDate(b.booking_date)}</td>
+                        <td className="print-date">{formatDate(b.due_date as string | null)}</td>
+                        <td className="print-num">{amountGross != null && !isNaN(amountGross) ? amountGross.toFixed(2) : '—'}</td>
+                        <td className="print-num">{paid != null && !isNaN(paid) ? paid.toFixed(2) : '—'}</td>
+                        <td className="print-num">{open.toFixed(2)}</td>
+                        <td>{b.currency ?? 'EUR'}</td>
+                        <td className="print-num">{daysOver != null && b.due_date && b.due_date < todayYmd ? daysOver : '—'}</td>
+                        <td className="print-date">{formatDate(b.last_payment_date)}</td>
+                        <td>
+                          {b.dunning_level ?? b.status ?? '—'}
+                          {b.last_dunning_date ? ` · ${formatDate(b.last_dunning_date)}` : ''}
+                        </td>
                         <td>{b.status}</td>
                       </tr>
                     );
