@@ -91,11 +91,11 @@ export async function GET() {
   doc.y = 18;
   doc
     .font('Helvetica-Bold')
-    .fontSize(12.5)
+    .fontSize(13.5)
     .fillColor('#0a0f1a')
     .text('Offene Forderungen – Music Mission GmbH', { align: 'left' });
   doc.moveDown(0.1);
-  doc.font('Helvetica').fontSize(7.5).fillColor('#1f2937');
+  doc.font('Helvetica').fontSize(8.0).fillColor('#1f2937');
   doc.text(`Stichtag: ${today.toLocaleDateString('de-DE')}`);
   doc.text(`Datensätze: ${rows.length}`);
   const sumOpen = rows.reduce((s, r) => s + r.open, 0);
@@ -139,13 +139,13 @@ export async function GET() {
 
   const drawHeader = () => {
     const baseY = doc.y;
-    const lineH = 6.4;
+    const lineH = 6.8;
     const startX = tableStartX();
     headers.forEach((lines, idx) => {
       const baseX = startX + colWidths.slice(0, idx).reduce((s, w) => s + w, 0);
       const x = idx === headers.length - 1 ? baseX + gapLastCols : baseX;
       lines.forEach((ln, i) => {
-        doc.font('Helvetica-Bold').fontSize(6.0).fillColor('#0a0f1a');
+        doc.font('Helvetica-Bold').fontSize(6.6).fillColor('#0a0f1a');
         doc.text(
           ln,
           x,
@@ -159,7 +159,7 @@ export async function GET() {
       });
     });
     doc.y = baseY + lineH * 2 + 1.2; // max 2 Zeilen + kleiner Abstand
-    doc.font('Helvetica').fillColor('#111827').fontSize(6.0);
+    doc.font('Helvetica').fillColor('#111827').fontSize(6.4);
   };
 
   drawHeader();
