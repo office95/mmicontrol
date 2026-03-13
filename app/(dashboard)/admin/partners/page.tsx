@@ -168,6 +168,11 @@ export default function PartnersPage() {
                       <span>{p.state ?? '—'} · {p.country ?? '—'}</span>
                       {p.status && <StatusBadge status={p.status} />}
                     </div>
+                    <div className="flex flex-wrap items-center gap-3 text-xs text-slate-600">
+                      <span>{p.phone ?? '—'}</span>
+                      <span className="text-slate-400">•</span>
+                      <span>{p.email ?? '—'}</span>
+                    </div>
                     <p className="text-xs text-slate-500">Angelegt am {new Date(p.created_at).toLocaleDateString()}</p>
                   </div>
                   <div className="flex flex-wrap items-center gap-2 text-xs text-slate-700 justify-start md:justify-end">
