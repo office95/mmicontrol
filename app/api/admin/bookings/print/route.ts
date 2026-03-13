@@ -127,7 +127,8 @@ export async function GET() {
     ['Tage üf.'],
     ['Status'],
   ];
-  const colWidths = [68, 78, 44, 52, 52, 52, 42, 32, 46, 52, 52, 52, 46, 54];
+  const colWidths = [66, 76, 44, 52, 52, 52, 42, 32, 46, 52, 52, 52, 52, 60];
+  const gapLastCols = 8;
 
   const pageBottom = () => doc.page.height - doc.page.margins.bottom;
 
@@ -135,7 +136,8 @@ export async function GET() {
     const baseY = doc.y;
     const lineH = 6.4;
     headers.forEach((lines, idx) => {
-      const x = doc.page.margins.left + colWidths.slice(0, idx).reduce((s, w) => s + w, 0);
+      const baseX = doc.page.margins.left + colWidths.slice(0, idx).reduce((s, w) => s + w, 0);
+      const x = idx === headers.length - 1 ? baseX + gapLastCols : baseX;
       lines.forEach((ln, i) => {
         doc.font('Helvetica-Bold').fontSize(6.0).fillColor('#0a0f1a');
         doc.text(
@@ -193,6 +195,7 @@ export async function GET() {
 
     let x = doc.page.margins.left;
     vals.forEach((v, idx) => {
+      if (idx === headers.length - 1) x += gapLastCols;
       doc.text(v, x, y, {
         width: colWidths[idx],
         align: idx >= 6 && idx <= 12 ? 'right' : 'left',
