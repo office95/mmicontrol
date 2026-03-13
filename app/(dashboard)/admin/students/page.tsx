@@ -177,7 +177,14 @@ export default function StudentsPage() {
                 </p>
               </div>
               <div className="w-full grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-3 items-start">
-                <BookingsList bookings={s.bookings} studentId={s.id} onChange={load} />
+                <div className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700 flex flex-wrap items-center gap-2">
+                  <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full border border-slate-200 bg-slate-50">
+                    Buchungen: {s.bookings?.length ?? 0}
+                  </span>
+                  <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full border border-slate-200 bg-slate-50">
+                    Offen: {(s.bookings || []).reduce((sum, b) => sum + (b.open_amount ?? 0), 0).toFixed(2)} €
+                  </span>
+                </div>
                 <div className="flex items-center gap-2 text-xs justify-start lg:justify-end flex-wrap">
                   <button
                     className="px-3 py-1 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100"
@@ -190,6 +197,12 @@ export default function StudentsPage() {
                     onClick={() => setBookingFor(s)}
                   >
                     Buchung erfassen
+                  </button>
+                  <button
+                    className="px-3 py-1 rounded-lg border border-slate-300 text-indigo-600 hover:bg-indigo-50"
+                    onClick={() => router.push(`/admin/bookings?student_id=${s.id}`)}
+                  >
+                    Buchungen öffnen
                   </button>
                   <button
                     className="px-3 py-1 rounded-lg border border-red-300 text-red-600 hover:bg-red-50"
@@ -228,77 +241,6 @@ export default function StudentsPage() {
           onSaved={load}
           onClose={() => setBookingFor(null)}
         />
-      )}
-    </div>
-  );
-}
-
-function BookingsList({ bookings, studentId, onChange }: { bookings?: BookingItem[]; studentId: string; onChange?: () => void }) {
-  if (!bookings || !bookings.length) {
-    return <div className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-500">Noch keine Buchungen</div>;
-  }
-
-  const maxRows = 4;
-  const visible = bookings.slice(0, maxRows);
-  const remaining = bookings.length - visible.length;
-
-  return (
-    <div className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700">
-      <div className="overflow-x-auto">
-        <table className="min-w-full text-xs">
-          <thead>
-            <tr className="text-slate-500">
-              <th className="py-1 pr-2 text-left">Kurs</th>
-              <th className="py-1 pr-2 text-left">Start</th>
-              <th className="py-1 pr-2 text-left">Status</th>
-              <th className="py-1 pr-2 text-left">Saldo</th>
-              <th className="py-1 pr-2 text-left">Aktion</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {visible.map((b) => (
-              <tr key={b.id} className="align-top">
-                <td className="py-1 pr-2 max-w-[180px] truncate">{b.course_title ?? '—'}</td>
-                <td className="py-1 pr-2">{b.course_start ? new Date(b.course_start).toLocaleDateString() : '—'}</td>
-                <td className="py-1 pr-2">{b.status ?? '—'}</td>
-                <td className={`py-1 pr-2 font-semibold ${b.open_amount > 0 ? 'text-amber-700' : 'text-emerald-700'}`}>
-                  {(b.open_amount ?? 0).toFixed(2)} €
-                </td>
-                <td className="py-1 pr-2 space-x-2 whitespace-nowrap">
-                  <button
-                    className="text-indigo-600 hover:underline"
-                    onClick={() => window.open(`/admin/bookings?id=${b.id}`, '_self')}
-                  >
-                    Bearbeiten
-                  </button>
-                  <button
-                    className="text-red-600 hover:underline"
-                    onClick={async () => {
-                      if (!confirm('Diese Buchung wirklich löschen?')) return;
-                      const res = await fetch(`/api/admin/bookings?id=${b.id}`, { method: 'DELETE' });
-                      if (res.ok) {
-                        onChange?.();
-                      } else {
-                        const d = await res.json().catch(() => ({}));
-                        alert(d.error || 'Buchung konnte nicht gelöscht werden.');
-                      }
-                    }}
-                  >
-                    Löschen
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      {remaining > 0 && (
-        <div className="mt-2 text-[11px] text-slate-500">
-          + {remaining} weitere Buchung(en).{' '}
-          <a className="text-indigo-600 hover:underline" href={`/admin/bookings?student_id=${studentId}`}>
-            Alle anzeigen
-          </a>
-        </div>
       )}
     </div>
   );
