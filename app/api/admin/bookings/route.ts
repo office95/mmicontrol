@@ -157,12 +157,11 @@ export async function GET(req: Request) {
     }, 0);
 
     const dunningStatuses = ['Zahlungserinnerung', '1. Mahnung', '2. Mahnung', 'Inkasso'];
-    const dunning_due = (list as any[]).filter(
-      (r: any) =>
-        dunningStatuses.includes(r.status) &&
-        r.next_dunning_at &&
-        r.next_dunning_at <= todayStr
-    ).length;
+    const dunning_due = (list as any[]).filter((r: any) => {
+      const paid = sumByBooking[r.id] || 0;
+      const open = Math.max(0, Number((r.amount ?? 0) - paid));
+      return dunningStatuses.includes(r.status) && open > 0.001;
+    }).length;
 
     const by_status = (list as any[]).reduce<Record<string, number>>((acc, r: any) => {
       acc[r.status] = (acc[r.status] || 0) + 1;
