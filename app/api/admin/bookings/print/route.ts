@@ -111,35 +111,41 @@ export async function GET() {
   }
 
   // Tabellenkopf und Zeilen mit Pagination
-  const headers = [
-    'Kunde',
-    'Kurs',
-    'Re.-Nr.',
-    'Buchung\u00ad\nsdatum',
-    'Fällig\u00ad\nam',
-    'Kurs\u00ad\nstart',
-    'Netto',
-    'USt %',
-    'Anzah\u00ad\nlung',
-    'Betrag',
-    'Bezahlt',
-    'Offen',
-    'Tage üf.',
-    'Status',
+  const headers: string[][] = [
+    ['Kunde'],
+    ['Kurs'],
+    ['Re.-Nr.'],
+    ['Buchungs', 'datum'],
+    ['Fällig', 'am'],
+    ['Kurs', 'start'],
+    ['Netto'],
+    ['USt %'],
+    ['Anzahlung'],
+    ['Betrag'],
+    ['Bezahlt'],
+    ['Offen'],
+    ['Tage üf.'],
+    ['Status'],
   ];
   const colWidths = [78, 90, 54, 62, 62, 62, 50, 40, 56, 60, 60, 60, 42, 60];
 
   const pageBottom = () => doc.page.height - doc.page.margins.bottom;
 
   const drawHeader = () => {
-    let hx = doc.x;
-    let hy = doc.y;
-    doc.fontSize(6.3).fillColor('#0a0f1a').font('Helvetica-Bold');
-    headers.forEach((h, idx) => {
-      doc.text(h, hx, hy, { width: colWidths[idx], lineBreak: true, ellipsis: false });
-      hx += colWidths[idx];
+    const baseY = doc.y;
+    const lineH = 7.0;
+    headers.forEach((lines, idx) => {
+      const x = doc.page.margins.left + colWidths.slice(0, idx).reduce((s, w) => s + w, 0);
+      lines.forEach((ln, i) => {
+        doc.font('Helvetica-Bold').fontSize(6.3).fillColor('#0a0f1a');
+        doc.text(ln, x, baseY + i * lineH, {
+          width: colWidths[idx],
+          align: idx >= 6 && idx <= 12 ? 'right' : 'left',
+          lineBreak: false,
+        });
+      });
     });
-    doc.moveDown(0.12);
+    doc.y = baseY + lineH * 2 + 2; // max 2 Zeilen + kleiner Abstand
     doc.font('Helvetica').fillColor('#111827').fontSize(6.3);
   };
 
