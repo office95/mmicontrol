@@ -398,14 +398,12 @@ export default function BookingsPage() {
                         : amountGross != null
                           ? Math.max(0, amountGross - open)
                           : null;
-                    const rowClass =
-                      due && open > 0
-                        ? b.due_date < todayYmd
-                          ? 'overdue'
-                          : b.due_date <= in7
-                            ? 'due-soon'
-                            : ''
-                        : '';
+                    const rowClass = (() => {
+                      if (!due || open <= 0 || !b.due_date) return '';
+                      if (b.due_date < todayYmd) return 'overdue';
+                      if (b.due_date <= in7) return 'due-soon';
+                      return '';
+                    })();
                     return (
                       <tr key={b.id} className={rowClass}>
                         <td>{b.student_name ?? '—'}</td>
