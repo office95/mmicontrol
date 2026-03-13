@@ -163,8 +163,8 @@ export async function GET() {
       r.status ?? '—',
     ];
 
-    // Feste Zeilenhöhe, damit nichts verschluckt wird
-    const rowHeight = doc.currentLineHeight() + 4; // ~7pt Schrift -> ca. 12-14pt Höhe
+    // Feste Zeilenhöhe
+    const rowHeight = 12;
 
     if (y + rowHeight > pageBottom()) {
       doc.addPage({ size: 'A4', layout: 'landscape', margin: 30 });
@@ -172,11 +172,11 @@ export async function GET() {
       y = doc.y;
     }
 
-    let x = doc.x;
+    let x = doc.page.margins.left;
     vals.forEach((v, idx) => {
       doc.text(v, x, y, {
         width: colWidths[idx],
-        continued: idx !== vals.length - 1,
+        height: rowHeight,
         align: idx >= 6 && idx <= 12 ? 'right' : 'left',
       });
       x += colWidths[idx];
