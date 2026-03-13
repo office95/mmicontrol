@@ -93,7 +93,7 @@ export async function GET() {
   doc.text(`Summe offen: ${sumOpen.toFixed(2)} €`);
   doc.moveDown(0.5);
 
-  // Tabellenkopf
+  // Tabellenkopf und Zeilen mit Pagination
   const headers = [
     'Kunde',
     'Kurs',
@@ -112,19 +112,31 @@ export async function GET() {
   ];
   const colWidths = [90, 100, 60, 65, 65, 65, 55, 45, 65, 65, 65, 65, 50, 60];
 
-  let x = doc.x;
-  let y = doc.y;
-  doc.fontSize(9).fillColor('#0a0f1a').font('Helvetica-Bold');
-  headers.forEach((h, idx) => {
-    doc.text(h, x, y, { width: colWidths[idx], continued: idx !== headers.length - 1 });
-    x += colWidths[idx];
-  });
-  doc.moveDown(0.5);
-  y = doc.y;
+  const drawHeader = () => {
+    let hx = doc.x;
+    let hy = doc.y;
+    doc.fontSize(9).fillColor('#0a0f1a').font('Helvetica-Bold');
+    headers.forEach((h, idx) => {
+      doc.text(h, hx, hy, { width: colWidths[idx], continued: idx !== headers.length - 1 });
+      hx += colWidths[idx];
+    });
+    doc.moveDown(0.5);
+  };
 
+  drawHeader();
+  let y = doc.y;
+  const rowHeight = doc.currentLineHeight() + 2;
   doc.font('Helvetica').fillColor('#111827');
 
   rows.forEach((r) => {
+    // Prüfen, ob genug Platz für nächste Zeile, sonst neue Seite + Header
+    if (y + rowHeight > doc.page.height - doc.page.margins.bottom) {
+      doc.addPage({ size: 'A4', layout: 'landscape', margin: 30 });
+      drawHeader();
+      y = doc.y;
+      doc.font('Helvetica').fillColor('#111827');
+    }
+
     const vals = [
       r.student_name ?? '—',
       r.course_title ?? '—',
@@ -141,7 +153,7 @@ export async function GET() {
       r.daysOver != null ? String(r.daysOver) : '—',
       r.status ?? '—',
     ];
-    x = doc.x;
+    let x = doc.x;
     vals.forEach((v, idx) => {
       doc.text(v, x, y, {
         width: colWidths[idx],
@@ -151,19 +163,6 @@ export async function GET() {
       x += colWidths[idx];
     });
     y = doc.y;
-    if (y > doc.page.height - 50) {
-      doc.addPage({ size: 'A4', layout: 'landscape', margin: 30 });
-      x = doc.x;
-      y = doc.y;
-      doc.font('Helvetica-Bold');
-      headers.forEach((h, idx) => {
-        doc.text(h, x, y, { width: colWidths[idx], continued: idx !== headers.length - 1 });
-        x += colWidths[idx];
-      });
-      doc.moveDown(0.5);
-      y = doc.y;
-      doc.font('Helvetica');
-    }
   });
 
   doc.end();
