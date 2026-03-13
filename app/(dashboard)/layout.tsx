@@ -175,7 +175,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
               <p className="text-lg font-semibold text-white">Music Mission Institute</p>
             </div>
           </div>
-          <div className="flex items-center gap-3 sm:gap-4 text-xs text-white uppercase tracking-[0.18em]">
+      <div className="flex items-center gap-3 sm:gap-4 text-xs text-white uppercase tracking-[0.18em]">
             <span className="hidden sm:inline text-[12px] font-semibold text-white/80">
               {profile?.full_name ?? ''}
             </span>
