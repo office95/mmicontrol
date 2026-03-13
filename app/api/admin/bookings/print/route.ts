@@ -127,7 +127,7 @@ export async function GET() {
     ['Tage üf.'],
     ['Status'],
   ];
-  const colWidths = [72, 82, 48, 55, 55, 55, 45, 36, 50, 55, 55, 55, 38, 55];
+  const colWidths = [70, 80, 46, 53, 53, 53, 44, 34, 48, 53, 53, 53, 45, 50];
 
   const pageBottom = () => doc.page.height - doc.page.margins.bottom;
 
@@ -174,11 +174,11 @@ export async function GET() {
     const heights = vals.map((v, idx) =>
       doc.heightOfString(v, {
         width: colWidths[idx],
-        lineGap: 0.5,
+        lineGap: 0.3,
         align: idx >= 6 && idx <= 12 ? 'right' : 'left',
       })
     );
-    const rowHeight = Math.max(...heights) + 2; // kleiner Puffer
+    const rowHeight = Math.max(...heights) + 1.5; // kleiner Puffer
 
     if (y + rowHeight > pageBottom()) {
       doc.addPage({ size: 'A4', layout: 'landscape', margin: 30 });
