@@ -145,11 +145,15 @@ export async function GET() {
       r.status ?? '—',
     ];
 
-    // Höhe der Zeile abschätzen (max pro Zelle)
+    // Höhe der Zeile mit max 2 Zeilen pro Zelle kalkulieren, dann aufrunden
     const heights = vals.map((v, idx) =>
-      doc.heightOfString(v, { width: colWidths[idx], align: idx >= 6 && idx <= 12 ? 'right' : 'left' })
+      doc.heightOfString(v, {
+        width: colWidths[idx],
+        align: idx >= 6 && idx <= 12 ? 'right' : 'left',
+        lineGap: 1,
+      })
     );
-    const rowHeight = Math.max(...heights) + 2;
+    const rowHeight = Math.max(...heights, doc.currentLineHeight()) + 2;
 
     // Wenn nicht genug Platz, neue Seite + Header
     if (y + rowHeight > doc.page.height - doc.page.margins.bottom) {
