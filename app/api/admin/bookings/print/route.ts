@@ -93,6 +93,18 @@ export async function GET() {
   doc.text(`Summe offen: ${sumOpen.toFixed(2)} €`);
   doc.moveDown(0.5);
 
+  if (!rows.length) {
+    doc.fontSize(11).fillColor('#111827').text('Keine Buchungen gefunden.', { align: 'left' });
+    doc.end();
+    return new NextResponse(stream as any, {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': `inline; filename="offene-forderungen.pdf"`,
+      },
+    });
+  }
+
   // Tabellenkopf und Zeilen mit Pagination
   const headers = [
     'Kunde',
