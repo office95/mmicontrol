@@ -649,10 +649,7 @@ export default function BookingsPage() {
                     {[
                       ['Kursteilnehmer', selected.student_name ?? '—'],
                       ['Buchungscode', selected.booking_code ?? '—'],
-                      ['Buchungsdatum', selected.booking_date ? new Date(selected.booking_date).toLocaleDateString() : '—'],
                       ['Kurs', selected.course_title ?? '—'],
-                      ['Kursstart', selected.course_start ? new Date(selected.course_start).toLocaleDateString() : '—'],
-                      ['Anbieter', selected.partner_name ?? '—'],
                       ['Dauer (h)', derivedDuration != null ? `${derivedDuration} h` : '—'],
                     ].map(([label, value]) => (
                       <div key={label} className="rounded-lg border border-slate-200 bg-white px-3 py-2">
