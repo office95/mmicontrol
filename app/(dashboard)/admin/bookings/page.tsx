@@ -402,7 +402,7 @@ export default function BookingsPage() {
               <th style={{ width: '9%' }}>Buchungsdat.</th>
               <th style={{ width: '9%' }}>Fällig</th>
               <th style={{ width: '16%' }}>Kunde</th>
-              <th className="print-num" style={{ width: '10%' }}>Betrag</th>
+              <th className="print-num" style={{ width: '10%' }}>Kursbeitrag brutto</th>
               <th className="print-num" style={{ width: '10%' }}>Kursbeitrag netto</th>
               <th className="print-num" style={{ width: '6%' }}>USt %</th>
               <th className="print-num" style={{ width: '8%' }}>Anzahlung</th>

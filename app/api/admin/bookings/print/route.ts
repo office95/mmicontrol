@@ -120,7 +120,7 @@ export async function GET() {
     ['Buchungs', 'datum'],
     ['Fällig', 'am'],
     ['Kunde'],
-    ['Betrag'],
+    ['Kursbeitrag', 'brutto'],
     ['Kursbeitrag', 'netto'],
     ['USt %'],
     ['Anzahlung'],
