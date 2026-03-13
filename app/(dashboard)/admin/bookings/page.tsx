@@ -593,11 +593,19 @@ export default function BookingsPage() {
               ))}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm mb-4">
-              <InfoCard label="Betrag brutto" value={selected.amount != null ? `${Number(selected.amount).toFixed(2)} €` : '—'} />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm mb-4">
+              <InfoCard label="Kursbeitrag brutto" value={selected.amount != null ? `${Number(selected.amount).toFixed(2)} €` : '—'} />
+              <InfoCard label="Kursbeitrag netto" value={derivedNet != null ? `${Number(derivedNet).toFixed(2)} €` : '—'} />
+              <InfoCard label="Anbieter" value={selected.partner_name ?? '—'} />
               <InfoCard label="Offener Betrag" value={selected.open_amount != null ? `${Number(selected.open_amount).toFixed(2)} €` : selected.saldo != null ? `${Number(selected.saldo).toFixed(2)} €` : '—'} tone={selected.open_amount !== undefined ? (selected.open_amount <= 0 ? 'good' : 'warn') : undefined} />
               <InfoCard label="Status" value={selected.status} />
               <InfoCard label="Kursstart" value={selected.course_start ? new Date(selected.course_start).toLocaleDateString() : '—'} />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs mb-2">
+              <InfoCard label="USt-Satz" value={derivedVat != null ? `${(Number(derivedVat) * 100).toFixed(1)} %` : '—'} />
+              <InfoCard label="Anzahlung" value={derivedDeposit != null ? `${Number(derivedDeposit).toFixed(2)} €` : '—'} />
+              <InfoCard label="Saldo" value={derivedSaldo != null ? `${Number(derivedSaldo).toFixed(2)} €` : '—'} />
             </div>
 
             <div className="space-y-6">
