@@ -199,6 +199,10 @@ export default function BookingsPage() {
   };
 
   const computePaid = (b: BookingRow) => {
+    if (b.payments && Array.isArray(b.payments) && b.payments.length) {
+      const sum = b.payments.reduce((s, p) => s + (Number(p.amount) || 0), 0);
+      if (Number.isFinite(sum)) return sum;
+    }
     if (b.paid_total != null) {
       const val = Number(b.paid_total);
       if (Number.isFinite(val)) return val;
@@ -240,11 +244,8 @@ export default function BookingsPage() {
 
   // Bildschirmansicht (respektiert Filter/Suche)
   const openItems = filtered.filter((b) => computeOpen(b) > 0.001);
-  // Druckansicht (alle offenen Posten, unabhängig von Filtern)
-  const openItemsAll = useMemo(
-    () => items.filter((b) => computeOpen(b) > 0.001),
-    [items]
-  );
+  // Druckansicht: alle Buchungen (ungefiltert), damit immer etwas gedruckt wird
+  const openItemsAll = items;
 
   const today = new Date();
   const todayYmd = today.toISOString().slice(0, 10);
