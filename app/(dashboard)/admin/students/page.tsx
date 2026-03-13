@@ -151,61 +151,61 @@ export default function StudentsPage() {
         {error && <p className="text-sm text-red-600">{error}</p>}
         {!loading && !filtered.length && <p className="text-sm text-slate-500">Keine Kursteilnehmer vorhanden.</p>}
 
-        <div className="divide-y divide-slate-200">
+        <div className="space-y-3">
           {filtered.map((s) => (
             <div
               key={s.id}
-              className="py-3 flex flex-col md:flex-row md:items-center md:justify-between gap-3"
+              className="rounded-2xl border border-white/10 bg-white/10 backdrop-blur-md shadow-lg p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4"
             >
-              <div className="space-y-1">
+              <div className="space-y-1 text-white">
                 <button
                   onClick={() => openFor(s)}
-                  className={`text-left text-base font-bold ${s.is_problem ? 'text-red-600' : 'text-ink'} hover:underline`}
+                  className={`text-left text-lg font-semibold ${s.is_problem ? 'text-rose-100' : 'text-white'} hover:underline`}
                 >
                   {s.name}
                   {s.is_problem && (
-                    <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-red-100 text-red-700 border border-red-200">
+                    <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-rose-200/90 text-rose-800 border border-rose-300">
                       Problemkunde
                     </span>
                   )}
                 </button>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-slate-200/80">
                   {s.state ?? '—'} · {s.country ?? '—'}
                 </p>
-                <p className="text-[11px] text-slate-500">
+                <p className="text-[11px] text-slate-200/70">
                   {statusLabel[s.status] ?? s.status} · Angelegt: {new Date(s.created_at).toLocaleDateString()}
                 </p>
               </div>
               <div className="w-full grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-3 items-start">
-                <div className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700 flex flex-wrap items-center gap-2">
-                  <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full border border-slate-200 bg-slate-50">
+                <div className="rounded-lg border border-white/15 bg-white/10 px-3 py-2 text-xs text-slate-100 flex flex-wrap items-center gap-2">
+                  <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full border border-white/20 bg-white/10">
                     Buchungen: {s.bookings?.length ?? 0}
                   </span>
-                  <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full border border-slate-200 bg-slate-50">
+                  <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full border border-white/20 bg-white/10">
                     Offen: {(s.bookings || []).reduce((sum, b) => sum + (b.open_amount ?? 0), 0).toFixed(2)} €
                   </span>
                 </div>
                 <div className="flex items-center gap-2 text-xs justify-start lg:justify-end flex-wrap">
                   <button
-                    className="px-3 py-1 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100"
+                    className="px-3 py-1 rounded-lg border border-white/30 text-white hover:bg-white/10"
                     onClick={() => openFor(s)}
                   >
                     Teilnehmer bearbeiten
                   </button>
                   <button
-                    className="px-3 py-1 rounded-lg border border-slate-300 text-indigo-600 hover:bg-indigo-50"
+                    className="px-3 py-1 rounded-lg border border-indigo-200 text-indigo-100 hover:bg-indigo-500/20"
                     onClick={() => setBookingFor(s)}
                   >
                     Buchung erfassen
                   </button>
                   <button
-                    className="px-3 py-1 rounded-lg border border-slate-300 text-indigo-600 hover:bg-indigo-50"
+                    className="px-3 py-1 rounded-lg border border-indigo-200 text-indigo-100 hover:bg-indigo-500/20"
                     onClick={() => router.push(`/admin/bookings?student_id=${s.id}`)}
                   >
                     Buchungen öffnen
                   </button>
                   <button
-                    className="px-3 py-1 rounded-lg border border-red-300 text-red-600 hover:bg-red-50"
+                    className="px-3 py-1 rounded-lg border border-rose-300 text-rose-100 hover:bg-rose-500/20"
                     onClick={async () => {
                       if (!confirm('Diesen Kursteilnehmer löschen?')) return;
                       const res = await fetch(`/api/admin/students?id=${s.id}`, { method: 'DELETE' });
