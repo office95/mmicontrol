@@ -365,7 +365,7 @@ export default function BookingsPage() {
                 <div><strong>1–30 Tage üf.</strong> {openAging.bucket_1_30.toFixed(2)} €</div>
                 <div><strong>31–60 Tage üf.</strong> {openAging.bucket_31_60.toFixed(2)} €</div>
                 <div><strong>61–90 Tage üf.</strong> {openAging.bucket_61_90.toFixed(2)} €</div>
-                <div><strong>> 90 Tage üf.</strong> {openAging.bucket_91.toFixed(2)} €</div>
+                <div><strong>&gt; 90 Tage üf.</strong> {openAging.bucket_91.toFixed(2)} €</div>
               </div>
               <table className="print-table">
                 <thead>
