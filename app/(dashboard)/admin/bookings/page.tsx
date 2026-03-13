@@ -192,13 +192,56 @@ export default function BookingsPage() {
   const derivedDeposit = selected?.deposit ?? 0;
   const derivedDuration = selected?.duration_hours ?? 0;
 
+  const computeGross = (b: BookingRow) => {
+    if (b.amount == null) return null;
+    const val = Number(b.amount);
+    return Number.isFinite(val) ? val : null;
+  };
+
+  const computePaid = (b: BookingRow) => {
+    if (b.paid_total != null) {
+      const val = Number(b.paid_total);
+      if (Number.isFinite(val)) return val;
+    }
+    const gross = computeGross(b);
+    const open = b.open_amount ?? b.saldo;
+    if (gross != null && open != null) {
+      const o = Number(open);
+      if (Number.isFinite(o)) return Math.max(0, gross - o);
+    }
+    return null;
+  };
+
+  const computeOpen = (b: BookingRow) => {
+    const openRaw = b.open_amount ?? b.saldo;
+    if (openRaw != null) {
+      const o = Number(openRaw);
+      if (Number.isFinite(o)) return o;
+    }
+    const gross = computeGross(b);
+    const paid = computePaid(b);
+    if (gross != null && paid != null) return Number((gross - paid).toFixed(2));
+    if (gross != null) return gross;
+    return 0;
+  };
+
+  const computeNet = (b: BookingRow) => {
+    if (b.price_net != null) {
+      const v = Number(b.price_net);
+      if (Number.isFinite(v)) return v;
+    }
+    const gross = computeGross(b);
+    const vat = b.vat_rate != null ? Number(b.vat_rate) : null;
+    if (gross != null && vat != null && Number.isFinite(vat)) {
+      return Number((gross / (1 + vat)).toFixed(2));
+    }
+    return null;
+  };
+
   // Bildschirmansicht (respektiert Filter/Suche)
-  const openItems = filtered.filter((b) => (b.open_amount ?? b.saldo ?? 0) > 0.001);
-  // Druckansicht (immer alle offenen Posten, unabhängig von Filtern)
-  const openItemsAll = useMemo(
-    () => items.filter((b) => (b.open_amount ?? b.saldo ?? 0) > 0.001),
-    [items]
-  );
+  const openItems = filtered.filter((b) => computeOpen(b) > 0.001);
+  // Druckansicht (alle Posten, unabhängig von Filtern; auch wenn offen = 0)
+  const openItemsAll = items;
 
   const today = new Date();
   const todayYmd = today.toISOString().slice(0, 10);
@@ -216,7 +259,7 @@ export default function BookingsPage() {
       bucket_91: 0,
     };
     openItemsAll.forEach((b) => {
-      const open = Number(b.open_amount ?? b.saldo ?? 0) || 0;
+      const open = computeOpen(b);
       if (!open) return;
       sums.total += open;
       const due = b.due_date ? new Date(b.due_date) : null;
@@ -362,11 +405,11 @@ export default function BookingsPage() {
 
             {/* Druckansicht ohne Boxen */}
             <div className="print-open-saldo mt-6">
-              <h2 className="print-title">Offene Forderungen</h2>
-              <div className="print-meta">
-                <div><strong>Stichtag</strong> {formatDate(todayYmd)}</div>
-                <div><strong>Summe offen</strong> {openAging.total.toFixed(2)} €</div>
-                <div><strong>Noch nicht fällig</strong> {openAging.notDue.toFixed(2)} €</div>
+          <h2 className="print-title">Offene Forderungen</h2>
+          <div className="print-meta">
+            <div><strong>Stichtag</strong> {formatDate(todayYmd)}</div>
+            <div><strong>Summe offen</strong> {openAging.total.toFixed(2)} €</div>
+            <div><strong>Noch nicht fällig</strong> {openAging.notDue.toFixed(2)} €</div>
                 <div><strong>Überfällig</strong> {openAging.overdue.toFixed(2)} €</div>
                 <div><strong>1–30 Tage üf.</strong> {openAging.bucket_1_30.toFixed(2)} €</div>
                 <div><strong>31–60 Tage üf.</strong> {openAging.bucket_31_60.toFixed(2)} €</div>
@@ -376,34 +419,32 @@ export default function BookingsPage() {
               <table className="print-table">
                 <thead>
                   <tr>
-                    <th style={{ width: '16%' }}>Kunde</th>
-                    <th style={{ width: '6%' }}>Kd.-Nr.</th>
-                    <th style={{ width: '8%' }}>Re.-Nr.</th>
-                    <th style={{ width: '6%' }}>Kursstart</th>
-                    <th style={{ width: '6%' }}>Re.-Datum</th>
-                    <th style={{ width: '6%' }}>Fällig</th>
+                    <th style={{ width: '12%' }}>Kunde</th>
+                    <th style={{ width: '12%' }}>Kurs</th>
+                    <th style={{ width: '7%' }}>Re.-Nr.</th>
+                    <th style={{ width: '7%' }}>Buchungsdat.</th>
+                    <th style={{ width: '7%' }}>Fällig</th>
+                    <th style={{ width: '7%' }}>Kursstart</th>
+                    <th className="print-num" style={{ width: '6%' }}>Netto</th>
+                    <th className="print-num" style={{ width: '5%' }}>USt %</th>
+                    <th className="print-num" style={{ width: '6%' }}>Anzahlung</th>
                     <th className="print-num" style={{ width: '7%' }}>Betrag</th>
                     <th className="print-num" style={{ width: '7%' }}>Bezahlt</th>
                     <th className="print-num" style={{ width: '7%' }}>Offen</th>
-                    <th style={{ width: '4%' }}>Währ.</th>
-                    <th className="print-num" style={{ width: '6%' }}>Tage üf.</th>
-                    <th style={{ width: '7%' }}>Letzte Zahlung</th>
-                    <th style={{ width: '8%' }}>Mahnstufe / letzte Mahnung</th>
-                    <th style={{ width: '6%' }}>Status</th>
+                    <th className="print-num" style={{ width: '5%' }}>Tage üf.</th>
+                    <th style={{ width: '5%' }}>Status</th>
                   </tr>
                 </thead>
                 <tbody>
                   {openItemsAll.map((b) => {
-                    const open = Number(b.open_amount ?? b.saldo ?? 0) || 0;
-                    const amountGross = b.amount != null ? Number(b.amount) : null;
+                    const open = computeOpen(b);
+                    const amountGross = computeGross(b);
+                    const net = computeNet(b);
+                    const vatPercent = b.vat_rate != null ? Number(b.vat_rate) * 100 : null;
+                    const deposit = b.deposit != null ? Number(b.deposit) : null;
                     const due = b.due_date ? new Date(b.due_date) : null;
                     const daysOver = due ? Math.max(0, Math.floor((todayMs - due.getTime()) / 86400000)) : null;
-                    const paid =
-                      b.paid_total != null
-                        ? Number(b.paid_total)
-                        : amountGross != null
-                          ? Math.max(0, amountGross - open)
-                          : null;
+                    const paid = computePaid(b);
                     const rowClass = (() => {
                       if (!due || open <= 0 || !b.due_date) return '';
                       if (b.due_date < todayYmd) return 'overdue';
@@ -413,22 +454,19 @@ export default function BookingsPage() {
                     return (
                       <tr key={b.id} className={rowClass}>
                         <td>{b.student_name ?? '—'}</td>
-                        <td>{b.customer_no ?? '—'}</td>
+                        <td>{b.course_title ?? '—'}</td>
                         <td>{b.invoice_number ?? '—'}</td>
-                        <td className="print-date">{formatDate(b.course_start)}</td>
                         <td className="print-date">{formatDate(b.booking_date)}</td>
                         <td className="print-date">{formatDate(b.due_date as string | null)}</td>
-                        <td className="print-num">{amountGross != null && !isNaN(amountGross) ? amountGross.toFixed(2) : '—'}</td>
-                        <td className="print-num">{paid != null && !isNaN(paid) ? paid.toFixed(2) : '—'}</td>
+                        <td className="print-date">{formatDate(b.course_start)}</td>
+                        <td className="print-num">{net != null ? net.toFixed(2) : '—'}</td>
+                        <td className="print-num">{vatPercent != null ? vatPercent.toFixed(1) : '—'}</td>
+                        <td className="print-num">{deposit != null ? deposit.toFixed(2) : '—'}</td>
+                        <td className="print-num">{amountGross != null ? amountGross.toFixed(2) : '—'}</td>
+                        <td className="print-num">{paid != null ? paid.toFixed(2) : '—'}</td>
                         <td className="print-num">{open.toFixed(2)}</td>
-                        <td>{b.currency ?? 'EUR'}</td>
                         <td className="print-num">{daysOver != null && b.due_date && b.due_date < todayYmd ? daysOver : '—'}</td>
-                        <td className="print-date">{formatDate(b.last_payment_date)}</td>
-                        <td>
-                          {b.dunning_level ?? b.status ?? '—'}
-                          {b.last_dunning_date ? ` · ${formatDate(b.last_dunning_date)}` : ''}
-                        </td>
-                        <td>{b.status}</td>
+                        <td>{b.status ?? '—'}</td>
                       </tr>
                     );
                   })}
