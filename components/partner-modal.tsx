@@ -3,9 +3,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSupabase } from '@/providers/supabase-provider';
 
+type PartnerStatus = 'active' | 'inactive' | 'lead' | 'archived';
+
 export type PartnerRow = {
   id: string;
-  status: 'active' | 'inactive' | 'lead' | 'archived';
+  status: PartnerStatus;
   provider_id: string | null;
   name: string;
   created_at?: string | null;
@@ -82,7 +84,7 @@ export default function PartnerModal({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [status, setStatus] = useState<'active' | 'inactive' | 'lead'>('active');
+  const [status, setStatus] = useState<PartnerStatus>('active');
   const [country, setCountry] = useState<'Österreich' | 'Deutschland'>('Österreich');
   const [state, setState] = useState<string>('');
   const [name, setName] = useState('');
