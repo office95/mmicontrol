@@ -653,10 +653,6 @@ export default function BookingsPage() {
                       ['Kurs', selected.course_title ?? '—'],
                       ['Kursstart', selected.course_start ? new Date(selected.course_start).toLocaleDateString() : '—'],
                       ['Anbieter', selected.partner_name ?? '—'],
-                      ['USt-Satz', derivedVat != null ? `${(Number(derivedVat) * 100).toFixed(1)} %` : '—'],
-                      ['Kursbeitrag netto', derivedNet != null ? `${Number(derivedNet).toFixed(2)} €` : '—'],
-                      ['Anzahlung', derivedDeposit != null ? `${Number(derivedDeposit).toFixed(2)} €` : '—'],
-                      ['Saldo', derivedSaldo != null ? `${Number(derivedSaldo).toFixed(2)} €` : '—'],
                       ['Dauer (h)', derivedDuration != null ? `${derivedDuration} h` : '—'],
                     ].map(([label, value]) => (
                       <div key={label} className="rounded-lg border border-slate-200 bg-white px-3 py-2">
