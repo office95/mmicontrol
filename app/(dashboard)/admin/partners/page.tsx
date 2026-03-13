@@ -151,26 +151,28 @@ export default function PartnersPage() {
         <div className="divide-y divide-slate-200">
           {filtered.map((p) => (
             <div key={p.id} className="py-4 flex flex-col gap-3">
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex flex-col gap-2">
+                <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-2">
+                  <div className="space-y-1 md:flex-1">
                     <button
                       onClick={() => {
                         setEditPartner(p);
                         setOpenModal(true);
                       }}
-                      className="text-left text-lg font-bold text-ink hover:underline"
+                      className="block text-left text-lg font-bold text-ink truncate"
+                      title={p.name}
                     >
                       {p.name}
                     </button>
+                    <div className="flex flex-wrap items-center gap-2 text-sm text-slate-600">
+                      <span>{p.state ?? '—'} · {p.country ?? '—'}</span>
+                      {p.status && <StatusBadge status={p.status} />}
+                    </div>
+                    <p className="text-xs text-slate-500">Angelegt am {new Date(p.created_at).toLocaleDateString()}</p>
                   </div>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-sm text-slate-600">{p.state ?? '—'} · {p.country ?? '—'}</span>
-                    {p.active_courses !== undefined && (
-                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[11px] border border-slate-200 text-slate-700 bg-white">
-                        ● Aktive Kurse: {p.active_courses}
-                      </span>
-                    )}
+                  <div className="flex flex-wrap items-center gap-2 text-xs text-slate-700 justify-start md:justify-end">
+                    <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full border border-slate-200 bg-white">Buchungen: {p.active_courses ?? 0}</span>
+                    <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full border border-slate-200 bg-white">Offen: 0.00 €</span>
                     {p.rating_avg !== null && p.rating_avg !== undefined && (
                       <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[11px] border border-slate-200 text-slate-700 bg-white">
                         {renderStars(p.rating_avg)}
@@ -178,17 +180,12 @@ export default function PartnersPage() {
                       </span>
                     )}
                   </div>
-                  {p.status && (
-                    <div className="flex items-center gap-2 flex-wrap text-[11px] text-slate-500">
-                      <StatusBadge status={p.status} />
-                    </div>
-                  )}
-                  <p className="text-xs text-slate-500">Angelegt am {new Date(p.created_at).toLocaleDateString()}</p>
                 </div>
-              <div className="flex items-center gap-2 text-xs">
-                <button
-                  className="px-3 py-2 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100"
-                  onClick={() => {
+
+                <div className="flex items-center gap-2 text-xs">
+                  <button
+                    className="px-3 py-2 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100"
+                    onClick={() => {
                     setEditPartner(p);
                     setOpenModal(true);
                   }}
