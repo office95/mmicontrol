@@ -127,13 +127,13 @@ export async function GET() {
     ['Tage üf.'],
     ['Status'],
   ];
-  const colWidths = [70, 80, 46, 53, 53, 53, 44, 34, 48, 53, 53, 53, 48, 50];
+  const colWidths = [68, 78, 44, 52, 52, 52, 42, 32, 46, 52, 52, 52, 46, 54];
 
   const pageBottom = () => doc.page.height - doc.page.margins.bottom;
 
   const drawHeader = () => {
     const baseY = doc.y;
-    const lineH = 6.8;
+    const lineH = 6.4;
     headers.forEach((lines, idx) => {
       const x = doc.page.margins.left + colWidths.slice(0, idx).reduce((s, w) => s + w, 0);
       lines.forEach((ln, i) => {
@@ -150,7 +150,7 @@ export async function GET() {
         );
       });
     });
-    doc.y = baseY + lineH * 2 + 1.5; // max 2 Zeilen + kleiner Abstand
+    doc.y = baseY + lineH * 2 + 1.2; // max 2 Zeilen + kleiner Abstand
     doc.font('Helvetica').fillColor('#111827').fontSize(6.0);
   };
 
@@ -179,11 +179,11 @@ export async function GET() {
     const heights = vals.map((v, idx) =>
       doc.heightOfString(v, {
         width: colWidths[idx],
-        lineGap: 0.3,
+        lineGap: 0.2,
         align: idx >= 6 && idx <= 12 ? 'right' : 'left',
       })
     );
-    const rowHeight = Math.max(...heights) + 1.5; // kleiner Puffer
+    const rowHeight = Math.max(...heights, 7) + 1.2; // kleiner Puffer + Mindesthöhe
 
     if (y + rowHeight > pageBottom()) {
       doc.addPage({ size: 'A4', layout: 'landscape', margin: 30 });
