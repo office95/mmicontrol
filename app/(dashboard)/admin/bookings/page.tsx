@@ -403,8 +403,7 @@ export default function BookingsPage() {
               <th style={{ width: '7%' }}>Re.-Nr.</th>
               <th style={{ width: '7%' }}>Buchungsdat.</th>
               <th style={{ width: '7%' }}>Fällig</th>
-              <th style={{ width: '7%' }}>Kursstart</th>
-              <th className="print-num" style={{ width: '6%' }}>Netto</th>
+              <th className="print-num" style={{ width: '6%' }}>Kursbeitrag netto</th>
               <th className="print-num" style={{ width: '5%' }}>USt %</th>
               <th className="print-num" style={{ width: '6%' }}>Anzahlung</th>
               <th className="print-num" style={{ width: '7%' }}>Kursbeitrag brutto</th>
@@ -437,7 +436,6 @@ export default function BookingsPage() {
                   <td>{b.invoice_number ?? '—'}</td>
                   <td className="print-date">{formatDate(b.booking_date)}</td>
                   <td className="print-date">{formatDate(b.due_date as string | null)}</td>
-                  <td className="print-date">{formatDate(b.course_start)}</td>
                   <td className="print-num">{net != null ? net.toFixed(2) : '—'}</td>
                   <td className="print-num">{vatPercent != null ? vatPercent.toFixed(1) : '—'}</td>
                   <td className="print-num">{deposit != null ? deposit.toFixed(2) : '—'}</td>
