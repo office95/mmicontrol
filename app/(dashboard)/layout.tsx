@@ -219,7 +219,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
           } flex gap-8 ${!isTeacher && !isStudent ? 'md:pl-72' : ''}`}
         >
           {!isTeacher && !isStudent && (
-            <aside className="hidden md:flex fixed top-28 bottom-6 left-4 w-64 flex-col rounded-2xl border border-white/15 bg-white/10 backdrop-blur-xl text-white shadow-2xl text-[16px]">
+            <aside className="hidden md:flex fixed top-28 bottom-6 left-4 w-64 flex-col rounded-2xl border border-white/12 bg-slate-950/85 backdrop-blur-xl text-white shadow-2xl text-[15px]">
               <nav className="flex-1 px-4 py-6 space-y-2">
                 {(roleLabel
                   ? (() => {
@@ -240,7 +240,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
                 ).map((l) => (
                   'children' in l && Array.isArray((l as any).children) ? (
                     <div key={l.label} className="group relative">
-                      <div className="block rounded-lg px-5 py-3.5 text-[16px] md:text-[17px] font-semibold text-white/90 bg-white/12 border border-white/20 transition">
+                      <div className="block rounded-lg px-5 py-3 text-[15px] font-semibold text-white/90 bg-white/10 border border-white/15 hover:border-white/25 transition">
                         {l.label}
                       </div>
                       <div className="hidden group-hover:block absolute left-[calc(100%+6px)] top-0 z-40 min-w-[200px] rounded-xl border border-white/15 bg-slate-900/90 backdrop-blur-xl shadow-2xl">
@@ -259,7 +259,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
                     <Link
                       key={l.href}
                       href={l.href as any}
-                      className="relative block rounded-lg px-5 py-3.5 text-[16px] md:text-[17px] font-semibold text-white/90 bg-white/12 border border-white/20 hover:bg-white/20 transition"
+                      className="relative block rounded-lg px-5 py-3 text-[15px] font-semibold text-white/90 bg-white/10 border border-white/15 hover:bg-white/18 hover:border-white/25 transition"
                     >
                       {l.label}
                       {l.href === '/admin/support' && supportOpen > 0 && (
