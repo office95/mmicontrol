@@ -201,6 +201,7 @@ export async function GET() {
     headers: {
       'Content-Type': 'application/pdf',
       'Content-Disposition': `inline; filename="offene-forderungen.pdf"`,
+      'Cache-Control': 'no-store, max-age=0',
     },
   });
 }
