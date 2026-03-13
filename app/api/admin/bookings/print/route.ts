@@ -3,6 +3,8 @@ import { createClient } from '@supabase/supabase-js';
 import PDFDocument from 'pdfkit';
 import { PassThrough } from 'stream';
 
+export const runtime = 'nodejs';
+
 type BookingRow = {
   id: string;
   student_name: string | null;
@@ -124,6 +126,8 @@ export async function GET() {
   ];
   const colWidths = [90, 100, 60, 65, 65, 65, 55, 45, 65, 65, 65, 65, 50, 60];
 
+  const pageBottom = () => doc.page.height - doc.page.margins.bottom;
+
   const drawHeader = () => {
     let hx = doc.x;
     let hy = doc.y;
@@ -133,16 +137,10 @@ export async function GET() {
       hx += colWidths[idx];
     });
     doc.moveDown(0.5);
-  };
-
-  const pageBottom = () => doc.page.height - doc.page.margins.bottom;
-
-  const writeHeader = () => {
-    drawHeader();
     doc.font('Helvetica').fillColor('#111827').fontSize(9);
   };
 
-  writeHeader();
+  drawHeader();
   let y = doc.y;
 
   rows.forEach((r) => {
@@ -175,7 +173,7 @@ export async function GET() {
 
     if (y + rowHeight > pageBottom()) {
       doc.addPage({ size: 'A4', layout: 'landscape', margin: 30 });
-      writeHeader();
+      drawHeader();
       y = doc.y;
     }
 
