@@ -163,15 +163,8 @@ export async function GET() {
       r.status ?? '—',
     ];
 
-    // Zeilenhöhe berechnen
-    const heights = vals.map((v, idx) =>
-      doc.heightOfString(v, {
-        width: colWidths[idx],
-        align: idx >= 6 && idx <= 12 ? 'right' : 'left',
-        lineGap: 0.5,
-      })
-    );
-    const rowHeight = Math.max(...heights, doc.currentLineHeight()) + 2;
+    // Feste Zeilenhöhe, damit nichts verschluckt wird
+    const rowHeight = doc.currentLineHeight() + 4; // ~7pt Schrift -> ca. 12-14pt Höhe
 
     if (y + rowHeight > pageBottom()) {
       doc.addPage({ size: 'A4', layout: 'landscape', margin: 30 });
@@ -188,8 +181,8 @@ export async function GET() {
       });
       x += colWidths[idx];
     });
-    // Nach Zeile neue Basis-Y setzen
-    y = doc.y;
+    y += rowHeight;
+    doc.y = y;
   });
 
   doc.end();
