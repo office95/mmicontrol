@@ -10,7 +10,7 @@ import Spinner from '@/components/spinner';
 
 type Partner = {
   id: string;
-  status: 'active' | 'inactive' | 'lead';
+  status: 'active' | 'inactive' | 'lead' | 'archived';
   provider_id: string | null;
   name: string;
   bank_name: string | null;
@@ -50,6 +50,7 @@ const statusLabels: Record<string, string> = {
   active: 'Aktiv',
   inactive: 'Inaktiv',
   lead: 'Lead',
+  archived: 'Archiviert',
 };
 
 export default function PartnersPage() {
@@ -87,7 +88,7 @@ export default function PartnersPage() {
 
   const filtered = partners
     .filter((p) => {
-      const statusOk = filterStatus === 'all' ? true : p.status === filterStatus;
+      const statusOk = filterStatus === 'all' ? p.status !== 'archived' : p.status === filterStatus;
       const term = search.trim().toLowerCase();
       const text = `${p.name ?? ''} ${p.city ?? ''} ${p.state ?? ''} ${p.country ?? ''}`.toLowerCase();
       const searchOk = term === '' ? true : text.includes(term);
@@ -133,6 +134,7 @@ export default function PartnersPage() {
           <option value="active">Aktiv</option>
           <option value="inactive">Inaktiv</option>
           <option value="lead">Lead</option>
+          <option value="archived">Archiviert</option>
         </select>
         <input
           className="input max-w-sm h-8 py-1 text-sm"

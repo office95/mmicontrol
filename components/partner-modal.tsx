@@ -5,7 +5,7 @@ import { useSupabase } from '@/providers/supabase-provider';
 
 export type PartnerRow = {
   id: string;
-  status: 'active' | 'inactive' | 'lead';
+  status: 'active' | 'inactive' | 'lead' | 'archived';
   provider_id: string | null;
   name: string;
   created_at?: string | null;
@@ -337,6 +337,7 @@ export default function PartnerModal({
                       <option value="active">Aktiv</option>
                       <option value="inactive">Inaktiv</option>
                       <option value="lead">Lead</option>
+                      <option value="archived">Archiviert</option>
                     </select>
                   </Field>
                   <Field label="Anbieter-ID (automatisch)">
