@@ -475,14 +475,13 @@ export default function BookingsPage() {
           <>
             <div className="flex items-center justify-between mb-3 text-sm text-slate-700">
               <div>Offene Salden: {openItems.length} Buchungen · Gesamt: {openItems.reduce((s, b) => s + (Number(b.open_amount ?? b.saldo ?? 0) || 0), 0).toFixed(2)} €</div>
-              <a
+              <button
+                type="button"
                 className="no-print inline-flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-semibold text-slate-700 hover:bg-slate-100"
-                href="/admin/bookings/print"
-                target="_blank"
-                rel="noreferrer"
+                onClick={() => window.open(`/api/admin/bookings/print?ts=${Date.now()}`, '_blank')}
               >
                 Drucken (A4)
-              </a>
+              </button>
             </div>
             <OpenSaldoTable items={openItems} />
           </>
