@@ -127,17 +127,17 @@ export async function GET() {
     ['Tage üf.'],
     ['Status'],
   ];
-  const colWidths = [78, 90, 54, 62, 62, 62, 50, 40, 56, 60, 60, 60, 42, 60];
+  const colWidths = [72, 82, 48, 55, 55, 55, 45, 36, 50, 55, 55, 55, 38, 55];
 
   const pageBottom = () => doc.page.height - doc.page.margins.bottom;
 
   const drawHeader = () => {
     const baseY = doc.y;
-    const lineH = 7.0;
+    const lineH = 6.8;
     headers.forEach((lines, idx) => {
       const x = doc.page.margins.left + colWidths.slice(0, idx).reduce((s, w) => s + w, 0);
       lines.forEach((ln, i) => {
-        doc.font('Helvetica-Bold').fontSize(6.3).fillColor('#0a0f1a');
+        doc.font('Helvetica-Bold').fontSize(6.0).fillColor('#0a0f1a');
         doc.text(ln, x, baseY + i * lineH, {
           width: colWidths[idx],
           align: idx >= 6 && idx <= 12 ? 'right' : 'left',
@@ -145,8 +145,8 @@ export async function GET() {
         });
       });
     });
-    doc.y = baseY + lineH * 2 + 2; // max 2 Zeilen + kleiner Abstand
-    doc.font('Helvetica').fillColor('#111827').fontSize(6.3);
+    doc.y = baseY + lineH * 2 + 1.5; // max 2 Zeilen + kleiner Abstand
+    doc.font('Helvetica').fillColor('#111827').fontSize(6.0);
   };
 
   drawHeader();
