@@ -51,6 +51,7 @@ const difficultyFactor: Record<QuizQuestion['difficulty'], number> = {
 const adjectives = ['Bold', 'Groove', 'Silent', 'Sonic', 'Velvet', 'Bright', 'Wild', 'Neon', 'Amber', 'Indigo'];
 const nouns = ['Rhythm', 'Chord', 'Pulse', 'Beat', 'Riff', 'Hook', 'Melody', 'Harmony', 'Bass', 'Tempo'];
 const randomAlias = () => `${adjectives[Math.floor(Math.random() * adjectives.length)]}-${nouns[Math.floor(Math.random() * nouns.length)]}-${Math.floor(Math.random() * 900 + 100)}`;
+const praisePool = ['Nice Groove!', 'On fire!', 'Sauber!', 'Starker Move!', 'Weiter so!', 'Mega!'];
 
 export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: QuizMeta[]; initialQuizId?: string | null }) {
   const [selected, setSelected] = useState<QuizMeta | null>(() => {
@@ -74,6 +75,9 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
   const [saving, setSaving] = useState(false);
   const [feedback, setFeedback] = useState<{ correctIds: string[]; isCorrect: boolean } | null>(null);
   const [showPoints, setShowPoints] = useState(false);
+  const [score, setScore] = useState(0);
+  const [delta, setDelta] = useState<{ val: number; positive: boolean; key: number } | null>(null);
+  const [praise, setPraise] = useState<string | null>(null);
 
   const current = questions[idx];
 
@@ -146,6 +150,9 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
     setFeedback(null);
     setStatus('playing');
     setTimeLeft(selected?.time_per_question || 30);
+    setScore(0);
+    setDelta(null);
+    setPraise(null);
   };
 
   const handleToggle = (id: string) => {
@@ -172,6 +179,10 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
     const base = difficultyFactor[current.difficulty] || 100;
     const timeBonus = Math.max(timeLeft - 1, 0) * 5;
     const points = isCorrect ? base + timeBonus : 0;
+    const deltaVal = isCorrect ? points : 0;
+    setScore((prev) => prev + deltaVal);
+    setDelta({ val: deltaVal, positive: isCorrect, key: Date.now() });
+    setPraise(isCorrect ? praisePool[Math.floor(Math.random() * praisePool.length)] : null);
 
     const draft: AnswerDraft = {
       question_id: current.id,
@@ -356,6 +367,19 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
 
                 <div className="text-sm text-slate-200 font-semibold">Frage {idx + 1} / {questions.length}</div>
 
+                <div className="flex items-center gap-2 text-sm font-semibold text-white">
+                  <span>Score: {score}</span>
+                  {delta && (
+                    <span
+                      key={delta.key}
+                      className={`px-2 py-1 rounded-full text-xs ${delta.val > 0 ? 'bg-emerald-500/25 text-emerald-100' : 'bg-rose-500/20 text-rose-100'}`}
+                      style={{ animation: 'pop 0.3s ease-out' }}
+                    >
+                      {delta.val > 0 ? `+${delta.val}` : `${delta.val}`}
+                    </span>
+                  )}
+                </div>
+
                 {current.media_url && (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={current.media_url} alt="Frage Media" className="max-h-48 w-full object-contain rounded-xl border border-white/10" />
@@ -415,6 +439,11 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
                     {!feedback.isCorrect && (
                       <span className="text-slate-100">
                         Richtige Antwort: <span className="font-semibold">{current.options.filter((o) => o.is_correct).map((o) => o.label).join(', ')}</span>
+                      </span>
+                    )}
+                    {feedback.isCorrect && praise && (
+                      <span className="inline-flex items-center gap-2 text-xs text-emerald-50 bg-emerald-500/20 border border-emerald-300/60 rounded-full px-3 py-1" style={{ animation: 'pop 0.3s ease-out' }}>
+                        🎉 {praise}
                       </span>
                     )}
                   </div>
@@ -533,5 +562,12 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
         </div>
       </div>
     </div>
+    <style jsx global>{`
+      @keyframes pop {
+        0% { transform: scale(0.9); opacity: 0; }
+        60% { transform: scale(1.06); opacity: 1; }
+        100% { transform: scale(1); opacity: 0.9; }
+      }
+    `}</style>
   );
 }
