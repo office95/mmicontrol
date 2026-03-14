@@ -58,6 +58,11 @@ const formatTime = (sec: number) => {
   if (m <= 0) return `${s}s`;
   return `${m}m ${s.toString().padStart(2, '0')}s`;
 };
+type PowerUp =
+  | { id: 'time'; seconds: number; label: string; desc: string; color: string; icon: string }
+  | { id: 'multiplier'; factor: number; questions: number; label: string; desc: string; color: string; icon: string }
+  | { id: 'bonus'; points: number; label: string; desc: string; color: string; icon: string }
+  | { id: 'shield'; charges: number; label: string; desc: string; color: string; icon: string };
 
 export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: QuizMeta[]; initialQuizId?: string | null }) {
   const [selected, setSelected] = useState<QuizMeta | null>(() => {
@@ -91,10 +96,14 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
   const goalTarget = 3;
   const goalReward = 50;
   const [multiplierRemaining, setMultiplierRemaining] = useState(0);
+  const [multiplierFactor, setMultiplierFactor] = useState(1.1);
   const [extraTimeNext, setExtraTimeNext] = useState(0);
   const [showMilestone, setShowMilestone] = useState(false);
   const [totalTimeSec, setTotalTimeSec] = useState(0);
   const questionStartRef = useRef<number | null>(null);
+  const [shieldCharges, setShieldCharges] = useState(0);
+  const [powerChoices, setPowerChoices] = useState<PowerUp[]>([]);
+  const [overlayTheme, setOverlayTheme] = useState<string>('from-pink-500/25 via-indigo-500/25 to-amber-400/25');
 
   const current = questions[idx];
 
@@ -175,10 +184,13 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
     setBestStreak(0);
     setGoalProgress(0);
     setMultiplierRemaining(0);
+    setMultiplierFactor(1.1);
     setExtraTimeNext(0);
     setShowMilestone(false);
     setTotalTimeSec(0);
     questionStartRef.current = Date.now();
+    setShieldCharges(0);
+    setPowerChoices([]);
   };
 
   const handleToggle = (id: string) => {
@@ -206,13 +218,20 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
     const timeBonus = Math.max(timeLeft - 1, 0) * 5;
     let points = isCorrect ? base + timeBonus : 0;
     if (multiplierRemaining > 0) {
-      points = Math.round(points * 1.1);
+      points = Math.round(points * multiplierFactor);
     }
     const deltaVal = isCorrect ? points : 0;
     setScore((prev) => prev + deltaVal);
     setDelta({ val: deltaVal, positive: isCorrect, key: Date.now() });
     setPraise(isCorrect ? praisePool[Math.floor(Math.random() * praisePool.length)] : null);
-    setStreak((prev) => (isCorrect ? prev + 1 : 0));
+    setStreak((prev) => {
+      if (isCorrect) return prev + 1;
+      if (shieldCharges > 0) {
+        setShieldCharges((c) => Math.max(0, c - 1));
+        return prev; // Shield hält Streak
+      }
+      return 0;
+    });
     setBestStreak((prev) => (isCorrect ? Math.max(prev, streak + 1) : prev));
 
     // Mini-Ziel: 3 richtige in Folge
@@ -229,6 +248,9 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
 
     // Milestone nach jeder 10. beantworteten Frage (1-based Index)
     if ((idx + 1) % 10 === 0) {
+      const picked = pickPowerUps();
+      setPowerChoices(picked);
+      setOverlayTheme(randomTheme());
       setShowMilestone(true);
     }
 
@@ -274,7 +296,30 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
     setTimeLeft((selected?.time_per_question || 30) + extraTimeNext);
     setExtraTimeNext(0);
     setMultiplierRemaining((prev) => (prev > 0 ? prev - 1 : 0));
+    if (multiplierRemaining > 0 && multiplierRemaining - 1 <= 0) {
+      setMultiplierFactor(1.1);
+    }
     questionStartRef.current = Date.now();
+  };
+
+  const handlePowerUp = (p: PowerUp) => {
+    switch (p.id) {
+      case 'time':
+        setExtraTimeNext(p.seconds);
+        break;
+      case 'multiplier':
+        setMultiplierFactor(p.factor);
+        setMultiplierRemaining(p.questions);
+        break;
+      case 'bonus':
+        setScore((s) => s + p.points);
+        setBonusScore((b) => b + p.points);
+        setDelta({ val: p.points, positive: true, key: Date.now() });
+        break;
+      case 'shield':
+        setShieldCharges((c) => c + p.charges);
+        break;
+    }
   };
 
   const saveAttempt = async (all: AnswerDraft[]) => {
@@ -665,28 +710,27 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
       </div>
         {showMilestone && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
-            <div className="w-full max-w-md rounded-2xl border border-white/15 bg-slate-950/95 text-white shadow-2xl p-6 space-y-4">
-              <h3 className="text-xl font-semibold">Next Level erreicht!</h3>
-              <p className="text-sm text-slate-200">Wähle ein Power-Up für die nächsten Fragen.</p>
-              <div className="grid gap-3">
-                <button
-                  className="rounded-xl border border-cyan-300 bg-cyan-500/15 px-4 py-3 text-left hover:border-cyan-200"
-                  onClick={() => {
-                    setExtraTimeNext(5);
-                    setShowMilestone(false);
-                  }}
-                >
-                  ⏱ +5 Sekunden Zeitbonus für die nächste Frage
-                </button>
-                <button
-                  className="rounded-xl border border-amber-300 bg-amber-500/15 px-4 py-3 text-left hover:border-amber-200"
-                  onClick={() => {
-                    setMultiplierRemaining(3);
-                    setShowMilestone(false);
-                  }}
-                >
-                  ✨ +10% Punkte-Multiplikator für die nächsten 3 Fragen
-                </button>
+          <div className={`w-full max-w-md rounded-3xl border border-white/15 bg-gradient-to-br ${overlayTheme} backdrop-blur text-white shadow-2xl p-6 space-y-4 animate-[glow_2.4s_ease-in-out_infinite]`}>
+            <h3 className="text-xl font-semibold">Next Level erreicht!</h3>
+            <p className="text-sm text-slate-200">Wähle ein Power-Up für die nächsten Fragen.</p>
+            <div className="grid gap-3">
+                {powerChoices.map((p) => (
+                  <button
+                    key={p.label + p.desc}
+                    className={`rounded-2xl border px-4 py-3 text-left shadow-lg hover:translate-y-[-2px] transition ${p.color}`}
+                    onClick={() => {
+                      handlePowerUp(p);
+                      setShowMilestone(false);
+                    }}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-xl">{p.icon}</span>
+                      <span className="text-[11px] uppercase tracking-[0.18em] text-white/70">Power-Up</span>
+                    </div>
+                    <p className="mt-1 text-base font-semibold text-white">{p.label}</p>
+                    <p className="text-sm text-white/80">{p.desc}</p>
+                  </button>
+                ))}
               </div>
               <button
                 className="w-full rounded-full border border-white/30 px-4 py-2 text-sm hover:bg-white/10"
@@ -699,12 +743,40 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
         )}
       </div>
       <style jsx global>{`
-        @keyframes pop {
-          0% { transform: scale(0.9); opacity: 0; }
-          60% { transform: scale(1.06); opacity: 1; }
-          100% { transform: scale(1); opacity: 0.9; }
-        }
-      `}</style>
-    </>
+      @keyframes pop {
+        0% { transform: scale(0.9); opacity: 0; }
+        60% { transform: scale(1.06); opacity: 1; }
+        100% { transform: scale(1); opacity: 0.9; }
+      }
+      @keyframes glow {
+        0% { box-shadow: 0 0 0 0 rgba(255,255,255,0.2); }
+        50% { box-shadow: 0 0 25px 6px rgba(255,255,255,0.25); }
+        100% { box-shadow: 0 0 0 0 rgba(255,255,255,0.15); }
+      }
+    `}</style>
+  </>
   );
+}
+
+function pickPowerUps(): PowerUp[] {
+  const pool: PowerUp[] = [
+    { id: 'time', seconds: 8, label: 'Time Warp', desc: '+8 Sekunden nächste Frage', color: 'border-cyan-200/70 bg-cyan-500/20', icon: '⏱' },
+    { id: 'time', seconds: 5, label: 'Quick Boost', desc: '+5 Sekunden nächste Frage', color: 'border-sky-200/70 bg-sky-500/20', icon: '⚡️' },
+    { id: 'multiplier', factor: 1.2, questions: 3, label: 'Combo x1.2', desc: '3 Fragen lang 20% mehr Punkte', color: 'border-amber-200/70 bg-amber-500/20', icon: '✨' },
+    { id: 'multiplier', factor: 1.15, questions: 4, label: 'Chain Bonus', desc: '4 Fragen lang 15% mehr Punkte', color: 'border-orange-200/70 bg-orange-500/20', icon: '🔥' },
+    { id: 'bonus', points: 80, label: 'Instant Loot', desc: '+80 Punkte sofort', color: 'border-lime-200/70 bg-lime-500/20', icon: '💎' },
+    { id: 'bonus', points: 120, label: 'Mega Loot', desc: '+120 Punkte sofort', color: 'border-emerald-200/70 bg-emerald-500/20', icon: '💰' },
+    { id: 'shield', charges: 1, label: 'Safe Card', desc: '1 Fehlversuch schützt den Streak', color: 'border-purple-200/70 bg-purple-500/20', icon: '🛡' },
+  ];
+  const shuffled = pool.sort(() => 0.5 - Math.random());
+  return shuffled.slice(0, 2);
+}
+
+function randomTheme() {
+  const themes = [
+    'from-pink-500/25 via-indigo-500/25 to-amber-400/25',
+    'from-emerald-500/20 via-cyan-500/25 to-blue-500/20',
+    'from-amber-500/25 via-rose-500/25 to-purple-500/25',
+  ];
+  return themes[Math.floor(Math.random() * themes.length)];
 }
