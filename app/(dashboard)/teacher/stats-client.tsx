@@ -103,11 +103,23 @@ function Kpi({
         ? `${sign} Δ ${Math.abs(diff)} (${pct !== null ? `${pct.toFixed(1)}%` : 'n/a'}) vs. VJ`
         : `${sign} Δ ${Math.abs(diff)} (${pct !== null ? `${pct.toFixed(1)}%` : 'n/a'}) vs. VJ`
       : '—');
+  const gradients = [
+    'from-indigo-500/25 via-slate-900/60 to-slate-950/60',
+    'from-emerald-500/25 via-slate-900/60 to-slate-950/60',
+    'from-amber-500/25 via-slate-900/60 to-slate-950/60',
+    'from-pink-500/25 via-slate-900/60 to-slate-950/60',
+  ];
+  const idx = Math.abs(title.split('').reduce((a, c) => a + c.charCodeAt(0), 0)) % gradients.length;
   return (
-    <div className="rounded-2xl border border-white/15 bg-white/8 backdrop-blur-xl p-4 text-white shadow-lg">
-      <p className="text-[11px] uppercase tracking-[0.2em] text-white/60 mb-2">{title}</p>
+    <div className={`rounded-2xl border border-white/12 bg-gradient-to-br ${gradients[idx]} backdrop-blur-xl p-4 text-white shadow-xl`}>
+      <p className="text-[11px] uppercase tracking-[0.2em] text-white/70 mb-2">{title}</p>
       <p className="text-3xl font-semibold drop-shadow-sm">{value}</p>
-      <p className={`text-sm ${color} mt-1`}>{label}</p>
+      <div className="mt-2 flex items-center gap-2 text-xs">
+        <span className={`inline-flex items-center gap-1 rounded-full px-2 py-1 border ${diff === null ? 'border-white/20 text-white/70' : diff > 0 ? 'border-emerald-300/70 bg-emerald-500/10 text-emerald-100' : diff < 0 ? 'border-amber-300/70 bg-amber-500/10 text-amber-100' : 'border-slate-300/60 bg-slate-200/10 text-slate-100'}`}>
+          {sign || '●'} {diff !== null ? Math.abs(diff) : '—'}
+        </span>
+        <span className={`text-[11px] ${color}`}>{label}</span>
+      </div>
     </div>
   );
 }
