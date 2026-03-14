@@ -396,22 +396,7 @@ export default function AdminQuizzesPage() {
         <ButtonLink href="/admin">Zurück</ButtonLink>
       </div>
 
-      <div className="flex flex-wrap gap-3 text-sm">
-        <button
-          onClick={seed}
-          className="rounded-full bg-pink-500 px-4 py-2 font-semibold text-white shadow hover:bg-pink-400"
-        >
-          Beispiel-Quiz anlegen
-        </button>
-        <button
-          onClick={createQuick}
-          disabled={creating}
-          className="rounded-full border border-white/30 px-4 py-2 font-semibold text-white hover:bg-white/10 disabled:opacity-60"
-        >
-          Schnelles Demo-Quiz
-        </button>
-        {seedMessage && <span className="text-pink-200">{seedMessage}</span>}
-      </div>
+      {/* Demo/Seed-Buttons ausgeblendet auf Wunsch */}
 
       <div className="rounded-2xl border border-white/10 bg-white/5 p-4 flex flex-col gap-3 text-sm text-slate-100">
         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
