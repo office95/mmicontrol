@@ -269,7 +269,7 @@ function KpiBox({ label, value, prev, money = false, suffix = '' }: { label: str
   return (
     <div className="rounded-xl border border-white/15 bg-white/10 px-3 py-2 shadow">
       <p className="text-xs uppercase tracking-[0.14em] text-white/70">{label}</p>
-      <p className="text-xl font-semibold text-white">{format(value)}</p>
+      <p className="text-lg font-semibold text-white">{format(value)}</p>
       <p className="text-[11px] text-white/60">Vorjahr: {format(prev)}</p>
     </div>
   );
