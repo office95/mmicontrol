@@ -152,7 +152,14 @@ export default async function DashboardLayout({ children }: { children: ReactNod
   ];
 
   return (
-    <div className="min-h-screen text-slate-50 text-[15px] md:text-[16px] leading-relaxed" style={{ backgroundImage: 'linear-gradient(to right, #243949 0%, #517fa4 100%)' }}>
+    <div
+      className="min-h-screen text-slate-50 text-[15px] md:text-[16px] leading-relaxed"
+      style={{
+        backgroundImage:
+          'linear-gradient(120deg, rgba(31,41,55,0.95) 0%, rgba(37,46,63,0.92) 45%, rgba(255,105,180,0.10) 100%), radial-gradient(circle at 20% 20%, rgba(255,105,180,0.18), transparent 40%), radial-gradient(circle at 80% 10%, rgba(99,102,241,0.18), transparent 35%)',
+        backgroundColor: '#1f2937',
+      }}
+    >
       {/* Top Header full width, dark to match sidebar */}
       <header className="fixed top-0 left-0 right-0 z-30 border-b border-white/10 bg-slate-950/95 backdrop-blur">
         <div className="w-full px-[2vh] md:px-6 py-3 flex items-center justify-between gap-4">
