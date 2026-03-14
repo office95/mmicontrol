@@ -120,6 +120,7 @@ export default function QuizPlayClient({ quizzes, initialQuizId, initialAlias }:
   const [overlayTheme, setOverlayTheme] = useState<string>('from-pink-500/25 via-indigo-500/25 to-amber-400/25');
   const [bonusFeed, setBonusFeed] = useState<{ msg: string; key: number }[]>([]);
   const pushBonusFeed = useMemo(() => pushBonusFeedFactory(setBonusFeed), []);
+  const [aliasSaving, setAliasSaving] = useState(false);
 
   const current = questions[idx];
 
@@ -413,9 +414,27 @@ export default function QuizPlayClient({ quizzes, initialQuizId, initialAlias }:
               className="rounded-full border border-white/20 bg-black/60 px-3 py-2 text-sm text-white shadow-inner shadow-black/40"
               value={alias}
               onChange={(e) => setAlias(e.target.value)}
+              onBlur={async () => {
+                const val = alias.trim();
+                if (!val) return;
+                setAliasSaving(true);
+                try {
+                  await fetch('/api/profile/alias', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ alias: val }),
+                  });
+                  window.localStorage.setItem(ALIAS_KEY, val);
+                } catch (e) {
+                  // ignore
+                } finally {
+                  setAliasSaving(false);
+                }
+              }}
               maxLength={40}
               placeholder="Name für das Spiel eingeben"
             />
+            {aliasSaving && <span className="text-[11px] text-emerald-200">speichere…</span>}
           </div>
         </div>
 
