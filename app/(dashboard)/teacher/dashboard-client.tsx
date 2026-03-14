@@ -558,6 +558,8 @@ export default function DashboardClient({
                       key={c.id}
                       href={`/quizzes?course_id=${c.id}`}
                       className="px-3 py-1 rounded-full border border-white/25 bg-white/5 hover:bg-white/10 transition"
+                      target="_blank"
+                      rel="noopener noreferrer"
                     >
                       {c.title}
                     </a>
@@ -568,6 +570,8 @@ export default function DashboardClient({
                 <a
                   href={`/quizzes${courses[0]?.id ? `?course_id=${courses[0].id}` : ''}`}
                   className="inline-flex items-center justify-center rounded-full bg-pink-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg hover:bg-pink-500 transition"
+                  target="_blank"
+                  rel="noopener noreferrer"
                 >
                   Quiz öffnen
                 </a>
