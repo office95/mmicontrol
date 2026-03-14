@@ -65,7 +65,7 @@ type PowerUp =
   | { id: 'bonus'; points: number; label: string; desc: string; color: string; icon: string }
   | { id: 'shield'; charges: number; label: string; desc: string; color: string; icon: string };
 
-export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: QuizMeta[]; initialQuizId?: string | null }) {
+export default function QuizPlayClient({ quizzes, initialQuizId, initialAlias }: { quizzes: QuizMeta[]; initialQuizId?: string | null; initialAlias?: string }) {
   const [selected, setSelected] = useState<QuizMeta | null>(() => {
     if (!quizzes.length) return null;
     if (initialQuizId) return quizzes.find((q) => q.id === initialQuizId) || quizzes[0];
@@ -86,6 +86,7 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
       const stored = window.localStorage.getItem(ALIAS_KEY);
       if (stored && stored.trim().length > 0) return stored.trim();
     }
+    if (initialAlias && initialAlias.trim().length > 0) return initialAlias.trim();
     return randomAlias();
   });
   const [leaderboard, setLeaderboard] = useState<LeaderboardRow[]>([]);
