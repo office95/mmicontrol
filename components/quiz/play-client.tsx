@@ -383,22 +383,35 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
   return (
     <>
       <div className="space-y-5">
-        <div className="rounded-2xl border border-white/10 bg-white/6 p-4 shadow-xl flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="text-[11px] uppercase tracking-[0.24em] text-pink-200">Lern-Quiz</p>
-            <h1 className="text-2xl font-semibold text-white">Teste dein Wissen</h1>
-            <p className="text-sm text-slate-200">Level, Zeitdruck, anonyme Bestenliste.</p>
+        <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-r from-slate-900 via-indigo-900/70 to-slate-900 p-5 shadow-[0_10px_40px_rgba(0,0,0,0.4)] flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="absolute inset-0 pointer-events-none">
+            <div className="absolute -left-10 -top-10 h-32 w-32 rounded-full bg-pink-500/30 blur-3xl" />
+            <div className="absolute -right-16 top-0 h-40 w-40 rounded-full bg-amber-400/25 blur-3xl" />
+            <div className="absolute left-1/3 bottom-0 h-24 w-24 rounded-full bg-cyan-400/25 blur-3xl" />
           </div>
-          <div className="flex flex-wrap gap-2 text-xs text-slate-200">
+          <div className="relative space-y-1">
+            <p className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.24em] text-pink-200">
+              <span className="h-2 w-2 rounded-full bg-emerald-300 animate-pulse" />
+              Arcade Mode
+            </p>
+            <h1 className="text-3xl font-black text-white drop-shadow-sm">Teste dein Wissen</h1>
+            <p className="text-sm text-slate-200">Speed, Streaks, Power-Ups & Leaderboard.</p>
+            <div className="flex items-center gap-2 text-xs text-amber-100">
+              <span className="inline-flex items-center gap-1 rounded-full bg-white/10 px-2 py-1 border border-white/15">⚡ Realtime</span>
+              <span className="inline-flex items-center gap-1 rounded-full bg-white/10 px-2 py-1 border border-white/15">🎯 Skill</span>
+              <span className="inline-flex items-center gap-1 rounded-full bg-white/10 px-2 py-1 border border-white/15">🏆 Ranking</span>
+            </div>
+          </div>
+          <div className="relative flex flex-wrap gap-2 text-xs text-slate-200">
             <input
-              className="rounded-full border border-white/20 bg-black/40 px-3 py-2 text-sm text-white"
+              className="rounded-full border border-white/20 bg-black/60 px-3 py-2 text-sm text-white shadow-inner shadow-black/40"
               value={alias}
               onChange={(e) => setAlias(e.target.value)}
               maxLength={40}
               placeholder="Name für das Spiel eingeben"
             />
             <button
-              className="rounded-full border border-pink-400 bg-pink-500/80 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-pink-500/30"
+              className="rounded-full border border-pink-400 bg-pink-500/80 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-pink-500/30 hover:translate-y-[-1px] transition"
               onClick={() => setAlias(randomAlias())}
               type="button"
             >
