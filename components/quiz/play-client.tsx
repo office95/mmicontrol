@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type Dispatch, type SetStateAction } from 'react';
 
 export type QuizMeta = {
   id: string;
@@ -111,6 +111,8 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
   const [shieldCharges, setShieldCharges] = useState(0);
   const [powerChoices, setPowerChoices] = useState<PowerUp[]>([]);
   const [overlayTheme, setOverlayTheme] = useState<string>('from-pink-500/25 via-indigo-500/25 to-amber-400/25');
+  const [bonusFeed, setBonusFeed] = useState<{ msg: string; key: number }[]>([]);
+  const pushBonusFeed = useMemo(() => pushBonusFeedFactory(setBonusFeed), []);
 
   const current = questions[idx];
 
@@ -206,6 +208,7 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
     questionStartRef.current = Date.now();
     setShieldCharges(0);
     setPowerChoices([]);
+    setBonusFeed([]);
   };
 
   const handleToggle = (id: string) => {
@@ -235,9 +238,14 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
     if (multiplierRemaining > 0) {
       points = Math.round(points * multiplierFactor);
     }
-    const deltaVal = isCorrect ? points : 0;
+    const speedBonus = isCorrect && timeLeft >= (selected?.time_per_question || 30) * 0.6 ? 20 : 0;
+    const surpriseBonus = isCorrect && ((idx + 1) % 7 === 0) ? 50 : 0;
+    const deltaVal = isCorrect ? points + speedBonus + surpriseBonus : 0;
     setScore((prev) => prev + deltaVal);
+    setBonusScore((b) => b + speedBonus + surpriseBonus);
     setDelta({ val: deltaVal, positive: isCorrect, key: Date.now() });
+    if (speedBonus) pushBonusFeed(`Speed Bonus +${speedBonus}`);
+    if (surpriseBonus) pushBonusFeed(`Surprise Loot +${surpriseBonus}`);
     setPraise(isCorrect ? praisePool[Math.floor(Math.random() * praisePool.length)] : null);
     setStreak((prev) => {
       if (isCorrect) return prev + 1;
@@ -487,8 +495,10 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
 
                 <div className="text-sm text-slate-200 font-semibold">Frage {idx + 1} / {questions.length}</div>
 
-                <div className="flex items-center gap-2 text-sm font-semibold text-white">
-                  <span className="rounded-full bg-white/5 px-3 py-1 border border-white/10 shadow-inner">Score: {score}</span>
+                <div className="flex flex-wrap items-center gap-3 text-sm font-semibold text-white">
+                  <span className="rounded-2xl bg-gradient-to-r from-pink-500/25 via-orange-400/20 to-amber-400/20 px-4 py-2 border border-white/15 shadow-[0_0_25px_rgba(236,72,153,0.35)] text-base">
+                    Score: <span className="text-2xl font-black ml-2 align-middle">{score}</span>
+                  </span>
                   {delta && (
                     <span
                       key={delta.key}
@@ -498,6 +508,15 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
                       {delta.val > 0 ? `+${delta.val}` : `${delta.val}`}
                     </span>
                   )}
+                  {bonusFeed.slice(-3).map((b) => (
+                    <span
+                      key={b.key}
+                      className="px-2 py-1 rounded-full text-[11px] bg-white/10 border border-white/15 text-white/90"
+                      style={{ animation: 'pop 0.3s ease-out' }}
+                    >
+                      {b.msg}
+                    </span>
+                  ))}
                 </div>
                 <div className="flex items-center gap-3 text-xs text-slate-200">
                   <span className="rounded-full bg-white/5 px-2 py-1 border border-white/10">Streak: {streak} (Best: {bestStreak})</span>
@@ -794,4 +813,10 @@ function randomTheme() {
     'from-amber-500/25 via-rose-500/25 to-purple-500/25',
   ];
   return themes[Math.floor(Math.random() * themes.length)];
+}
+
+// simple bonus ticker
+function pushBonusFeedFactory(setter: Dispatch<SetStateAction<{ msg: string; key: number }[]>>) {
+  return (msg: string) =>
+    setter((prev) => [...prev.slice(-4), { msg, key: Date.now() + Math.random() }]);
 }
