@@ -282,7 +282,7 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
     setSaving(true);
     try {
       const baseScore = all.reduce((s, a) => s + (a.points || 0), 0);
-      const scoreWithBonus = baseScore + bonusScore;
+      const scoreWithBonus = Math.max(score, baseScore + bonusScore); // sicher: Anzeige = gespeicherter Score
       const max_score = all.length * 200 + bonusScore;
       const res = await fetch(`/api/quizzes/${selected.id}/attempts`, {
         method: 'POST',
