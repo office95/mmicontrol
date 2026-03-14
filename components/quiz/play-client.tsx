@@ -421,7 +421,7 @@ export default function QuizPlayClient({ quizzes, initialQuizId, initialAlias }:
           </div>
           <div className="relative flex flex-wrap gap-2 text-xs text-slate-200">
             <input
-              className="rounded-full border border-white/20 bg-black/60 px-3 py-2 text-sm text-white shadow-inner shadow-black/40"
+              className="rounded-full border border-pink-300/40 bg-black/70 px-3 py-2 text-sm text-white shadow-[0_0_18px_rgba(236,72,153,0.25)] focus:border-pink-200 focus:outline-none transition"
               value={alias}
               onChange={(e) => {
                 if (aliasLocked) return;
@@ -446,11 +446,15 @@ export default function QuizPlayClient({ quizzes, initialQuizId, initialAlias }:
                 }
               }}
               maxLength={40}
-              placeholder="Name für das Spiel eingeben"
+              placeholder="Name für das Spiel eingeben (bleibt fix)"
               disabled={aliasLocked}
             />
             {aliasSaving && <span className="text-[11px] text-emerald-200">speichere…</span>}
-            {aliasLocked && <span className="text-[11px] text-slate-200">Name fixiert</span>}
+            {aliasLocked ? (
+              <span className="text-[11px] text-emerald-200">Name fixiert – bleibt dauerhaft</span>
+            ) : (
+              <span className="text-[11px] text-slate-200">Einmal speichern, dann dauerhaft unveränderbar</span>
+            )}
           </div>
         </div>
 
