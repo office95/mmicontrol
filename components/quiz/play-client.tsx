@@ -355,6 +355,34 @@ export default function QuizPlayClient({ quizzes, initialQuizId, initialAlias }:
     questionStartRef.current = Date.now();
   };
 
+  const abortQuiz = () => {
+    if (status === 'done') return;
+    if (!window.confirm('Quiz wirklich abbrechen? Fortschritt geht verloren.')) return;
+    setStatus('intro');
+    setIdx(0);
+    setAnswers([]);
+    answersRef.current = [];
+    setFeedback(null);
+    setPicked([]);
+    setTimeLeft(selected?.time_per_question || 30);
+    setScore(0);
+    setBonusScore(0);
+    setDelta(null);
+    setPraise(null);
+    setStreak(0);
+    setBestStreak(0);
+    setGoalProgress(0);
+    setMultiplierRemaining(0);
+    setMultiplierFactor(1.1);
+    setExtraTimeNext(0);
+    setShowMilestone(false);
+    setTotalTimeSec(0);
+    setShieldCharges(0);
+    setPowerChoices([]);
+    setBonusFeed([]);
+    setFxBurst(null);
+    questionStartRef.current = null;
+  };
   const handlePowerUp = (p: PowerUp) => {
     switch (p.id) {
       case 'time':
@@ -731,6 +759,14 @@ export default function QuizPlayClient({ quizzes, initialQuizId, initialAlias }:
                       className="rounded-full bg-pink-500 px-5 py-2 text-sm font-semibold text-white shadow-lg hover:bg-pink-400"
                     >
                       {idx >= questions.length - 1 ? 'Ergebnis speichern' : 'Weiter'}
+                    </button>
+                  )}
+                  {status !== 'intro' && status !== 'done' && (
+                    <button
+                      onClick={abortQuiz}
+                      className="rounded-full border border-white/30 px-4 py-2 text-sm text-white hover:bg-white/10"
+                    >
+                      Abbrechen
                     </button>
                   )}
                 </div>
