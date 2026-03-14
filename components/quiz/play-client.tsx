@@ -403,8 +403,9 @@ export default function QuizPlayClient({ quizzes, initialQuizId, initialAlias }:
 
   return (
     <>
-      <div className="space-y-5">
-        <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-r from-slate-900 via-indigo-900/70 to-slate-900 p-5 shadow-[0_10px_40px_rgba(0,0,0,0.4)] flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="space-y-5 relative">
+        <div className="pointer-events-none absolute -z-10 inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(236,72,153,0.08),transparent_35%),radial-gradient(circle_at_80%_0%,rgba(56,189,248,0.07),transparent_30%),radial-gradient(circle_at_50%_80%,rgba(251,191,36,0.06),transparent_35%)]" />
+        <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-r from-slate-900 via-indigo-900/70 to-slate-900 p-6 shadow-[0_15px_50px_rgba(0,0,0,0.5)] flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between backdrop-blur">
           <div className="absolute inset-0 pointer-events-none">
             <div className="absolute -left-10 -top-10 h-32 w-32 rounded-full bg-pink-500/30 blur-3xl" />
             <div className="absolute -right-16 top-0 h-40 w-40 rounded-full bg-amber-400/25 blur-3xl" />
@@ -458,12 +459,12 @@ export default function QuizPlayClient({ quizzes, initialQuizId, initialAlias }:
           </div>
         </div>
 
-      <div className="rounded-2xl border border-white/8 bg-white/6 p-3 shadow-xl">
-        <div className="flex items-center justify-between text-xs uppercase tracking-[0.2em] text-white/70 mb-2">
-          <span>Modul wählen</span>
-          <span className="text-white/50">{quizzes.length} verfügbar</span>
-        </div>
-        <div className="flex gap-2 overflow-x-auto pb-1">
+          <div className="rounded-2xl border border-white/8 bg-white/6 p-3 shadow-2xl backdrop-blur">
+            <div className="flex items-center justify-between text-xs uppercase tracking-[0.2em] text-white/70 mb-2">
+              <span>Modul wählen</span>
+              <span className="text-white/50">{quizzes.length} verfügbar</span>
+            </div>
+            <div className="flex gap-2 overflow-x-auto pb-1">
           {quizzes.map((q) => (
             <button
               key={q.id}
