@@ -363,8 +363,8 @@ export default function QuizPlayClient({ quizzes, initialQuizId, initialAlias }:
     setSaving(true);
     try {
       const baseScore = all.reduce((s, a) => s + (a.points || 0), 0);
-      const scoreWithBonus = Math.max(score, baseScore + bonusScore); // Anzeige = gespeicherter Score
-      const max_score = all.length * 200 + bonusScore;
+      const scoreWithBonus = score; // Quelle der Wahrheit: angezeigter Score inkl. aller Boni
+      const max_score = Math.max(scoreWithBonus, baseScore + bonusScore, all.length * 200 + bonusScore);
       const res = await fetch(`/api/quizzes/${selected.id}/attempts`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
