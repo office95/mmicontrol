@@ -81,7 +81,13 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const [answers, setAnswers] = useState<AnswerDraft[]>([]);
   const answersRef = useRef<AnswerDraft[]>([]);
-  const [alias, setAlias] = useState(randomAlias());
+  const [alias, setAlias] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const stored = window.localStorage.getItem(ALIAS_KEY);
+      if (stored && stored.trim().length > 0) return stored.trim();
+    }
+    return randomAlias();
+  });
   const [leaderboard, setLeaderboard] = useState<LeaderboardRow[]>([]);
   const [period, setPeriod] = useState<'month' | 'quarter' | 'year'>('year');
   const [saving, setSaving] = useState(false);
@@ -108,15 +114,7 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
 
   const current = questions[idx];
 
-  // Alias aus localStorage laden und speichern
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const stored = window.localStorage.getItem(ALIAS_KEY);
-    if (stored && stored.trim().length > 0) {
-      setAlias(stored.trim());
-    }
-  }, []);
-
+  // Alias aus localStorage speichern
   useEffect(() => {
     if (typeof window === 'undefined') return;
     if (alias && alias.trim().length > 0) {
