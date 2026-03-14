@@ -39,7 +39,7 @@ export default async function QuizzesPage({ searchParams }: { searchParams?: Rec
   let query = supabase
     .from('quizzes')
     .select('id,title,description,course_id,module_id,module_number,level_count,time_per_question,is_published')
-    .order('module_number', { ascending: true, nullsLast: true })
+    .order('module_number', { ascending: true, nullsFirst: false })
     .order('created_at', { ascending: false });
 
   if (profile?.role === 'teacher') {
