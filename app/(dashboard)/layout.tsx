@@ -211,13 +211,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
 
       {/* Content area below header */}
       <div className="pt-28 pb-12 px-3 md:px-6">
-        <div
-          className={`w-full ${
-            isTeacher || isStudent
-              ? 'max-w-6xl mx-auto'
-              : 'max-w-[99vw] xl:max-w-[98vw] 2xl:max-w-[2000px] ml-0 mr-0'
-          } flex gap-8 ${!isTeacher && !isStudent ? 'md:pl-72' : ''}`}
-        >
+        <div className="w-full flex gap-8">
           {!isTeacher && !isStudent && (
             <aside className="hidden md:flex fixed top-28 bottom-6 left-4 w-64 flex-col rounded-2xl border border-white/12 bg-slate-950/85 backdrop-blur-xl text-white shadow-2xl text-[15px]">
               <nav className="flex-1 px-4 py-6 space-y-2">
@@ -275,7 +269,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
           )}
 
           <main
-            className={`flex-1 w-full ${isTeacher || isStudent ? '' : 'md:pl-72 overflow-y-auto max-h-[calc(100vh-8rem)]'} space-y-10 text-[17px] md:text-[18px]`}
+            className={`flex-1 w-full ${isTeacher || isStudent ? '' : 'md:pl-72'} space-y-10 text-[17px] md:text-[18px]`}
           >
             {children}
           </main>
