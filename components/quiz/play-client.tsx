@@ -8,6 +8,7 @@ export type QuizMeta = {
   description?: string | null;
   course_id?: string | null;
   module_id?: string | null;
+  module_number?: number | null;
   level_count: number;
   time_per_question: number;
 };
@@ -283,7 +284,9 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
               aria-pressed={selected?.id === q.id}
             >
               <span className="inline-flex items-center gap-2">
-                <span className="rounded-full bg-pink-500/20 px-2 py-0.5 text-[10px] font-bold text-pink-100">L{q.level_count}</span>
+                <span className="rounded-full bg-pink-500/20 px-2 py-0.5 text-[10px] font-bold text-pink-100">
+                  {q.module_number != null ? `Modul ${q.module_number}` : `Level ${q.level_count}`}
+                </span>
                 <span className="truncate max-w-[14ch] md:max-w-[18ch] lg:max-w-[22ch]">{q.title}</span>
                 <span className="text-[10px] text-slate-300">{q.time_per_question}s</span>
               </span>
