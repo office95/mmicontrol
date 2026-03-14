@@ -82,6 +82,7 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
   const [feedback, setFeedback] = useState<{ correctIds: string[]; isCorrect: boolean } | null>(null);
   const [showPoints, setShowPoints] = useState(false);
   const [score, setScore] = useState(0);
+  const [bonusScore, setBonusScore] = useState(0);
   const [delta, setDelta] = useState<{ val: number; positive: boolean; key: number } | null>(null);
   const [praise, setPraise] = useState<string | null>(null);
   const [streak, setStreak] = useState(0);
@@ -167,6 +168,7 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
     setStatus('playing');
     setTimeLeft(selected?.time_per_question || 30);
     setScore(0);
+    setBonusScore(0);
     setDelta(null);
     setPraise(null);
     setStreak(0);
@@ -218,6 +220,7 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
       const next = isCorrect ? prev + 1 : 0;
       if (next >= goalTarget) {
         setScore((s) => s + goalReward);
+        setBonusScore((b) => b + goalReward);
         setDelta({ val: goalReward, positive: true, key: Date.now() + 1 });
         return 0; // Reset nach Belohnung
       }
@@ -278,13 +281,14 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
     if (!selected) return;
     setSaving(true);
     try {
-      const score = all.reduce((s, a) => s + (a.points || 0), 0);
-      const max_score = all.length * 200;
+      const baseScore = all.reduce((s, a) => s + (a.points || 0), 0);
+      const scoreWithBonus = baseScore + bonusScore;
+      const max_score = all.length * 200 + bonusScore;
       const res = await fetch(`/api/quizzes/${selected.id}/attempts`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          score,
+          score: scoreWithBonus,
           max_score,
           level_reached: all.length,
           duration_sec: all.reduce((s, a) => s + Math.round((a.time_ms || 0) / 1000), 0),
