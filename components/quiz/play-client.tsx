@@ -288,7 +288,8 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
   const progress = useMemo(() => ((idx + (status === 'feedback' || status === 'done' ? 1 : 0)) / Math.max(questions.length, 1)) * 100, [idx, questions.length, status]);
 
   return (
-    <div className="space-y-5">
+    <>
+      <div className="space-y-5">
       <div className="rounded-2xl border border-white/10 bg-white/6 p-4 shadow-xl flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-[11px] uppercase tracking-[0.24em] text-pink-200">Lern-Quiz</p>
@@ -605,47 +606,48 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
           </div>
         </div>
       </div>
-      {showMilestone && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
-          <div className="w-full max-w-md rounded-2xl border border-white/15 bg-slate-950/95 text-white shadow-2xl p-6 space-y-4">
-            <h3 className="text-xl font-semibold">Next Level erreicht!</h3>
-            <p className="text-sm text-slate-200">Wähle ein Power-Up für die nächsten Fragen.</p>
-            <div className="grid gap-3">
+        {showMilestone && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
+            <div className="w-full max-w-md rounded-2xl border border-white/15 bg-slate-950/95 text-white shadow-2xl p-6 space-y-4">
+              <h3 className="text-xl font-semibold">Next Level erreicht!</h3>
+              <p className="text-sm text-slate-200">Wähle ein Power-Up für die nächsten Fragen.</p>
+              <div className="grid gap-3">
+                <button
+                  className="rounded-xl border border-cyan-300 bg-cyan-500/15 px-4 py-3 text-left hover:border-cyan-200"
+                  onClick={() => {
+                    setExtraTimeNext(5);
+                    setShowMilestone(false);
+                  }}
+                >
+                  ⏱ +5 Sekunden Zeitbonus für die nächste Frage
+                </button>
+                <button
+                  className="rounded-xl border border-amber-300 bg-amber-500/15 px-4 py-3 text-left hover:border-amber-200"
+                  onClick={() => {
+                    setMultiplierRemaining(3);
+                    setShowMilestone(false);
+                  }}
+                >
+                  ✨ +10% Punkte-Multiplikator für die nächsten 3 Fragen
+                </button>
+              </div>
               <button
-                className="rounded-xl border border-cyan-300 bg-cyan-500/15 px-4 py-3 text-left hover:border-cyan-200"
-                onClick={() => {
-                  setExtraTimeNext(5);
-                  setShowMilestone(false);
-                }}
+                className="w-full rounded-full border border-white/30 px-4 py-2 text-sm hover:bg-white/10"
+                onClick={() => setShowMilestone(false)}
               >
-                ⏱ +5 Sekunden Zeitbonus für die nächste Frage
-              </button>
-              <button
-                className="rounded-xl border border-amber-300 bg-amber-500/15 px-4 py-3 text-left hover:border-amber-200"
-                onClick={() => {
-                  setMultiplierRemaining(3);
-                  setShowMilestone(false);
-                }}
-              >
-                ✨ +10% Punkte-Multiplikator für die nächsten 3 Fragen
+                Weiter ohne Power-Up
               </button>
             </div>
-            <button
-              className="w-full rounded-full border border-white/30 px-4 py-2 text-sm hover:bg-white/10"
-              onClick={() => setShowMilestone(false)}
-            >
-              Weiter ohne Power-Up
-            </button>
           </div>
-        </div>
-      )}
-    </div>
-    <style jsx global>{`
-      @keyframes pop {
-        0% { transform: scale(0.9); opacity: 0; }
-        60% { transform: scale(1.06); opacity: 1; }
-        100% { transform: scale(1); opacity: 0.9; }
-      }
-    `}</style>
+        )}
+      </div>
+      <style jsx global>{`
+        @keyframes pop {
+          0% { transform: scale(0.9); opacity: 0; }
+          60% { transform: scale(1.06); opacity: 1; }
+          100% { transform: scale(1); opacity: 0.9; }
+        }
+      `}</style>
+    </>
   );
 }
