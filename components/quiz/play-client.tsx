@@ -122,16 +122,24 @@ export default function QuizPlayClient({ quizzes, initialQuizId, initialAlias }:
   const pushBonusFeed = useMemo(() => pushBonusFeedFactory(setBonusFeed), []);
   const [aliasSaving, setAliasSaving] = useState(false);
   const [fxBurst, setFxBurst] = useState<number | null>(null);
+  const [aliasLocked, setAliasLocked] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const stored = window.localStorage.getItem(ALIAS_KEY);
+      if (stored && stored.trim().length > 0) return true;
+    }
+    if (initialAlias && initialAlias.trim().length > 0) return true;
+    return false;
+  });
 
   const current = questions[idx];
 
   // Alias aus localStorage speichern
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    if (alias && alias.trim().length > 0) {
+    if (aliasLocked && alias && alias.trim().length > 0) {
       window.localStorage.setItem(ALIAS_KEY, alias.trim());
     }
-  }, [alias]);
+  }, [alias, aliasLocked]);
 
   // load quiz detail when selected changes
   useEffect(() => {
@@ -415,10 +423,13 @@ export default function QuizPlayClient({ quizzes, initialQuizId, initialAlias }:
             <input
               className="rounded-full border border-white/20 bg-black/60 px-3 py-2 text-sm text-white shadow-inner shadow-black/40"
               value={alias}
-              onChange={(e) => setAlias(e.target.value)}
+              onChange={(e) => {
+                if (aliasLocked) return;
+                setAlias(e.target.value);
+              }}
               onBlur={async () => {
                 const val = alias.trim();
-                if (!val) return;
+                if (aliasLocked || !val) return;
                 setAliasSaving(true);
                 try {
                   await fetch('/api/profile/alias', {
@@ -427,6 +438,7 @@ export default function QuizPlayClient({ quizzes, initialQuizId, initialAlias }:
                     body: JSON.stringify({ alias: val }),
                   });
                   window.localStorage.setItem(ALIAS_KEY, val);
+                  setAliasLocked(true);
                 } catch (e) {
                   // ignore
                 } finally {
@@ -435,8 +447,10 @@ export default function QuizPlayClient({ quizzes, initialQuizId, initialAlias }:
               }}
               maxLength={40}
               placeholder="Name für das Spiel eingeben"
+              disabled={aliasLocked}
             />
             {aliasSaving && <span className="text-[11px] text-emerald-200">speichere…</span>}
+            {aliasLocked && <span className="text-[11px] text-slate-200">Name fixiert</span>}
           </div>
         </div>
 
