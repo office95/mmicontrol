@@ -190,8 +190,8 @@ function DonutChart({ total, segments, hideTotal }: DonutData & { hideTotal?: bo
     .map((s) => `${s.color} ${s.from.toFixed(2)}deg ${s.to.toFixed(2)}deg`)
     .join(', ');
   return (
-    <div className="flex flex-col items-center gap-3">
-      <div className="relative h-56 w-56">
+    <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
+      <div className="relative h-52 w-52 sm:h-56 sm:w-56 mx-auto sm:mx-0">
         <div
           className="h-full w-full rounded-full"
           style={{
@@ -204,13 +204,19 @@ function DonutChart({ total, segments, hideTotal }: DonutData & { hideTotal?: bo
           </div>
         )}
       </div>
-      <div className="flex flex-wrap justify-center gap-2 text-xs text-white/80">
-        {segments.map((s, idx) => (
-          <span key={idx} className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-white/10 border border-white/15">
-            <span className="h-2 w-2 rounded-full" style={{ background: s.color }} />
-            {s.label} {(s.value / total * 100).toFixed(1)}%
-          </span>
-        ))}
+      <div className="flex-1 space-y-2">
+        <div className="text-sm text-white/80 font-semibold">Verteilung (100%)</div>
+        <div className="grid grid-cols-1 sm:grid-cols-1 gap-2 text-xs text-white/85">
+          {segments.map((s, idx) => (
+            <div key={idx} className="flex items-center justify-between rounded-xl border border-white/12 bg-white/5 px-2.5 py-2">
+              <div className="flex items-center gap-2">
+                <span className="h-2.5 w-2.5 rounded-full" style={{ background: s.color }} />
+                <span className="font-semibold">{s.label}</span>
+              </div>
+              <span className="text-white/80">{((s.value / total) * 100).toFixed(1)}%</span>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
