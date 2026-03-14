@@ -420,7 +420,7 @@ export default function QuizPlayClient({ quizzes, initialQuizId, initialAlias }:
             <p className="text-sm text-slate-200">Speed, Streaks, Power-Ups & Leaderboard.</p>
             <div className="flex items-center gap-2 text-xs text-amber-100" />
           </div>
-          <div className="relative flex flex-wrap gap-2 text-xs text-slate-200">
+          <div className="relative flex flex-col sm:flex-row flex-wrap gap-2 text-xs text-slate-200 items-start sm:items-center">
             <input
               className="rounded-full border border-pink-300/40 bg-black/70 px-3 py-2 text-sm text-white shadow-[0_0_18px_rgba(236,72,153,0.25)] focus:border-pink-200 focus:outline-none transition"
               value={alias}
@@ -428,29 +428,38 @@ export default function QuizPlayClient({ quizzes, initialQuizId, initialAlias }:
                 if (aliasLocked) return;
                 setAlias(e.target.value);
               }}
-              onBlur={async () => {
-                const val = alias.trim();
-                if (aliasLocked || !val) return;
-                setAliasSaving(true);
-                try {
-                  await fetch('/api/profile/alias', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ alias: val }),
-                  });
-                  window.localStorage.setItem(ALIAS_KEY, val);
-                  setAliasLocked(true);
-                } catch (e) {
-                  // ignore
-                } finally {
-                  setAliasSaving(false);
-                }
-              }}
               maxLength={40}
               placeholder="Name für das Spiel eingeben (bleibt fix)"
               disabled={aliasLocked}
             />
-            {aliasSaving && <span className="text-[11px] text-emerald-200">speichere…</span>}
+            {!aliasLocked && (
+              <button
+                className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-emerald-500 to-emerald-400 px-4 py-2 text-xs font-semibold text-white shadow-lg hover:translate-y-[-1px] transition"
+                disabled={!alias.trim() || aliasSaving}
+                onClick={async () => {
+                  const val = alias.trim();
+                  if (!val || aliasLocked) return;
+                  if (!window.confirm('Name wird dauerhaft gespeichert und kann nicht geändert werden. Fortfahren?')) return;
+                  setAliasSaving(true);
+                  try {
+                    const res = await fetch('/api/profile/alias', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ alias: val }),
+                    });
+                    if (!res.ok) throw new Error('Alias speichern fehlgeschlagen');
+                    window.localStorage.setItem(ALIAS_KEY, val);
+                    setAliasLocked(true);
+                  } catch (e) {
+                    // optional: Fehlermeldung anzeigen
+                  } finally {
+                    setAliasSaving(false);
+                  }
+                }}
+              >
+                {aliasSaving ? 'Speichere…' : 'Name speichern'}
+              </button>
+            )}
             {aliasLocked ? (
               <span className="text-[11px] text-emerald-200">Name fixiert – bleibt dauerhaft</span>
             ) : (
