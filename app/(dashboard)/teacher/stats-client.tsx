@@ -45,11 +45,11 @@ export default function TeacherStatsClient({
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <Card title="Conversion-Quelle" className="lg:col-span-1">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <Card title="Conversion-Quelle">
           {sourceDonut ? <DonutChart {...sourceDonut} hideTotal /> : <Empty>Keine Daten</Empty>}
         </Card>
-        <Card title="Erfahrungslevel der Teilnehmer (in %)" className="lg:col-span-2">
+        <Card title="Erfahrungslevel der Teilnehmer (in %)">
           {notesBars ? <BarChart {...notesBars} /> : <Empty>Keine Daten</Empty>}
         </Card>
       </div>
