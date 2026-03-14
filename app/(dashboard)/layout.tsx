@@ -156,8 +156,8 @@ export default async function DashboardLayout({ children }: { children: ReactNod
       className="min-h-screen text-slate-50 text-[15px] md:text-[16px] leading-relaxed"
       style={{
         backgroundImage:
-          'linear-gradient(120deg, rgba(31,41,55,0.95) 0%, rgba(37,46,63,0.92) 45%, rgba(255,105,180,0.10) 100%), radial-gradient(circle at 20% 20%, rgba(255,105,180,0.18), transparent 40%), radial-gradient(circle at 80% 10%, rgba(99,102,241,0.18), transparent 35%)',
-        backgroundColor: '#1f2937',
+          'linear-gradient(120deg, rgba(55,65,81,0.9) 0%, rgba(67,76,94,0.88) 45%, rgba(255,136,187,0.14) 100%), radial-gradient(circle at 20% 25%, rgba(255,136,187,0.22), transparent 40%), radial-gradient(circle at 78% 12%, rgba(129,140,248,0.2), transparent 35%)',
+        backgroundColor: '#2a3342',
       }}
     >
       {/* Top Header full width, dark to match sidebar */}
