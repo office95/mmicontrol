@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import QuizPlayClient from '@/components/quiz/play-client';
 import TopNav from '@/components/top-nav';
 import { createSupabaseServerClient } from '@/lib/supabase-server';
+import Link from 'next/link';
 
 export const dynamic = 'force-dynamic';
 
@@ -77,6 +78,15 @@ export default async function QuizzesPage({ searchParams }: { searchParams?: Rec
 
   return (
     <main className="space-y-6">
+      <div className="flex items-center gap-3 text-sm text-slate-200">
+        <Link
+          href={profile?.role === 'teacher' ? '/teacher' : profile?.role === 'student' ? '/student' : '/'}
+          className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-3 py-1 hover:border-pink-200 text-white"
+        >
+          ← Zurück zum Dashboard
+        </Link>
+        <span className="text-xs text-white/70">Quiz läuft in eigener Seite (voller Fokus, keine Ablenkung).</span>
+      </div>
       {showTabs && tabLinks.length > 0 && (
         <nav className="sticky top-0 z-30 -mx-4 px-4 pt-1 pb-3 bg-slate-950/85 border-b border-white/10 backdrop-blur-lg shadow-lg">
           <div className="max-w-6xl mx-auto">

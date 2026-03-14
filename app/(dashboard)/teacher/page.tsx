@@ -19,6 +19,7 @@ import { createSupabaseServerClient } from '@/lib/supabase-server';
 import { createClient } from '@supabase/supabase-js';
 import DashboardClient from './dashboard-client';
 import CountdownFlip from './countdown-flip';
+import Link from 'next/link';
 type Benefit = {
   id: string;
   name: string;
@@ -921,6 +922,19 @@ export default async function TeacherPage() {
             <CountdownFlip days={daysRemaining} courseTitle={nextCourse?.title ?? 'Noch kein Kurs'} />
           </div>
         </div>
+      </div>
+
+      <div className="rounded-2xl border border-white/12 bg-white/8 p-4 sm:p-5 shadow-lg flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <p className="text-[11px] uppercase tracking-[0.22em] text-white/70">Quiz</p>
+          <p className="text-sm text-white/85">Eigenes Quiz-Fenster für vollen Fokus.</p>
+        </div>
+        <Link
+          href="/quizzes"
+          className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-pink-500 to-orange-400 px-4 py-2 text-sm font-semibold text-white shadow-lg hover:translate-y-[-1px] transition"
+        >
+          Quiz öffnen
+        </Link>
       </div>
 
       <DashboardClient
