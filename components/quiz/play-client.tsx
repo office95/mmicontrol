@@ -51,6 +51,7 @@ const difficultyFactor: Record<QuizQuestion['difficulty'], number> = {
 const adjectives = ['Bold', 'Groove', 'Silent', 'Sonic', 'Velvet', 'Bright', 'Wild', 'Neon', 'Amber', 'Indigo'];
 const nouns = ['Rhythm', 'Chord', 'Pulse', 'Beat', 'Riff', 'Hook', 'Melody', 'Harmony', 'Bass', 'Tempo'];
 const randomAlias = () => `${adjectives[Math.floor(Math.random() * adjectives.length)]}-${nouns[Math.floor(Math.random() * nouns.length)]}-${Math.floor(Math.random() * 900 + 100)}`;
+const ALIAS_KEY = 'quiz_alias_name';
 const praisePool = ['Nice Groove!', 'On fire!', 'Sauber!', 'Starker Move!', 'Weiter so!', 'Mega!'];
 const formatTime = (sec: number) => {
   const m = Math.floor(sec / 60);
@@ -106,6 +107,22 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
   const [overlayTheme, setOverlayTheme] = useState<string>('from-pink-500/25 via-indigo-500/25 to-amber-400/25');
 
   const current = questions[idx];
+
+  // Alias aus localStorage laden und speichern
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const stored = window.localStorage.getItem(ALIAS_KEY);
+    if (stored && stored.trim().length > 0) {
+      setAlias(stored.trim());
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (alias && alias.trim().length > 0) {
+      window.localStorage.setItem(ALIAS_KEY, alias.trim());
+    }
+  }, [alias]);
 
   // load quiz detail when selected changes
   useEffect(() => {
@@ -360,29 +377,29 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
   return (
     <>
       <div className="space-y-5">
-      <div className="rounded-2xl border border-white/10 bg-white/6 p-4 shadow-xl flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p className="text-[11px] uppercase tracking-[0.24em] text-pink-200">Lern-Quiz</p>
-          <h1 className="text-2xl font-semibold text-white">Teste dein Wissen</h1>
-          <p className="text-sm text-slate-200">Level, Zeitdruck, anonyme Bestenliste.</p>
+        <div className="rounded-2xl border border-white/10 bg-white/6 p-4 shadow-xl flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-[11px] uppercase tracking-[0.24em] text-pink-200">Lern-Quiz</p>
+            <h1 className="text-2xl font-semibold text-white">Teste dein Wissen</h1>
+            <p className="text-sm text-slate-200">Level, Zeitdruck, anonyme Bestenliste.</p>
+          </div>
+          <div className="flex flex-wrap gap-2 text-xs text-slate-200">
+            <input
+              className="rounded-full border border-white/20 bg-black/40 px-3 py-2 text-sm text-white"
+              value={alias}
+              onChange={(e) => setAlias(e.target.value)}
+              maxLength={40}
+              placeholder="Name für das Spiel eingeben"
+            />
+            <button
+              className="rounded-full border border-pink-400 bg-pink-500/80 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-pink-500/30"
+              onClick={() => setAlias(randomAlias())}
+              type="button"
+            >
+              Namen würfeln
+            </button>
+          </div>
         </div>
-        <div className="flex flex-wrap gap-2 text-xs text-slate-200">
-          <input
-            className="rounded-full border border-white/20 bg-black/40 px-3 py-2 text-sm text-white"
-            value={alias}
-            onChange={(e) => setAlias(e.target.value)}
-            maxLength={40}
-            placeholder="Alias für Ranking"
-          />
-          <button
-            className="rounded-full border border-pink-400 bg-pink-500/80 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-pink-500/30"
-            onClick={() => setAlias(randomAlias())}
-            type="button"
-          >
-            Alias neu
-          </button>
-        </div>
-      </div>
 
       <div className="rounded-2xl border border-white/8 bg-white/5 p-3 shadow-xl overflow-x-auto">
         <div className="flex gap-2 min-w-full">
