@@ -52,6 +52,12 @@ const adjectives = ['Bold', 'Groove', 'Silent', 'Sonic', 'Velvet', 'Bright', 'Wi
 const nouns = ['Rhythm', 'Chord', 'Pulse', 'Beat', 'Riff', 'Hook', 'Melody', 'Harmony', 'Bass', 'Tempo'];
 const randomAlias = () => `${adjectives[Math.floor(Math.random() * adjectives.length)]}-${nouns[Math.floor(Math.random() * nouns.length)]}-${Math.floor(Math.random() * 900 + 100)}`;
 const praisePool = ['Nice Groove!', 'On fire!', 'Sauber!', 'Starker Move!', 'Weiter so!', 'Mega!'];
+const formatTime = (sec: number) => {
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  if (m <= 0) return `${s}s`;
+  return `${m}m ${s.toString().padStart(2, '0')}s`;
+};
 
 export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: QuizMeta[]; initialQuizId?: string | null }) {
   const [selected, setSelected] = useState<QuizMeta | null>(() => {
@@ -543,22 +549,37 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
                   <div>
                     <h2 className="text-xl font-semibold text-white">Geschafft!</h2>
                     <p className="text-sm text-slate-200">Score: {score} Punkte</p>
-                    <p className="text-xs text-slate-300">Zeit: {totalTimeSec}s · Bester Streak: {bestStreak}</p>
+                    <p className="text-xs text-slate-300">Zeit: {formatTime(totalTimeSec)} · Bester Streak: {bestStreak}</p>
                   </div>
                 </div>
-                <div className="rounded-2xl border border-white/10 bg-gradient-to-r from-pink-600/30 via-purple-600/20 to-amber-500/30 p-4 text-white shadow-xl">
-                  <p className="text-sm uppercase tracking-[0.22em] text-white/70">Highscore</p>
-                  <div className="flex items-center justify-between mt-2">
+                <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-pink-600/40 via-indigo-700/25 to-amber-500/35 p-6 text-white shadow-2xl space-y-4">
+                  <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-3xl font-bold">{score}</p>
+                      <p className="text-[11px] uppercase tracking-[0.3em] text-white/70">Highscore</p>
+                      <p className="text-4xl font-black drop-shadow-sm">{score}</p>
                       <p className="text-xs text-white/70">Gesamtpunkte</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-2xl font-semibold text-amber-100">{(() => {
+                      {(() => {
                         const me = leaderboard.find((r) => r.alias === alias);
-                        return me ? `#${me.rank}` : '#—';
-                      })()}</p>
-                      <p className="text-xs text-white/70">Dein Platz</p>
+                        const rankLabel = me ? `#${me.rank}` : 'Noch kein Ranking';
+                        return (
+                          <>
+                            <p className="text-3xl font-extrabold text-amber-100 drop-shadow">{rankLabel}</p>
+                            <p className="text-xs text-white/70">Dein Platz</p>
+                          </>
+                        );
+                      })()}
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div className="rounded-2xl bg-white/10 border border-white/15 p-3 shadow-inner">
+                      <p className="text-[11px] uppercase tracking-[0.24em] text-white/60">Zeit</p>
+                      <p className="text-lg font-semibold">{formatTime(totalTimeSec)}</p>
+                    </div>
+                    <div className="rounded-2xl bg-white/10 border border-white/15 p-3 shadow-inner">
+                      <p className="text-[11px] uppercase tracking-[0.24em] text-white/60">Bester Streak</p>
+                      <p className="text-lg font-semibold">{bestStreak}x</p>
                     </div>
                   </div>
                 </div>
