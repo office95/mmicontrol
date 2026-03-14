@@ -121,6 +121,7 @@ export default function QuizPlayClient({ quizzes, initialQuizId, initialAlias }:
   const [bonusFeed, setBonusFeed] = useState<{ msg: string; key: number }[]>([]);
   const pushBonusFeed = useMemo(() => pushBonusFeedFactory(setBonusFeed), []);
   const [aliasSaving, setAliasSaving] = useState(false);
+  const [fxBurst, setFxBurst] = useState<number | null>(null);
 
   const current = questions[idx];
 
@@ -252,6 +253,7 @@ export default function QuizPlayClient({ quizzes, initialQuizId, initialAlias }:
     setScore((prev) => prev + deltaVal);
     setBonusScore((b) => b + speedBonus + surpriseBonus);
     setDelta({ val: deltaVal, positive: isCorrect, key: Date.now() });
+    if (isCorrect) setFxBurst(Date.now());
     if (speedBonus) pushBonusFeed(`Speed Bonus +${speedBonus}`);
     if (surpriseBonus) pushBonusFeed(`Surprise Loot +${surpriseBonus}`);
     setPraise(isCorrect ? praisePool[Math.floor(Math.random() * praisePool.length)] : null);
@@ -494,9 +496,25 @@ export default function QuizPlayClient({ quizzes, initialQuizId, initialAlias }:
 
       <div className="grid md:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] gap-5">
         <div className="space-y-4">
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-5 shadow-xl min-h-[260px] relative overflow-hidden">
+          <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-slate-900/70 via-slate-900/60 to-slate-900/80 p-5 shadow-2xl min-h-[260px] relative overflow-hidden">
             {loading && <p className="text-sm text-slate-300">Lade Fragen...</p>}
             {error && <p className="text-sm text-red-300">{error}</p>}
+            {fxBurst && (
+              <div key={fxBurst} className="pointer-events-none absolute inset-0 overflow-hidden">
+                {[...Array(10)].map((_, i) => (
+                  <span
+                    key={i}
+                    className="absolute h-3 w-3 rounded-full bg-gradient-to-br from-pink-400 via-amber-300 to-cyan-300 animate-[burst_700ms_ease-out_forwards]"
+                    style={{
+                      top: '50%',
+                      left: '50%',
+                      transform: `translate(-50%, -50%) rotate(${(360 / 10) * i}deg) translateX(40px)`,
+                      animationDelay: `${i * 15}ms`,
+                    }}
+                  />
+                ))}
+              </div>
+            )}
 
             {!loading && !error && selected && status === 'intro' && (
               <div className="space-y-4">
@@ -846,6 +864,11 @@ export default function QuizPlayClient({ quizzes, initialQuizId, initialAlias }:
         50% { transform: translateX(1px); }
         75% { transform: translateX(-1px); }
         100% { transform: translateX(0); }
+      }
+      @keyframes burst {
+        0% { opacity: 0.9; transform: scale(0.6); }
+        70% { opacity: 0.7; transform: scale(1.05); }
+        100% { opacity: 0; transform: scale(1.2); }
       }
     `}</style>
   </>
