@@ -26,7 +26,7 @@ export async function GET(req: Request) {
   if (id) {
   const { data: quiz, error: qErr } = await supa
     .from('quizzes')
-    .select('id,title,description,cover_url,course_id,module_id,is_published,level_count,time_per_question,created_at')
+    .select('id,title,description,cover_url,course_id,module_id,module_number,is_published,level_count,time_per_question,created_at')
     .eq('id', id)
     .maybeSingle();
     if (qErr) return NextResponse.json({ error: qErr.message }, { status: 400 });
@@ -51,7 +51,7 @@ export async function GET(req: Request) {
 
   const query = supa
     .from('quizzes')
-    .select('id,title,description,cover_url,course_id,module_id,is_published,level_count,time_per_question,created_at')
+    .select('id,title,description,cover_url,course_id,module_id,module_number,is_published,level_count,time_per_question,created_at')
     .order('created_at', { ascending: false });
 
   if (course_id) query.eq('course_id', course_id);
@@ -79,6 +79,7 @@ export async function POST(req: Request) {
         cover_url: quiz.cover_url ?? null,
         course_id: quiz.course_id,
         module_id: quiz.module_id ?? null,
+        module_number: quiz.module_number ?? null,
         level_count: quiz.level_count ?? 5,
         time_per_question: quiz.time_per_question ?? 30,
         allow_mixed_modules: quiz.allow_mixed_modules ?? true,
