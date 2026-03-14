@@ -79,12 +79,15 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
   const [delta, setDelta] = useState<{ val: number; positive: boolean; key: number } | null>(null);
   const [praise, setPraise] = useState<string | null>(null);
   const [streak, setStreak] = useState(0);
+  const [bestStreak, setBestStreak] = useState(0);
   const [goalProgress, setGoalProgress] = useState(0);
   const goalTarget = 3;
   const goalReward = 50;
   const [multiplierRemaining, setMultiplierRemaining] = useState(0);
   const [extraTimeNext, setExtraTimeNext] = useState(0);
   const [showMilestone, setShowMilestone] = useState(false);
+  const [totalTimeSec, setTotalTimeSec] = useState(0);
+  const questionStartRef = useRef<number | null>(null);
 
   const current = questions[idx];
 
@@ -161,10 +164,13 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
     setDelta(null);
     setPraise(null);
     setStreak(0);
+    setBestStreak(0);
     setGoalProgress(0);
     setMultiplierRemaining(0);
     setExtraTimeNext(0);
     setShowMilestone(false);
+    setTotalTimeSec(0);
+    questionStartRef.current = Date.now();
   };
 
   const handleToggle = (id: string) => {
@@ -199,6 +205,7 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
     setDelta({ val: deltaVal, positive: isCorrect, key: Date.now() });
     setPraise(isCorrect ? praisePool[Math.floor(Math.random() * praisePool.length)] : null);
     setStreak((prev) => (isCorrect ? prev + 1 : 0));
+    setBestStreak((prev) => (isCorrect ? Math.max(prev, streak + 1) : prev));
 
     // Mini-Ziel: 3 richtige in Folge
     setGoalProgress((prev) => {
@@ -214,6 +221,13 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
     // Milestone nach jeder 10. beantworteten Frage (1-based Index)
     if ((idx + 1) % 10 === 0) {
       setShowMilestone(true);
+    }
+
+    // Zeit sammeln
+    if (questionStartRef.current) {
+      const spent = Math.max(0, Math.round((Date.now() - questionStartRef.current) / 1000));
+      setTotalTimeSec((t) => t + spent);
+      questionStartRef.current = null;
     }
 
     const draft: AnswerDraft = {
@@ -251,6 +265,7 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
     setTimeLeft((selected?.time_per_question || 30) + extraTimeNext);
     setExtraTimeNext(0);
     setMultiplierRemaining((prev) => (prev > 0 ? prev - 1 : 0));
+    questionStartRef.current = Date.now();
   };
 
   const saveAttempt = async (all: AnswerDraft[]) => {
@@ -403,20 +418,20 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
                 <div className="text-sm text-slate-200 font-semibold">Frage {idx + 1} / {questions.length}</div>
 
                 <div className="flex items-center gap-2 text-sm font-semibold text-white">
-                  <span>Score: {score}</span>
+                  <span className="rounded-full bg-white/5 px-3 py-1 border border-white/10 shadow-inner">Score: {score}</span>
                   {delta && (
                     <span
                       key={delta.key}
-                      className={`px-2 py-1 rounded-full text-xs ${delta.val > 0 ? 'bg-emerald-500/25 text-emerald-100' : 'bg-rose-500/20 text-rose-100'}`}
+                      className={`px-2 py-1 rounded-full text-xs ${delta.val > 0 ? 'bg-emerald-400/25 text-emerald-50 shadow-[0_0_15px_rgba(16,185,129,0.45)]' : 'bg-rose-500/25 text-rose-50 shadow-[0_0_12px_rgba(244,63,94,0.4)]'}`}
                       style={{ animation: 'pop 0.3s ease-out' }}
                     >
                       {delta.val > 0 ? `+${delta.val}` : `${delta.val}`}
                     </span>
                   )}
                 </div>
-                <div className="flex items-center gap-3 text-xs text-slate-300">
-                  <span>Streak: {streak}</span>
-                  <span>Mini-Ziel: {goalProgress}/{goalTarget} ( +{goalReward} )</span>
+                <div className="flex items-center gap-3 text-xs text-slate-200">
+                  <span className="rounded-full bg-white/5 px-2 py-1 border border-white/10">Streak: {streak} (Best: {bestStreak})</span>
+                  <span className="rounded-full bg-pink-500/15 text-pink-50 border border-pink-200/40 px-2 py-1">Mini-Ziel: {goalProgress}/{goalTarget} (+{goalReward})</span>
                   {multiplierRemaining > 0 && (
                     <span className="px-2 py-1 rounded-full bg-orange-400/25 text-orange-50">+10% für {multiplierRemaining} Frage(n)</span>
                   )}
@@ -527,7 +542,24 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
                   </span>
                   <div>
                     <h2 className="text-xl font-semibold text-white">Geschafft!</h2>
-                    <p className="text-sm text-slate-200">Score: {answers.reduce((s, a) => s + (a.points || 0), 0)} Punkte</p>
+                    <p className="text-sm text-slate-200">Score: {score} Punkte</p>
+                    <p className="text-xs text-slate-300">Zeit: {totalTimeSec}s · Bester Streak: {bestStreak}</p>
+                  </div>
+                </div>
+                <div className="rounded-2xl border border-white/10 bg-gradient-to-r from-pink-600/30 via-purple-600/20 to-amber-500/30 p-4 text-white shadow-xl">
+                  <p className="text-sm uppercase tracking-[0.22em] text-white/70">Highscore</p>
+                  <div className="flex items-center justify-between mt-2">
+                    <div>
+                      <p className="text-3xl font-bold">{score}</p>
+                      <p className="text-xs text-white/70">Gesamtpunkte</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-2xl font-semibold text-amber-100">{(() => {
+                        const me = leaderboard.find((r) => r.alias === alias);
+                        return me ? `#${me.rank}` : '#—';
+                      })()}</p>
+                      <p className="text-xs text-white/70">Dein Platz</p>
+                    </div>
                   </div>
                 </div>
                 <div className="flex gap-3">
