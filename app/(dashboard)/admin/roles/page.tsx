@@ -50,6 +50,7 @@ export default function RolesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [teachers, setTeachers] = useState<TeacherRow[]>([]);
+  const [openTeacherCourses, setOpenTeacherCourses] = useState<string[]>([]);
   const [partners, setPartners] = useState<Partner[]>([]);
   const [courses, setCourses] = useState<Course[]>([]);
   const [savingTeacher, setSavingTeacher] = useState<string | null>(null);
@@ -156,6 +157,12 @@ export default function RolesPage() {
     () => courses.sort((a, b) => (a.title || '').localeCompare(b.title || '')),
     [courses]
   );
+
+  const toggleTeacherCourses = (teacherId: string) => {
+    setOpenTeacherCourses((prev) =>
+      prev.includes(teacherId) ? prev.filter((id) => id !== teacherId) : [...prev, teacherId]
+    );
+  };
 
   return (
     <div className="space-y-6">
@@ -264,34 +271,56 @@ export default function RolesPage() {
                   </select>
                 </div>
                 <div className="space-y-2 text-sm">
-                  <label className="text-xs font-semibold text-ink">Kurse (anklicken zum Auswählen)</label>
-                  <div className="flex flex-wrap gap-2">
-                    {courseOptions.map((c) => {
-                      const selected = t.courses.some((cc) => cc.id === c.id);
-                      return (
-                        <button
-                          key={c.id}
-                          type="button"
-                          onClick={() => {
-                            const ids = selected
-                              ? t.courses.filter((cc) => cc.id !== c.id).map((cc) => cc.id)
-                              : [...t.courses.map((cc) => cc.id), c.id];
-                            handleTeacherSave(t.id, t.partner_id ?? null, ids);
-                          }}
-                          className={`px-3 py-1 rounded-full border text-xs ${
-                            selected
-                              ? 'bg-pink-100 text-pink-700 border-pink-300'
-                              : 'bg-white text-slate-700 border-slate-200 hover:border-pink-200'
-                          }`}
-                        >
-                          {c.title}
-                        </button>
-                      );
-                    })}
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="space-y-1">
+                      <label className="text-xs font-semibold text-ink">Kurse (anklicken zum Auswählen)</label>
+                      <p className="text-xs text-slate-500">
+                        {t.courses.length === 0
+                          ? 'Keine Kurse zugewiesen.'
+                          : `${t.courses.length} Kurs${t.courses.length === 1 ? '' : 'e'} zugewiesen.`}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      className="flex items-center gap-1 rounded-full border border-pink-200 px-3 py-1 text-[11px] font-semibold text-pink-700 hover:bg-pink-50"
+                      onClick={() => toggleTeacherCourses(t.id)}
+                    >
+                      <span className="text-base leading-none">{openTeacherCourses.includes(t.id) ? '−' : '+'}</span>
+                      {openTeacherCourses.includes(t.id) ? 'Schließen' : 'Öffnen'}
+                    </button>
                   </div>
-                  <p className="text-xs text-slate-500">
-                    Nur Kurse aktivieren, die der Dozent unterrichtet – steuert Zugriff auf Kursmaterial & Buchungen.
-                  </p>
+
+                  {openTeacherCourses.includes(t.id) && (
+                    <>
+                      <div className="flex flex-wrap gap-2">
+                        {courseOptions.map((c) => {
+                          const selected = t.courses.some((cc) => cc.id === c.id);
+                          return (
+                            <button
+                              key={c.id}
+                              type="button"
+                              onClick={() => {
+                                const ids = selected
+                                  ? t.courses.filter((cc) => cc.id !== c.id).map((cc) => cc.id)
+                                  : [...t.courses.map((cc) => cc.id), c.id];
+                                handleTeacherSave(t.id, t.partner_id ?? null, ids);
+                              }}
+                              className={`px-3 py-1 rounded-full border text-xs ${
+                                selected
+                                  ? 'bg-pink-100 text-pink-700 border-pink-300'
+                                  : 'bg-white text-slate-700 border-slate-200 hover:border-pink-200'
+                              }`}
+                            >
+                              {c.title}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <p className="text-xs text-slate-500">
+                        Nur Kurse aktivieren, die der Dozent unterrichtet – steuert Zugriff auf Kursmaterial & Buchungen.
+                      </p>
+                    </>
+                  )}
                 </div>
                 {savingTeacher === t.id && <p className="text-xs text-slate-500">Speichern...</p>}
               </div>

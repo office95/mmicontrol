@@ -7,12 +7,32 @@ const service = createClient(
 );
 
 export async function GET() {
-  const { data, error } = await service
+  // Versuche mit created_at + updated_at; fallback, falls Spalte created_at nicht existiert
+  let data: any[] | null = null;
+  let errorMsg: string | null = null;
+
+  const first = await service
     .from('automation_settings')
-    .select('id, title, description, active')
+    .select('id, title, description, active, created_at, updated_at')
     .order('id');
-  if (error) return NextResponse.json({ error: error.message }, { status: 400 });
-  return NextResponse.json(data || []);
+
+  if (first.error) {
+    errorMsg = first.error.message;
+    if (first.error.message?.toLowerCase().includes('created_at')) {
+      const fallback = await service
+        .from('automation_settings')
+        .select('id, title, description, active, updated_at')
+        .order('id');
+      if (fallback.error) return NextResponse.json({ error: fallback.error.message }, { status: 400 });
+      data = fallback.data || [];
+    } else {
+      return NextResponse.json({ error: errorMsg }, { status: 400 });
+    }
+  } else {
+    data = first.data || [];
+  }
+
+  return NextResponse.json(data);
 }
 
 export async function POST(req: Request) {
@@ -39,4 +59,3 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: e.message ?? 'Fehler beim Speichern' }, { status: 400 });
   }
 }
-
