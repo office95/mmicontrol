@@ -121,5 +121,5 @@ export async function POST(req: Request, ctx: { params: { id: string } }) {
     await supa.from('quiz_attempt_answers').insert(details.map((d) => ({ ...d, attempt_id: attempt.id })));
   }
 
-  return NextResponse.json({ id: attempt.id, alias: safeAlias, score, max_score, level_reached });
+  return NextResponse.json({ id: attempt.id, alias: safeAlias, score: finalScore, max_score: finalMax, level_reached });
 }
