@@ -468,35 +468,37 @@ export default function QuizPlayClient({ quizzes, initialQuizId, initialAlias }:
           </div>
         </div>
 
-          <div className="rounded-2xl border border-white/8 bg-white/6 p-3 shadow-2xl backdrop-blur">
-            <div className="flex items-center justify-between text-xs uppercase tracking-[0.2em] text-white/70 mb-2">
-              <span>Modul wählen</span>
-              <span className="text-white/50">{quizzes.length} verfügbar</span>
-            </div>
-            <div className="flex gap-2 overflow-x-auto pb-1">
-          {quizzes.map((q) => (
-            <button
-              key={q.id}
-              onClick={() => setSelected(q)}
-              className={`min-w-[180px] rounded-2xl border px-3 py-3 text-left text-xs font-semibold transition shadow-sm ${
-                selected?.id === q.id
-                  ? 'border-pink-400 bg-gradient-to-br from-pink-500/20 to-orange-400/15 text-white shadow-pink-500/30'
-                  : 'border-white/12 bg-white/5 text-slate-100 hover:border-pink-300/60'
-              }`}
-              aria-pressed={selected?.id === q.id}
-            >
-              <div className="flex items-center justify-between mb-1">
-                <span className="rounded-full bg-pink-500/25 px-2 py-0.5 text-[10px] font-bold text-pink-50">
-                  {q.module_number != null ? `Modul ${q.module_number}` : `Level ${q.level_count}`}
-                </span>
-                <span className="text-[10px] text-slate-300">{q.time_per_question}s</span>
-              </div>
-              <p className="text-sm font-semibold leading-snug line-clamp-2">{q.title}</p>
-              {q.description && <p className="text-[11px] text-slate-300 line-clamp-2 mt-1">{q.description}</p>}
-            </button>
-          ))}
+      {status === 'intro' && (
+        <div className="rounded-2xl border border-white/8 bg-white/6 p-3 shadow-2xl backdrop-blur animate-[pop_250ms_ease-out]">
+          <div className="flex items-center justify-between text-xs uppercase tracking-[0.2em] text-white/70 mb-2">
+            <span>Modul wählen</span>
+            <span className="text-white/50">{quizzes.length} verfügbar</span>
+          </div>
+          <div className="flex gap-2 overflow-x-auto pb-1">
+            {quizzes.map((q) => (
+              <button
+                key={q.id}
+                onClick={() => setSelected(q)}
+                className={`min-w-[180px] rounded-2xl border px-3 py-3 text-left text-xs font-semibold transition shadow-sm ${
+                  selected?.id === q.id
+                    ? 'border-pink-400 bg-gradient-to-br from-pink-500/20 to-orange-400/15 text-white shadow-pink-500/30'
+                    : 'border-white/12 bg-white/5 text-slate-100 hover:border-pink-300/60'
+                }`}
+                aria-pressed={selected?.id === q.id}
+              >
+                <div className="flex items-center justify-between mb-1">
+                  <span className="rounded-full bg-pink-500/25 px-2 py-0.5 text-[10px] font-bold text-pink-50">
+                    {q.module_number != null ? `Modul ${q.module_number}` : `Level ${q.level_count}`}
+                  </span>
+                  <span className="text-[10px] text-slate-300">{q.time_per_question}s</span>
+                </div>
+                <p className="text-sm font-semibold leading-snug line-clamp-2">{q.title}</p>
+                {q.description && <p className="text-[11px] text-slate-300 line-clamp-2 mt-1">{q.description}</p>}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {showPoints && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
