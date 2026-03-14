@@ -139,6 +139,7 @@ export default function QuizPlayClient({ quizzes, initialQuizId, initialAlias }:
     }
     return initialAlias && initialAlias.trim().length > 0 ? 1 : 0;
   });
+  const [randomBonuses, setRandomBonuses] = useState(0);
 
   const current = questions[idx];
 
@@ -264,15 +265,21 @@ export default function QuizPlayClient({ quizzes, initialQuizId, initialAlias }:
     if (multiplierRemaining > 0) {
       points = Math.round(points * multiplierFactor);
     }
-    const speedBonus = isCorrect && timeLeft >= (selected?.time_per_question || 30) * 0.6 ? 20 : 0;
-    const surpriseBonus = isCorrect && ((idx + 1) % 7 === 0) ? 50 : 0;
-    const deltaVal = isCorrect ? points + speedBonus + surpriseBonus : 0;
+    const totalTime = selected?.time_per_question || 30;
+    const timeUsed = totalTime - timeLeft;
+    const speedBonus = isCorrect && timeUsed <= totalTime * 0.4 ? 25 : 0;
+    const nextStreak = isCorrect ? streak + 1 : streak;
+    const streakBonus = isCorrect && nextStreak > 0 && nextStreak % goalTarget === 0 ? goalReward : 0;
+    const randomBonus = isCorrect && randomBonuses < 2 && Math.random() < 0.15 ? Math.floor(30 + Math.random() * 40) : 0;
+    if (randomBonus) setRandomBonuses((n) => n + 1);
+    const deltaVal = isCorrect ? points + speedBonus + streakBonus + randomBonus : 0;
     setScore((prev) => prev + deltaVal);
-    setBonusScore((b) => b + speedBonus + surpriseBonus);
+    setBonusScore((b) => b + speedBonus + streakBonus + randomBonus);
     setDelta({ val: deltaVal, positive: isCorrect, key: Date.now() });
     if (isCorrect) setFxBurst(Date.now());
     if (speedBonus) pushBonusFeed(`Speed Bonus +${speedBonus}`);
-    if (surpriseBonus) pushBonusFeed(`Surprise Loot +${surpriseBonus}`);
+    if (streakBonus) pushBonusFeed(`Streak Bonus +${streakBonus}`);
+    if (randomBonus) pushBonusFeed(`Lucky Drop +${randomBonus}`);
     setPraise(isCorrect ? praisePool[Math.floor(Math.random() * praisePool.length)] : null);
     setStreak((prev) => {
       if (isCorrect) return prev + 1;
@@ -284,17 +291,8 @@ export default function QuizPlayClient({ quizzes, initialQuizId, initialAlias }:
     });
     setBestStreak((prev) => (isCorrect ? Math.max(prev, streak + 1) : prev));
 
-    // Mini-Ziel: 3 richtige in Folge
-    setGoalProgress((prev) => {
-      const next = isCorrect ? prev + 1 : 0;
-      if (next >= goalTarget) {
-        setScore((s) => s + goalReward);
-        setBonusScore((b) => b + goalReward);
-        setDelta({ val: goalReward, positive: true, key: Date.now() + 1 });
-        return 0; // Reset nach Belohnung
-      }
-      return next;
-    });
+    // Mini-Ziel Anzeige (ohne Extra-Punkte; Punkte kommen über streakBonus)
+    setGoalProgress((prev) => (isCorrect ? (prev + 1) % goalTarget : 0));
 
     // Milestone nach jeder 10. beantworteten Frage (1-based Index)
     if ((idx + 1) % 10 === 0) {
