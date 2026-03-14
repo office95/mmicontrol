@@ -14,7 +14,7 @@ export default async function QuizzesPage({ searchParams }: { searchParams?: Rec
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('role, full_name')
+    .select('role, quiz_alias')
     .eq('id', user.id)
     .maybeSingle();
 
@@ -93,7 +93,7 @@ export default async function QuizzesPage({ searchParams }: { searchParams?: Rec
         <QuizPlayClient
           quizzes={safeQuizzes as any}
           initialQuizId={preselectId || safeQuizzes[0]?.id}
-          initialAlias={profile?.full_name || undefined}
+          initialAlias={profile?.quiz_alias || undefined}
         />
       )}
     </main>

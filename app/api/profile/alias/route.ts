@@ -15,7 +15,7 @@ export async function POST(req: Request) {
 
   const { error } = await supa
     .from('profiles')
-    .update({ full_name: alias.trim() })
+    .update({ quiz_alias: alias.trim() })
     .eq('id', user.id);
 
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });

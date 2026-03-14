@@ -429,7 +429,7 @@ export default function QuizPlayClient({ quizzes, initialQuizId, initialAlias }:
                 setAlias(e.target.value);
               }}
               maxLength={40}
-              placeholder="Name für das Spiel eingeben (bleibt fix)"
+              placeholder="Alias für das Spiel (bleibt fix, nicht Klarnamen)"
               disabled={aliasLocked}
             />
             {!aliasLocked && (
