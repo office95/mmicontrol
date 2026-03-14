@@ -93,7 +93,7 @@ export default function QuizPlayClient({ quizzes, initialQuizId, initialAlias }:
       if (stored && stored.trim().length > 0) return stored.trim();
     }
     if (initialAlias && initialAlias.trim().length > 0) return initialAlias.trim();
-    return randomAlias();
+    return '';
   });
   const [leaderboard, setLeaderboard] = useState<LeaderboardRow[]>([]);
   const [period, setPeriod] = useState<'month' | 'quarter' | 'year'>('year');
@@ -416,13 +416,6 @@ export default function QuizPlayClient({ quizzes, initialQuizId, initialAlias }:
               maxLength={40}
               placeholder="Name für das Spiel eingeben"
             />
-            <button
-              className="rounded-full border border-pink-400 bg-pink-500/80 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-pink-500/30 hover:translate-y-[-1px] transition"
-              onClick={() => setAlias(randomAlias())}
-              type="button"
-            >
-              Namen würfeln
-            </button>
           </div>
         </div>
 
