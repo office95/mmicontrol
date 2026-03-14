@@ -61,6 +61,7 @@ export async function GET(req: Request, ctx: { params: { id: string } }) {
     max_score: r.max_score || 0,
     level_reached: r.level_reached || 0,
     duration_sec: r.duration_sec || 0,
+    completed_at: r.completed_at || r.created_at || null,
   }));
 
   return NextResponse.json(rows);

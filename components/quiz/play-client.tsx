@@ -31,6 +31,7 @@ export type LeaderboardRow = {
   max_score: number;
   level_reached: number;
   duration_sec: number;
+  completed_at?: string | null;
 };
 
 type AnswerDraft = {
@@ -53,6 +54,11 @@ const nouns = ['Rhythm', 'Chord', 'Pulse', 'Beat', 'Riff', 'Hook', 'Melody', 'Ha
 const randomAlias = () => `${adjectives[Math.floor(Math.random() * adjectives.length)]}-${nouns[Math.floor(Math.random() * nouns.length)]}-${Math.floor(Math.random() * 900 + 100)}`;
 const ALIAS_KEY = 'quiz_alias_name';
 const praisePool = ['Nice Groove!', 'On fire!', 'Sauber!', 'Starker Move!', 'Weiter so!', 'Mega!'];
+const formatDateTime = (iso?: string | null) => {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  return d.toLocaleString('de-AT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+};
 const formatTime = (sec: number) => {
   const m = Math.floor(sec / 60);
   const s = sec % 60;
@@ -420,26 +426,31 @@ export default function QuizPlayClient({ quizzes, initialQuizId, initialAlias }:
           </div>
         </div>
 
-      <div className="rounded-2xl border border-white/8 bg-white/5 p-3 shadow-xl overflow-x-auto">
-        <div className="flex gap-2 min-w-full">
+      <div className="rounded-2xl border border-white/8 bg-white/6 p-3 shadow-xl">
+        <div className="flex items-center justify-between text-xs uppercase tracking-[0.2em] text-white/70 mb-2">
+          <span>Modul wählen</span>
+          <span className="text-white/50">{quizzes.length} verfügbar</span>
+        </div>
+        <div className="flex gap-2 overflow-x-auto pb-1">
           {quizzes.map((q) => (
             <button
               key={q.id}
               onClick={() => setSelected(q)}
-              className={`shrink-0 rounded-full border px-3 py-2 text-left text-xs font-semibold transition whitespace-nowrap ${
+              className={`min-w-[180px] rounded-2xl border px-3 py-3 text-left text-xs font-semibold transition shadow-sm ${
                 selected?.id === q.id
-                  ? 'border-pink-400 bg-pink-500/15 text-white shadow shadow-pink-500/30'
-                  : 'border-white/15 bg-white/5 text-slate-100 hover:border-pink-300/60'
+                  ? 'border-pink-400 bg-gradient-to-br from-pink-500/20 to-orange-400/15 text-white shadow-pink-500/30'
+                  : 'border-white/12 bg-white/5 text-slate-100 hover:border-pink-300/60'
               }`}
               aria-pressed={selected?.id === q.id}
             >
-              <span className="inline-flex items-center gap-2">
-                <span className="rounded-full bg-pink-500/20 px-2 py-0.5 text-[10px] font-bold text-pink-100">
+              <div className="flex items-center justify-between mb-1">
+                <span className="rounded-full bg-pink-500/25 px-2 py-0.5 text-[10px] font-bold text-pink-50">
                   {q.module_number != null ? `Modul ${q.module_number}` : `Level ${q.level_count}`}
                 </span>
-                <span className="truncate max-w-[14ch] md:max-w-[18ch] lg:max-w-[22ch]">{q.title}</span>
                 <span className="text-[10px] text-slate-300">{q.time_per_question}s</span>
-              </span>
+              </div>
+              <p className="text-sm font-semibold leading-snug line-clamp-2">{q.title}</p>
+              {q.description && <p className="text-[11px] text-slate-300 line-clamp-2 mt-1">{q.description}</p>}
             </button>
           ))}
         </div>
@@ -756,9 +767,10 @@ export default function QuizPlayClient({ quizzes, initialQuizId, initialAlias }:
                     <span className="text-xs font-bold text-pink-200">#{row.rank}</span>
                     <span className="font-semibold text-white">{row.alias}</span>
                   </div>
-                  <div className="text-right text-xs text-slate-200">
+                  <div className="text-right text-[11px] text-slate-200">
                     <div className="font-semibold text-white">{row.score} P</div>
                     <div className="text-slate-400">Level {row.level_reached}</div>
+                    <div className="text-slate-500">{formatDateTime(row.completed_at)}</div>
                   </div>
                 </div>
               ))}
