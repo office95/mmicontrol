@@ -495,53 +495,61 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
 
             {!loading && !error && selected && (status === 'playing' || status === 'feedback') && current && (
               <div className="space-y-4">
-                <div className="absolute top-4 right-4">
-                  <span
-                    className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold border ${
-                      timeLeft < 6 ? 'border-amber-300 bg-amber-400/20 text-amber-50' : 'border-lime-300 bg-lime-400/15 text-lime-50'
-                    }`}
-                  >
-                    ⏱ {status === 'feedback' ? '—' : `${timeLeft}s`}
-                  </span>
-                </div>
-
-                <div className="text-sm text-slate-200 font-semibold">Frage {idx + 1} / {questions.length}</div>
-
-                <div className="flex flex-wrap items-center gap-3 text-sm font-semibold text-white">
-                  <span className="rounded-2xl bg-gradient-to-r from-pink-500/25 via-orange-400/20 to-amber-400/20 px-4 py-2 border border-white/15 shadow-[0_0_25px_rgba(236,72,153,0.35)] text-base animate-[shine_2.6s_ease-in-out_infinite]">
-                    Score: <span className="text-3xl font-black ml-2 align-middle drop-shadow">{score}</span>
-                  </span>
-                  {delta && (
-                    <span
-                      key={delta.key}
-                      className={`px-2 py-1 rounded-full text-xs ${delta.val > 0 ? 'bg-emerald-400/25 text-emerald-50 shadow-[0_0_15px_rgba(16,185,129,0.45)]' : 'bg-rose-500/25 text-rose-50 shadow-[0_0_12px_rgba(244,63,94,0.4)]'}`}
-                      style={{ animation: 'pop 0.3s ease-out' }}
-                    >
-                      {delta.val > 0 ? `+${delta.val}` : `${delta.val}`}
-                    </span>
-                  )}
-                  {bonusFeed.slice(-3).map((b) => (
-                    <span
-                      key={b.key}
-                      className="px-2 py-1 rounded-full text-[11px] bg-white/10 border border-white/15 text-white/90"
-                      style={{ animation: 'pop 0.3s ease-out' }}
-                    >
-                      {b.msg}
-                    </span>
-                  ))}
-                </div>
-                <div className="flex items-center gap-3 text-xs text-slate-200 flex-wrap">
-                  <span className="rounded-full bg-white/5 px-2 py-1 border border-white/10">Streak: {streak} (Best: {bestStreak})</span>
-                  <span className="rounded-full bg-pink-500/15 text-pink-50 border border-pink-200/40 px-2 py-1">Mini-Ziel: {goalProgress}/{goalTarget} (+{goalReward})</span>
-                  {multiplierRemaining > 0 && (
-                    <span className="px-2 py-1 rounded-full bg-orange-400/25 text-orange-50 border border-orange-200/40">x{multiplierFactor.toFixed(2)} für {multiplierRemaining} Frage(n)</span>
-                  )}
-                  {extraTimeNext > 0 && (
-                    <span className="px-2 py-1 rounded-full bg-cyan-400/25 text-cyan-50">+{extraTimeNext}s nächste Frage</span>
-                  )}
-                  {shieldCharges > 0 && (
-                    <span className="px-2 py-1 rounded-full bg-purple-500/25 text-purple-50 border border-purple-200/40">🛡 Shield {shieldCharges}</span>
-                  )}
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-white">
+                  <div className="rounded-2xl border border-white/12 bg-white/8 backdrop-blur p-3 shadow-lg flex items-center gap-3 animate-[shine_2.6s_ease-in-out_infinite]">
+                    <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-pink-500 to-orange-400 flex items-center justify-center text-xl font-black shadow-[0_0_20px_rgba(236,72,153,0.35)]">
+                      ★
+                    </div>
+                    <div>
+                      <p className="text-[11px] uppercase tracking-[0.2em] text-white/70">Score</p>
+                      <p className="text-2xl font-black leading-tight drop-shadow">{score}</p>
+                      {delta && (
+                        <span
+                          key={delta.key}
+                          className={`mt-1 inline-flex items-center px-2 py-1 rounded-full text-[11px] ${delta.val > 0 ? 'bg-emerald-400/25 text-emerald-50' : 'bg-rose-500/25 text-rose-50'}`}
+                          style={{ animation: 'pop 0.3s ease-out' }}
+                        >
+                          {delta.val > 0 ? `+${delta.val}` : `${delta.val}`}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="rounded-2xl border border-white/12 bg-white/6 backdrop-blur p-3 shadow-lg flex items-center gap-3">
+                    <div className={`h-10 w-10 rounded-xl flex items-center justify-center text-lg font-bold ${timeLeft < 6 ? 'bg-amber-400/30 text-amber-50' : 'bg-lime-400/25 text-lime-50'}`}>
+                      ⏱
+                    </div>
+                    <div>
+                      <p className="text-[11px] uppercase tracking-[0.2em] text-white/70">Zeit</p>
+                      <p className="text-xl font-semibold">{status === 'feedback' ? '—' : `${timeLeft}s`}</p>
+                      <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden mt-1">
+                        <div className="h-full bg-gradient-to-r from-pink-500 to-amber-400" style={{ width: `${progress}%` }} />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="rounded-2xl border border-white/12 bg-white/6 backdrop-blur p-3 shadow-lg flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-xl bg-cyan-400/25 text-cyan-50 flex items-center justify-center text-lg font-bold">⚡</div>
+                    <div className="space-y-0.5">
+                      <p className="text-[11px] uppercase tracking-[0.2em] text-white/70">Buffs</p>
+                      <div className="flex gap-2 flex-wrap text-[11px]">
+                        <span className="rounded-full bg-white/10 px-2 py-0.5 border border-white/15">Streak {streak} / Best {bestStreak}</span>
+                        <span className="rounded-full bg-pink-500/15 px-2 py-0.5 border border-pink-200/40">Ziel {goalProgress}/{goalTarget}</span>
+                        {multiplierRemaining > 0 && (
+                          <span className="rounded-full bg-orange-400/25 px-2 py-0.5 border border-orange-200/40">x{multiplierFactor.toFixed(2)} · {multiplierRemaining}</span>
+                        )}
+                        {extraTimeNext > 0 && (
+                          <span className="rounded-full bg-cyan-400/25 px-2 py-0.5 border border-cyan-200/40">+{extraTimeNext}s next</span>
+                        )}
+                        {shieldCharges > 0 && (
+                          <span className="rounded-full bg-purple-500/25 px-2 py-0.5 border border-purple-200/40">🛡 {shieldCharges}</span>
+                        )}
+                        {bonusFeed.slice(-3).map((b) => (
+                          <span key={b.key} className="rounded-full bg-white/10 px-2 py-0.5 border border-white/15" style={{ animation: 'pop 0.3s ease-out' }}>
+                            {b.msg}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
                 {current.media_url && (
@@ -806,6 +814,13 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
         0% { filter: drop-shadow(0 0 0 rgba(255,255,255,0.25)); }
         50% { filter: drop-shadow(0 0 12px rgba(255,255,255,0.45)); }
         100% { filter: drop-shadow(0 0 0 rgba(255,255,255,0.25)); }
+      }
+      @keyframes shake {
+        0% { transform: translateX(0); }
+        25% { transform: translateX(-1px); }
+        50% { transform: translateX(1px); }
+        75% { transform: translateX(-1px); }
+        100% { transform: translateX(0); }
       }
     `}</style>
   </>
