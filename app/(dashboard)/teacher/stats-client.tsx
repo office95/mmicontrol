@@ -134,12 +134,6 @@ function Kpi({
         </span>
         <span className={`text-[11px] ${color}`}>{label}</span>
       </div>
-      <div className="mt-3 h-[3px] w-full rounded-full bg-white/10 overflow-hidden">
-        <div
-          className="h-full rounded-full bg-gradient-to-r from-pink-400 via-fuchsia-400 to-cyan-300 shadow-[0_0_14px_rgba(255,255,255,0.35)]"
-          style={{ width: `${Math.min(100, diff !== null && compare ? Math.abs((diff / (compare || 1)) * 100) : 65)}%` }}
-        />
-      </div>
     </div>
   );
 }
