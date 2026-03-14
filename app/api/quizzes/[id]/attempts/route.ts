@@ -44,7 +44,7 @@ export async function POST(req: Request, ctx: { params: { id: string } }) {
   if (!allowed) return NextResponse.json({ error: 'forbidden' }, { status: 403 });
 
   const body = await req.json().catch(() => ({}));
-  const { alias, answers = [] } = body || {};
+  const { alias, answers = [], score: clientScore, max_score: clientMaxScore } = body || {};
 
   // Bundesland als Alias, falls vorhanden
   const { data: student } = await supa
@@ -81,7 +81,7 @@ export async function POST(req: Request, ctx: { params: { id: string } }) {
     ])
   );
 
-  let score = 0;
+  let computedScore = 0;
   const details = (Array.isArray(answers) ? answers : []).map((a: any, idx: number) => {
     const meta = questionMap.get(a.question_id) || { difficulty: 'medium', correct: [] };
     const picked = (a.option_ids ?? a.selected_option_ids ?? []) as string[];
@@ -91,7 +91,7 @@ export async function POST(req: Request, ctx: { params: { id: string } }) {
     const timeBonus = Math.max(timePerQuestion * 1000 - spentMs, 0) / 1000 * 5; // 5 Punkte pro Sekunde Rest
     const base = difficultyFactor[meta.difficulty] || 120;
     const points = isCorrect ? Math.round(base + timeBonus) : 0;
-    score += points;
+    computedScore += points;
     return {
       attempt_id: null as any, // wird nach Insert gesetzt
       question_id: a.question_id,
@@ -103,13 +103,15 @@ export async function POST(req: Request, ctx: { params: { id: string } }) {
     };
   });
 
-  const max_score = (qrows || []).reduce((s: number, q: any) => s + (difficultyFactor[q.difficulty] || 120) + timePerQuestion * 5, 0);
+  const computedMaxScore = (qrows || []).reduce((s: number, q: any) => s + (difficultyFactor[q.difficulty] || 120) + timePerQuestion * 5, 0);
   const duration_sec = (Array.isArray(answers) ? answers : []).reduce((s: number, a: any) => s + Math.round((a.time_ms ?? 0) / 1000), 0);
   const level_reached = details.length;
+  const finalScore = typeof clientScore === 'number' ? clientScore : computedScore;
+  const finalMax = typeof clientMaxScore === 'number' ? clientMaxScore : computedMaxScore;
 
   const { data: attempt, error: insErr } = await supa
     .from('quiz_attempts')
-    .insert({ quiz_id: quizId, user_id: user.id, score, max_score, level_reached, duration_sec, alias: safeAlias, completed_at: new Date().toISOString() })
+    .insert({ quiz_id: quizId, user_id: user.id, score: finalScore, max_score: finalMax, level_reached, duration_sec, alias: safeAlias, completed_at: new Date().toISOString() })
     .select()
     .single();
 
