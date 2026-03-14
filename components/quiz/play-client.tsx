@@ -124,11 +124,20 @@ export default function QuizPlayClient({ quizzes, initialQuizId, initialAlias }:
   const [fxBurst, setFxBurst] = useState<number | null>(null);
   const [aliasLocked, setAliasLocked] = useState(() => {
     if (typeof window !== 'undefined') {
+      const locked = window.localStorage.getItem(`${ALIAS_KEY}_locked`);
+      if (locked === '1') return true;
       const stored = window.localStorage.getItem(ALIAS_KEY);
-      if (stored && stored.trim().length > 0) return true;
+      if (stored && stored.trim().length > 0) return false;
     }
-    if (initialAlias && initialAlias.trim().length > 0) return true;
+    if (initialAlias && initialAlias.trim().length > 0) return false;
     return false;
+  });
+  const [aliasSaves, setAliasSaves] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saves = window.localStorage.getItem(`${ALIAS_KEY}_saves`);
+      if (saves) return Number(saves) || 0;
+    }
+    return initialAlias && initialAlias.trim().length > 0 ? 1 : 0;
   });
 
   const current = questions[idx];
@@ -439,7 +448,8 @@ export default function QuizPlayClient({ quizzes, initialQuizId, initialAlias }:
                 onClick={async () => {
                   const val = alias.trim();
                   if (!val || aliasLocked) return;
-                  if (!window.confirm('Name wird dauerhaft gespeichert und kann nicht geändert werden. Fortfahren?')) return;
+                  const remaining = aliasSaves === 0 ? 'Du kannst den Alias noch einmal ändern.' : 'Dies ist die letzte Änderung – danach fix.';
+                  if (!window.confirm(`${remaining} Jetzt speichern?`)) return;
                   setAliasSaving(true);
                   try {
                     const res = await fetch('/api/profile/alias', {
@@ -449,7 +459,14 @@ export default function QuizPlayClient({ quizzes, initialQuizId, initialAlias }:
                     });
                     if (!res.ok) throw new Error('Alias speichern fehlgeschlagen');
                     window.localStorage.setItem(ALIAS_KEY, val);
-                    setAliasLocked(true);
+                    const newSaves = aliasSaves + 1;
+                    setAliasSaves(newSaves);
+                    window.localStorage.setItem(`${ALIAS_KEY}_saves`, String(newSaves));
+                    const shouldLock = newSaves >= 2;
+                    if (shouldLock) {
+                      setAliasLocked(true);
+                      window.localStorage.setItem(`${ALIAS_KEY}_locked`, '1');
+                    }
                   } catch (e) {
                     // optional: Fehlermeldung anzeigen
                   } finally {
@@ -457,13 +474,15 @@ export default function QuizPlayClient({ quizzes, initialQuizId, initialAlias }:
                   }
                 }}
               >
-                {aliasSaving ? 'Speichere…' : 'Name speichern'}
+                {aliasSaving ? 'Speichere…' : aliasSaves === 0 ? 'Alias speichern' : 'Letzte Änderung speichern'}
               </button>
             )}
             {aliasLocked ? (
-              <span className="text-[11px] text-emerald-200">Name fixiert – bleibt dauerhaft</span>
+              <span className="text-[11px] text-emerald-200">Alias fixiert – bleibt dauerhaft</span>
             ) : (
-              <span className="text-[11px] text-slate-200">Einmal speichern, dann dauerhaft unveränderbar</span>
+              <span className="text-[11px] text-slate-200">
+                {aliasSaves === 0 ? 'Du darfst den Alias einmal ändern.' : 'Letzte Chance, dann dauerhaft fix.'}
+              </span>
             )}
           </div>
         </div>
