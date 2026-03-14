@@ -269,6 +269,29 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
         </div>
       </div>
 
+      <div className="rounded-2xl border border-white/8 bg-white/5 p-3 shadow-xl overflow-x-auto">
+        <div className="flex gap-2 min-w-full">
+          {quizzes.map((q) => (
+            <button
+              key={q.id}
+              onClick={() => setSelected(q)}
+              className={`shrink-0 rounded-full border px-3 py-2 text-left text-xs font-semibold transition whitespace-nowrap ${
+                selected?.id === q.id
+                  ? 'border-pink-400 bg-pink-500/15 text-white shadow shadow-pink-500/30'
+                  : 'border-white/15 bg-white/5 text-slate-100 hover:border-pink-300/60'
+              }`}
+              aria-pressed={selected?.id === q.id}
+            >
+              <span className="inline-flex items-center gap-2">
+                <span className="rounded-full bg-pink-500/20 px-2 py-0.5 text-[10px] font-bold text-pink-100">L{q.level_count}</span>
+                <span className="truncate max-w-[14ch] md:max-w-[18ch] lg:max-w-[22ch]">{q.title}</span>
+                <span className="text-[10px] text-slate-300">{q.time_per_question}s</span>
+              </span>
+            </button>
+          ))}
+        </div>
+      </div>
+
       {showPoints && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
           <div className="w-full max-w-xl rounded-2xl border border-white/15 bg-slate-950/95 text-white shadow-2xl p-6 relative">
@@ -293,24 +316,9 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
         </div>
       )}
 
-      <div className="grid md:grid-cols-[2fr,1fr] gap-5">
+      <div className="grid md:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] gap-5">
         <div className="space-y-4">
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {quizzes.map((q) => (
-              <button
-                key={q.id}
-                onClick={() => setSelected(q)}
-                className={`rounded-xl border ${selected?.id === q.id ? 'border-pink-400 bg-pink-500/10' : 'border-white/10 bg-white/5'} p-4 text-left shadow hover:border-pink-300/60 transition`}
-              >
-                <p className="text-xs uppercase tracking-[0.2em] text-pink-200">Level {q.level_count}</p>
-                <h3 className="text-lg font-semibold text-white">{q.title}</h3>
-                <p className="text-sm text-slate-200 line-clamp-2">{q.description || 'Kein Beschreibungstext'}</p>
-                <p className="mt-2 text-xs text-slate-400">Zeit/Frage: {q.time_per_question}s</p>
-              </button>
-            ))}
-          </div>
-
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-5 shadow-xl min-h-[240px]">
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-5 shadow-xl min-h-[260px]">
             {loading && <p className="text-sm text-slate-300">Lade Fragen...</p>}
             {error && <p className="text-sm text-red-300">{error}</p>}
 
