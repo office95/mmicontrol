@@ -243,30 +243,28 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
   const progress = useMemo(() => ((idx + (status === 'feedback' || status === 'done' ? 1 : 0)) / Math.max(questions.length, 1)) * 100, [idx, questions.length, status]);
 
   return (
-    <div className="space-y-6">
-      <div className="rounded-2xl border border-white/10 bg-white/5 p-5 shadow-xl">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-          <div>
-            <p className="text-xs uppercase tracking-[0.24em] text-pink-200">Lern-Quiz</p>
-            <h1 className="text-2xl font-semibold text-white">Teste dein Wissen</h1>
-            <p className="text-sm text-slate-200">Level, Zeitdruck, anonyme Bestenliste.</p>
-          </div>
-          <div className="flex flex-wrap gap-2 text-xs text-slate-200">
-            <input
-              className="rounded-full border border-white/20 bg-black/40 px-3 py-2 text-sm text-white"
-              value={alias}
-              onChange={(e) => setAlias(e.target.value)}
-              maxLength={40}
-              placeholder="Alias für Ranking"
-            />
-            <button
-              className="rounded-full border border-pink-400 bg-pink-500/80 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-pink-500/30"
-              onClick={() => setAlias(randomAlias())}
-              type="button"
-            >
-              Alias neu
-            </button>
-          </div>
+    <div className="space-y-5">
+      <div className="rounded-2xl border border-white/10 bg-white/6 p-4 shadow-xl flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="text-[11px] uppercase tracking-[0.24em] text-pink-200">Lern-Quiz</p>
+          <h1 className="text-2xl font-semibold text-white">Teste dein Wissen</h1>
+          <p className="text-sm text-slate-200">Level, Zeitdruck, anonyme Bestenliste.</p>
+        </div>
+        <div className="flex flex-wrap gap-2 text-xs text-slate-200">
+          <input
+            className="rounded-full border border-white/20 bg-black/40 px-3 py-2 text-sm text-white"
+            value={alias}
+            onChange={(e) => setAlias(e.target.value)}
+            maxLength={40}
+            placeholder="Alias für Ranking"
+          />
+          <button
+            className="rounded-full border border-pink-400 bg-pink-500/80 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-pink-500/30"
+            onClick={() => setAlias(randomAlias())}
+            type="button"
+          >
+            Alias neu
+          </button>
         </div>
       </div>
 
@@ -321,12 +319,12 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
 
       <div className="grid md:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] gap-5">
         <div className="space-y-4">
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-5 shadow-xl min-h-[260px]">
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-5 shadow-xl min-h-[260px] relative overflow-hidden">
             {loading && <p className="text-sm text-slate-300">Lade Fragen...</p>}
             {error && <p className="text-sm text-red-300">{error}</p>}
 
             {!loading && !error && selected && status === 'intro' && (
-              <div className="space-y-3">
+              <div className="space-y-4">
                 <h2 className="text-xl font-semibold text-white">{selected.title}</h2>
                 <p className="text-sm text-slate-200">{selected.description || 'Bereit?'}</p>
                 <div className="flex flex-wrap gap-3 text-sm text-slate-200">
@@ -334,9 +332,10 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
                   <span className="rounded-full border border-white/15 px-3 py-1">Level: {selected.level_count}</span>
                   <span className="rounded-full border border-white/15 px-3 py-1">Zeit/Frage: {selected.time_per_question}s</span>
                 </div>
+                <p className="text-xs text-slate-400">+5 Punkte pro verbleibender Sekunde. Schnell sein lohnt sich.</p>
                 <button
                   onClick={start}
-                  className="mt-2 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-pink-500 to-orange-400 px-5 py-2 text-sm font-semibold text-white shadow-lg"
+                  className="mt-1 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-pink-500 to-orange-400 px-5 py-2 text-sm font-semibold text-white shadow-lg"
                 >
                   Starten
                 </button>
@@ -345,20 +344,25 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
 
             {!loading && !error && selected && (status === 'playing' || status === 'feedback') && current && (
               <div className="space-y-4">
-                <div className="flex items-center justify-between text-sm text-slate-200">
-                  <span>Frage {idx + 1} / {questions.length}</span>
-                  <span className={`font-semibold ${timeLeft < 6 ? 'text-amber-300' : 'text-lime-200'}`}>
-                    {status === 'feedback' ? '—' : `${timeLeft}s`}
+                <div className="absolute top-4 right-4">
+                  <span
+                    className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold border ${
+                      timeLeft < 6 ? 'border-amber-300 bg-amber-400/20 text-amber-50' : 'border-lime-300 bg-lime-400/15 text-lime-50'
+                    }`}
+                  >
+                    ⏱ {status === 'feedback' ? '—' : `${timeLeft}s`}
                   </span>
                 </div>
-                <div className="h-2 rounded-full bg-white/10 overflow-hidden">
-                  <div className="h-full bg-gradient-to-r from-pink-500 to-amber-400" style={{ width: `${progress}%` }} />
-                </div>
-                <p className="text-lg font-semibold text-white leading-relaxed">{current.prompt}</p>
+
+                <div className="text-sm text-slate-200 font-semibold">Frage {idx + 1} / {questions.length}</div>
+
                 {current.media_url && (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={current.media_url} alt="Frage Media" className="max-h-48 w-full object-contain rounded-xl border border-white/10" />
                 )}
+
+                <p className="text-lg font-semibold text-white leading-relaxed">{current.prompt}</p>
+
                 <div className="space-y-2">
                   {current.options.map((o) => {
                     const active = picked.includes(o.id);
@@ -366,43 +370,61 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
                     const isCorrect = o.is_correct;
                     const showCorrect = showFeedback && isCorrect;
                     const showWrong = showFeedback && active && !isCorrect;
+                    const icon = showCorrect ? '✔' : showWrong ? '✖' : active ? '●' : '○';
                     return (
                       <button
                         key={o.id}
                         onClick={() => handleToggle(o.id)}
                         disabled={showFeedback}
-                        className={`w-full text-left rounded-xl border px-4 py-3 text-sm font-semibold transition ${
+                        className={`w-full text-left rounded-xl border px-4 py-3 text-sm font-semibold transition flex items-center gap-3 ${
                           showCorrect
                             ? 'border-emerald-400 bg-emerald-500/15 text-white'
                             : showWrong
                               ? 'border-rose-400 bg-rose-500/15 text-white'
                               : active
-                                ? 'border-pink-400 bg-pink-500/15 text-white'
+                                ? 'border-pink-400 bg-pink-500/12 text-white shadow-[0_0_0_1px] shadow-pink-400/30'
                                 : 'border-white/10 bg-white/5 text-slate-100 hover:border-pink-300/40'
                         } ${showFeedback ? 'cursor-default' : ''}`}
                       >
-                        {o.label}
+                        <span
+                          className={`inline-flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-bold ${
+                            showCorrect
+                              ? 'bg-emerald-500 text-slate-950'
+                              : showWrong
+                                ? 'bg-rose-400 text-slate-950'
+                                : active
+                                  ? 'bg-pink-400 text-slate-950'
+                                  : 'bg-white/10 text-white'
+                          }`}
+                        >
+                          {icon}
+                        </span>
+                        <span className="leading-snug">{o.label}</span>
                       </button>
                     );
                   })}
                 </div>
 
                 {status === 'feedback' && feedback && (
-                  <div className={`rounded-xl border px-4 py-3 text-sm ${
+                  <div className={`rounded-xl border px-4 py-3 text-sm flex items-center gap-2 ${
                     feedback.isCorrect
                       ? 'border-emerald-400 bg-emerald-500/10 text-emerald-50'
                       : 'border-rose-400 bg-rose-500/10 text-rose-50'
                   }`}>
-                    {feedback.isCorrect ? 'Richtig! Gut gemacht.' : 'Falsch. Richtige Antwort:'}{' '}
+                    <span>{feedback.isCorrect ? '✅ Richtig!' : '❌ Falsch.'}</span>
                     {!feedback.isCorrect && (
-                      <span className="font-semibold">
-                        {current.options.filter((o) => o.is_correct).map((o) => o.label).join(', ')}
+                      <span className="text-slate-100">
+                        Richtige Antwort: <span className="font-semibold">{current.options.filter((o) => o.is_correct).map((o) => o.label).join(', ')}</span>
                       </span>
                     )}
                   </div>
                 )}
 
-                <div className="flex justify-end">
+                <div className="h-2 rounded-full bg-white/8 overflow-hidden">
+                  <div className="h-full bg-gradient-to-r from-pink-500 to-amber-400" style={{ width: `${progress}%` }} />
+                </div>
+
+                <div className="flex justify-end gap-2">
                   {status === 'playing' && (
                     <button
                       onClick={handleSubmit}
@@ -416,7 +438,7 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
                       onClick={goNext}
                       className="rounded-full bg-pink-500 px-5 py-2 text-sm font-semibold text-white shadow-lg hover:bg-pink-400"
                     >
-                      {idx >= questions.length - 1 ? 'Ergebnis speichern' : 'Nächste Frage'}
+                      {idx >= questions.length - 1 ? 'Ergebnis speichern' : 'Weiter'}
                     </button>
                   )}
                 </div>
@@ -425,8 +447,15 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
 
             {!loading && !error && status === 'done' && (
               <div className="space-y-4">
-                <h2 className="text-xl font-semibold text-white">Geschafft!</h2>
-                <p className="text-sm text-slate-200">Score: {answers.reduce((s, a) => s + (a.points || 0), 0)} Punkte</p>
+                <div className="flex items-center gap-3">
+                  <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-pink-500 text-lg font-bold text-white">
+                    🏁
+                  </span>
+                  <div>
+                    <h2 className="text-xl font-semibold text-white">Geschafft!</h2>
+                    <p className="text-sm text-slate-200">Score: {answers.reduce((s, a) => s + (a.points || 0), 0)} Punkte</p>
+                  </div>
+                </div>
                 <div className="flex gap-3">
                   <button
                     className="rounded-full border border-white/20 px-4 py-2 text-sm text-white"
