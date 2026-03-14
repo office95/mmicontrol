@@ -78,6 +78,13 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
   const [score, setScore] = useState(0);
   const [delta, setDelta] = useState<{ val: number; positive: boolean; key: number } | null>(null);
   const [praise, setPraise] = useState<string | null>(null);
+  const [streak, setStreak] = useState(0);
+  const [goalProgress, setGoalProgress] = useState(0);
+  const goalTarget = 3;
+  const goalReward = 50;
+  const [multiplierRemaining, setMultiplierRemaining] = useState(0);
+  const [extraTimeNext, setExtraTimeNext] = useState(0);
+  const [showMilestone, setShowMilestone] = useState(false);
 
   const current = questions[idx];
 
@@ -153,6 +160,11 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
     setScore(0);
     setDelta(null);
     setPraise(null);
+    setStreak(0);
+    setGoalProgress(0);
+    setMultiplierRemaining(0);
+    setExtraTimeNext(0);
+    setShowMilestone(false);
   };
 
   const handleToggle = (id: string) => {
@@ -178,11 +190,31 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
 
     const base = difficultyFactor[current.difficulty] || 100;
     const timeBonus = Math.max(timeLeft - 1, 0) * 5;
-    const points = isCorrect ? base + timeBonus : 0;
+    let points = isCorrect ? base + timeBonus : 0;
+    if (multiplierRemaining > 0) {
+      points = Math.round(points * 1.1);
+    }
     const deltaVal = isCorrect ? points : 0;
     setScore((prev) => prev + deltaVal);
     setDelta({ val: deltaVal, positive: isCorrect, key: Date.now() });
     setPraise(isCorrect ? praisePool[Math.floor(Math.random() * praisePool.length)] : null);
+    setStreak((prev) => (isCorrect ? prev + 1 : 0));
+
+    // Mini-Ziel: 3 richtige in Folge
+    setGoalProgress((prev) => {
+      const next = isCorrect ? prev + 1 : 0;
+      if (next >= goalTarget) {
+        setScore((s) => s + goalReward);
+        setDelta({ val: goalReward, positive: true, key: Date.now() + 1 });
+        return 0; // Reset nach Belohnung
+      }
+      return next;
+    });
+
+    // Milestone nach jeder 10. beantworteten Frage (1-based Index)
+    if ((idx + 1) % 10 === 0) {
+      setShowMilestone(true);
+    }
 
     const draft: AnswerDraft = {
       question_id: current.id,
@@ -216,7 +248,9 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
     setPicked([]);
     setFeedback(null);
     setStatus('playing');
-    setTimeLeft(selected?.time_per_question || 30);
+    setTimeLeft((selected?.time_per_question || 30) + extraTimeNext);
+    setExtraTimeNext(0);
+    setMultiplierRemaining((prev) => (prev > 0 ? prev - 1 : 0));
   };
 
   const saveAttempt = async (all: AnswerDraft[]) => {
@@ -379,6 +413,16 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
                     </span>
                   )}
                 </div>
+                <div className="flex items-center gap-3 text-xs text-slate-300">
+                  <span>Streak: {streak}</span>
+                  <span>Mini-Ziel: {goalProgress}/{goalTarget} ( +{goalReward} )</span>
+                  {multiplierRemaining > 0 && (
+                    <span className="px-2 py-1 rounded-full bg-orange-400/25 text-orange-50">+10% für {multiplierRemaining} Frage(n)</span>
+                  )}
+                  {extraTimeNext > 0 && (
+                    <span className="px-2 py-1 rounded-full bg-cyan-400/25 text-cyan-50">+{extraTimeNext}s nächste Frage</span>
+                  )}
+                </div>
 
                 {current.media_url && (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -522,7 +566,7 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
             </div>
             <p className="mt-2 text-sm text-slate-200">Wie die Punkte berechnet werden.</p>
           </div>
-          <div className="rounded-2xl border border-white/10 bg-slate-950/70 p-4 shadow-xl">
+      <div className="rounded-2xl border border-white/10 bg-slate-950/70 p-4 shadow-xl">
             <div className="flex items-center justify-between gap-2 flex-wrap">
               <div>
                 <h3 className="text-lg font-semibold text-white">Leaderboard</h3>
@@ -561,6 +605,40 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
           </div>
         </div>
       </div>
+      {showMilestone && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
+          <div className="w-full max-w-md rounded-2xl border border-white/15 bg-slate-950/95 text-white shadow-2xl p-6 space-y-4">
+            <h3 className="text-xl font-semibold">Next Level erreicht!</h3>
+            <p className="text-sm text-slate-200">Wähle ein Power-Up für die nächsten Fragen.</p>
+            <div className="grid gap-3">
+              <button
+                className="rounded-xl border border-cyan-300 bg-cyan-500/15 px-4 py-3 text-left hover:border-cyan-200"
+                onClick={() => {
+                  setExtraTimeNext(5);
+                  setShowMilestone(false);
+                }}
+              >
+                ⏱ +5 Sekunden Zeitbonus für die nächste Frage
+              </button>
+              <button
+                className="rounded-xl border border-amber-300 bg-amber-500/15 px-4 py-3 text-left hover:border-amber-200"
+                onClick={() => {
+                  setMultiplierRemaining(3);
+                  setShowMilestone(false);
+                }}
+              >
+                ✨ +10% Punkte-Multiplikator für die nächsten 3 Fragen
+              </button>
+            </div>
+            <button
+              className="w-full rounded-full border border-white/30 px-4 py-2 text-sm hover:bg-white/10"
+              onClick={() => setShowMilestone(false)}
+            >
+              Weiter ohne Power-Up
+            </button>
+          </div>
+        </div>
+      )}
     </div>
     <style jsx global>{`
       @keyframes pop {
