@@ -211,7 +211,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
 
       {/* Content area below header */}
       <div className="pt-28 pb-12 px-3 md:px-6">
-        <div className="w-full max-w-[1440px] mx-auto flex gap-8">
+        <div className={`w-full mx-auto flex gap-8 ${!isTeacher && !isStudent ? 'max-w-[1600px]' : 'max-w-[1440px]'}`}>
           {!isTeacher && !isStudent && (
             <aside className="hidden md:flex fixed top-28 bottom-6 left-4 w-64 flex-col rounded-2xl border border-white/12 bg-slate-950/85 backdrop-blur-xl text-white shadow-2xl text-[15px]">
               <nav className="flex-1 px-4 py-6 space-y-2">
