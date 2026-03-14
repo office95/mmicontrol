@@ -904,7 +904,7 @@ export default async function TeacherPage() {
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 bg-white/10 border border-white/15 rounded-xl p-6 shadow-lg relative overflow-hidden">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 bg-gradient-to-br from-slate-950/90 via-slate-900/85 to-slate-950/90 border border-white/12 rounded-2xl p-6 shadow-2xl relative overflow-hidden">
         <div className="space-y-1">
           <p className="text-[12px] uppercase tracking-[0.28em] text-pink-200 mb-1">Willkommen</p>
           <p className="text-2xl font-semibold text-white">Hallo {fullName}, schön dass du da bist.</p>
