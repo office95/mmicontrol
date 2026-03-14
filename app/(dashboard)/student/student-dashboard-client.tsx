@@ -115,6 +115,21 @@ export default function StudentDashboardClient({
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [reminderVisible, setReminderVisible] = useState<boolean>(!!feedbackReminder);
+  const kpiSummary = useMemo(() => {
+    const total = bookings.length;
+    const totalAmount = bookings.reduce((sum, b) => sum + Number(b.amount ?? 0), 0);
+    const openAmount = bookings.reduce((sum, b) => sum + Number((b as any).open_amount ?? (b as any).saldo ?? 0), 0);
+    const nextStart = bookings
+      .map((b: any) => b?.reschedule?.latest?.new_start_date || b.course_start || null)
+      .filter(Boolean)
+      .map((d: string) => new Date(d))
+      .filter((d) => !isNaN(d.getTime()))
+      .sort((a, b) => a.getTime() - b.getTime())[0] || null;
+    const avgAmount = total ? totalAmount / total : 0;
+    return { total, totalAmount, openAmount, nextStart, avgAmount };
+  }, [bookings]);
+
+  const formatEuro = (val: number) => `${val.toLocaleString('de-AT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`;
 
   // sanftes Auto-Scroll der Empfehlungen (nur wenn Tab aktiv)
   useEffect(() => {
@@ -184,8 +199,8 @@ export default function StudentDashboardClient({
     <div className="min-h-screen flex flex-col space-y-10">
       <div className="flex-1 space-y-10">
       {/* Tabs innerhalb des Student-Dashboards */}
-      <nav className="sticky top-0 z-30 -mx-4 px-4 pt-3 pb-4 bg-slate-950/85 border-b border-white/10 backdrop-blur-lg shadow-lg">
-        <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-sm font-semibold text-white/85">
+      <nav className="sticky top-0 z-30 -mx-4 px-4 pt-3 pb-4">
+        <div className="rounded-3xl border border-white/12 bg-slate-950/85 backdrop-blur-2xl shadow-[0_16px_48px_rgba(0,0,0,0.35)] px-3 py-3 flex flex-wrap items-center gap-2 sm:gap-3 text-sm font-semibold text-white/85 overflow-x-auto">
           {([
             { key: 'bookings', label: 'Dashboard', tab: 'bookings' },
             { key: 'materials', label: 'Kursunterlagen', tab: 'materials' },
@@ -226,6 +241,18 @@ export default function StudentDashboardClient({
 
       {tab === 'bookings' && (
         <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <StudentKpi label="Buchungen" value={kpiSummary.total} hint="aktuell aktiv" tone="pink" />
+            <StudentKpi label="Ø Kurswert" value={kpiSummary.avgAmount ? formatEuro(kpiSummary.avgAmount) : '—'} hint="pro Buchung" />
+            <StudentKpi label="Offen" value={kpiSummary.openAmount ? formatEuro(kpiSummary.openAmount) : '—'} hint="offene Beträge" tone="amber" />
+            <StudentKpi
+              label="Nächster Start"
+              value={kpiSummary.nextStart ? kpiSummary.nextStart.toLocaleDateString() : '—'}
+              hint={kpiSummary.nextStart ? 'bereits geplant' : 'kein Termin hinterlegt'}
+              tone="cyan"
+            />
+          </div>
+
           <div className="text-white text-lg font-semibold">
             {bookings.length > 1 ? 'Deine aktuellen Buchungen' : 'Deine aktuelle Buchung'}
           </div>
@@ -832,6 +859,25 @@ function FeedbackModal({ booking, existing, readOnly, onClose }: { booking: Book
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+function StudentKpi({ label, value, hint, tone = 'slate' }: { label: string; value: string | number; hint?: string; tone?: 'pink' | 'amber' | 'cyan' | 'slate' }) {
+  const tones = {
+    pink: { glow: 'bg-pink-500/20', bar: 'bg-gradient-to-r from-pink-400 via-rose-400 to-amber-300' },
+    amber: { glow: 'bg-amber-400/25', bar: 'bg-gradient-to-r from-amber-400 via-yellow-300 to-orange-400' },
+    cyan: { glow: 'bg-cyan-400/20', bar: 'bg-gradient-to-r from-cyan-400 via-sky-400 to-emerald-300' },
+    slate: { glow: 'bg-white/15', bar: 'bg-gradient-to-r from-white/40 via-white/30 to-white/10' },
+  } as const;
+  const toneCfg = tones[tone] || tones.slate;
+  return (
+    <div className="relative overflow-hidden rounded-2xl border border-white/12 bg-gradient-to-br from-white/10 via-white/5 to-transparent backdrop-blur-2xl p-4 text-white shadow-[0_14px_40px_rgba(0,0,0,0.28)]">
+      <div className={`absolute -right-10 -top-10 h-28 w-28 rounded-full blur-3xl ${toneCfg.glow}`} />
+      <div className={`absolute inset-x-0 top-0 h-[2px] ${toneCfg.bar}`} />
+      <p className="text-[11px] uppercase tracking-[0.2em] text-white/60 mb-1">{label}</p>
+      <p className="text-2xl font-semibold leading-tight drop-shadow-sm">{value}</p>
+      {hint && <p className="text-xs text-white/70 mt-1">{hint}</p>}
     </div>
   );
 }

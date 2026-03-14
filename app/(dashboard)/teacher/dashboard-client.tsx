@@ -264,8 +264,8 @@ export default function DashboardClient({
   return (
     <div className="min-h-screen flex flex-col space-y-8">
       <div className="flex-1 space-y-8">
-        <nav className="sticky top-0 z-30 -mx-4 px-4 pt-3 pb-4 bg-slate-950/85 border-b border-white/10 backdrop-blur-lg shadow-lg">
-          <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-sm font-semibold text-white/85">
+        <nav className="sticky top-0 z-30 -mx-4 px-4 pt-3 pb-4">
+          <div className="rounded-3xl border border-white/15 bg-slate-950/85 backdrop-blur-2xl shadow-[0_16px_48px_rgba(0,0,0,0.35)] px-3 py-3 flex flex-wrap items-center gap-2 sm:gap-3 text-sm font-semibold text-white/85 overflow-x-auto">
             <button
               className={`px-3 py-2 rounded-full border transition ${tab === 'perf' ? 'border-pink-400 bg-pink-500/15 text-white shadow-pink-500/20 shadow-sm' : 'border-white/15 bg-white/5 hover:border-pink-300 hover:text-white'}`}
               onClick={() => setTab('perf')}

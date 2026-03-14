@@ -103,7 +103,7 @@ function Kpi({
         ? `${sign} Δ ${Math.abs(diff)} (${pct !== null ? `${pct.toFixed(1)}%` : 'n/a'}) vs. VJ`
         : `${sign} Δ ${Math.abs(diff)} (${pct !== null ? `${pct.toFixed(1)}%` : 'n/a'}) vs. VJ`
       : '—');
-  const baseCard = 'rounded-2xl border border-white/12 bg-white/8 backdrop-blur-xl p-4 text-white shadow-[0_12px_36px_rgba(0,0,0,0.2)]';
+  const baseCard = 'relative overflow-hidden rounded-2xl border border-white/12 bg-gradient-to-br from-white/10 via-white/6 to-transparent backdrop-blur-2xl p-4 text-white shadow-[0_18px_48px_rgba(0,0,0,0.28)]';
   const diffPill =
     diff === null
       ? 'border-white/20 text-white/70'
@@ -112,18 +112,45 @@ function Kpi({
         : diff < 0
           ? 'border-amber-200/70 bg-amber-100/15 text-amber-50'
           : 'border-white/25 bg-white/10 text-white/80';
+  const icon = pickIcon(title);
   return (
     <div className={baseCard}>
-      <p className="text-[11px] uppercase tracking-[0.2em] text-white/60 mb-2">{title}</p>
-      <p className="text-3xl font-semibold drop-shadow-sm text-white">{value}</p>
-      <div className="mt-2 flex items-center gap-2 text-[11px]">
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute -right-10 -top-12 h-32 w-32 rounded-full bg-pink-500/15 blur-3xl" />
+        <div className="absolute -left-14 bottom-0 h-28 w-28 rounded-full bg-cyan-400/10 blur-3xl" />
+      </div>
+      <div className="relative flex items-start justify-between gap-3">
+        <div>
+          <p className="text-[11px] uppercase tracking-[0.2em] text-white/60 mb-1">{title}</p>
+          <p className="text-3xl font-semibold drop-shadow-sm text-white leading-tight">{value}</p>
+        </div>
+        <div className="h-10 w-10 rounded-xl bg-white/10 border border-white/15 grid place-items-center text-lg shadow-inner">
+          {icon}
+        </div>
+      </div>
+      <div className="mt-3 flex items-center gap-2 text-[11px]">
         <span className={`inline-flex items-center gap-1 rounded-full px-2 py-1 border ${diffPill}`}>
           {sign || '·'} {diff !== null ? Math.abs(diff) : '—'}
         </span>
         <span className={`text-[11px] ${color}`}>{label}</span>
       </div>
+      <div className="mt-3 h-[3px] w-full rounded-full bg-white/10 overflow-hidden">
+        <div
+          className="h-full rounded-full bg-gradient-to-r from-pink-400 via-fuchsia-400 to-cyan-300 shadow-[0_0_14px_rgba(255,255,255,0.35)]"
+          style={{ width: `${Math.min(100, diff !== null && compare ? Math.abs((diff / (compare || 1)) * 100) : 65)}%` }}
+        />
+      </div>
     </div>
   );
+}
+
+function pickIcon(title: string) {
+  const key = title.toLowerCase();
+  if (key.includes('buchung')) return '🧾';
+  if (key.includes('teilnehmer')) return '👥';
+  if (key.includes('bewertung')) return '⭐';
+  if (key.includes('jahr')) return '📆';
+  return '📊';
 }
 
 function Card({ title, className, children }: { title: string; className?: string; children: React.ReactNode }) {
