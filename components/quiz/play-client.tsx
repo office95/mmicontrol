@@ -322,6 +322,9 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
     if (multiplierRemaining > 0 && multiplierRemaining - 1 <= 0) {
       setMultiplierFactor(1.1);
     }
+    if (extraTimeNext > 0) {
+      // Verbrauchter Time-Bonus wird entfernt (Badge verschwindet durch state reset oben)
+    }
     questionStartRef.current = Date.now();
   };
 
@@ -350,7 +353,7 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
     setSaving(true);
     try {
       const baseScore = all.reduce((s, a) => s + (a.points || 0), 0);
-      const scoreWithBonus = Math.max(score, baseScore + bonusScore); // sicher: Anzeige = gespeicherter Score
+      const scoreWithBonus = Math.max(score, baseScore + bonusScore); // Anzeige = gespeicherter Score
       const max_score = all.length * 200 + bonusScore;
       const res = await fetch(`/api/quizzes/${selected.id}/attempts`, {
         method: 'POST',
@@ -509,8 +512,8 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
                 <div className="text-sm text-slate-200 font-semibold">Frage {idx + 1} / {questions.length}</div>
 
                 <div className="flex flex-wrap items-center gap-3 text-sm font-semibold text-white">
-                  <span className="rounded-2xl bg-gradient-to-r from-pink-500/25 via-orange-400/20 to-amber-400/20 px-4 py-2 border border-white/15 shadow-[0_0_25px_rgba(236,72,153,0.35)] text-base">
-                    Score: <span className="text-2xl font-black ml-2 align-middle">{score}</span>
+                  <span className="rounded-2xl bg-gradient-to-r from-pink-500/25 via-orange-400/20 to-amber-400/20 px-4 py-2 border border-white/15 shadow-[0_0_25px_rgba(236,72,153,0.35)] text-base animate-[shine_2.6s_ease-in-out_infinite]">
+                    Score: <span className="text-3xl font-black ml-2 align-middle drop-shadow">{score}</span>
                   </span>
                   {delta && (
                     <span
@@ -531,14 +534,17 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
                     </span>
                   ))}
                 </div>
-                <div className="flex items-center gap-3 text-xs text-slate-200">
+                <div className="flex items-center gap-3 text-xs text-slate-200 flex-wrap">
                   <span className="rounded-full bg-white/5 px-2 py-1 border border-white/10">Streak: {streak} (Best: {bestStreak})</span>
                   <span className="rounded-full bg-pink-500/15 text-pink-50 border border-pink-200/40 px-2 py-1">Mini-Ziel: {goalProgress}/{goalTarget} (+{goalReward})</span>
                   {multiplierRemaining > 0 && (
-                    <span className="px-2 py-1 rounded-full bg-orange-400/25 text-orange-50">+10% für {multiplierRemaining} Frage(n)</span>
+                    <span className="px-2 py-1 rounded-full bg-orange-400/25 text-orange-50 border border-orange-200/40">x{multiplierFactor.toFixed(2)} für {multiplierRemaining} Frage(n)</span>
                   )}
                   {extraTimeNext > 0 && (
                     <span className="px-2 py-1 rounded-full bg-cyan-400/25 text-cyan-50">+{extraTimeNext}s nächste Frage</span>
+                  )}
+                  {shieldCharges > 0 && (
+                    <span className="px-2 py-1 rounded-full bg-purple-500/25 text-purple-50 border border-purple-200/40">🛡 Shield {shieldCharges}</span>
                   )}
                 </div>
 
@@ -799,6 +805,11 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
         0% { box-shadow: 0 0 0 0 rgba(255,255,255,0.2); }
         50% { box-shadow: 0 0 25px 6px rgba(255,255,255,0.25); }
         100% { box-shadow: 0 0 0 0 rgba(255,255,255,0.15); }
+      }
+      @keyframes shine {
+        0% { filter: drop-shadow(0 0 0 rgba(255,255,255,0.25)); }
+        50% { filter: drop-shadow(0 0 12px rgba(255,255,255,0.45)); }
+        100% { filter: drop-shadow(0 0 0 rgba(255,255,255,0.25)); }
       }
     `}</style>
   </>
