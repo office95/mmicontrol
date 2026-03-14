@@ -399,11 +399,7 @@ export default function QuizPlayClient({ quizzes, initialQuizId }: { quizzes: Qu
             </p>
             <h1 className="text-3xl font-black text-white drop-shadow-sm">Teste dein Wissen</h1>
             <p className="text-sm text-slate-200">Speed, Streaks, Power-Ups & Leaderboard.</p>
-            <div className="flex items-center gap-2 text-xs text-amber-100">
-              <span className="inline-flex items-center gap-1 rounded-full bg-white/10 px-2 py-1 border border-white/15">⚡ Realtime</span>
-              <span className="inline-flex items-center gap-1 rounded-full bg-white/10 px-2 py-1 border border-white/15">🎯 Skill</span>
-              <span className="inline-flex items-center gap-1 rounded-full bg-white/10 px-2 py-1 border border-white/15">🏆 Ranking</span>
-            </div>
+            <div className="flex items-center gap-2 text-xs text-amber-100" />
           </div>
           <div className="relative flex flex-wrap gap-2 text-xs text-slate-200">
             <input
