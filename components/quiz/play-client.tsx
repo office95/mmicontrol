@@ -761,14 +761,12 @@ export default function QuizPlayClient({ quizzes, initialQuizId, initialAlias }:
                       {idx >= questions.length - 1 ? 'Ergebnis speichern' : 'Weiter'}
                     </button>
                   )}
-                  {status !== 'intro' && status !== 'done' && (
-                    <button
-                      onClick={abortQuiz}
-                      className="rounded-full border border-white/30 px-4 py-2 text-sm text-white hover:bg-white/10"
-                    >
-                      Abbrechen
-                    </button>
-                  )}
+                  <button
+                    onClick={abortQuiz}
+                    className="rounded-full border border-white/30 px-4 py-2 text-sm text-white hover:bg-white/10"
+                  >
+                    Abbrechen
+                  </button>
                 </div>
               </div>
             )}
