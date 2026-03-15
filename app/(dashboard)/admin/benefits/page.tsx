@@ -201,7 +201,7 @@ const stateOptions = (country?: string | null) =>
         </Link>
       </div>
 
-      <div className="rounded-2xl border border-white/15 bg-white/8 backdrop-blur-xl p-4 text-white shadow-lg">
+      <div className="rounded-2xl border border-white/15 bg-white text-ink p-4 shadow-lg">
         {loading && (
           <div className="flex items-center gap-2 text-sm text-white/80"><Spinner /> Lädt...</div>
         )}
@@ -228,37 +228,37 @@ const stateOptions = (country?: string | null) =>
               </thead>
               <tbody>
                 {items.map((b) => (
-                  <tr key={b.id} className="hover:bg-white/5">
-                    <td className="px-3 py-2 font-semibold text-white">{b.name}</td>
+                  <tr key={b.id} className="hover:bg-slate-50">
+                    <td className="px-3 py-2 font-semibold text-ink">{b.name}</td>
                     <td className="px-3 py-2">
                       {b.logo_path ? (
-                        <div className="h-12 w-12 rounded-lg overflow-hidden bg-white/10 border border-white/15 grid place-items-center">
+                        <div className="h-12 w-12 rounded-lg overflow-hidden bg-slate-100 border border-slate-200 grid place-items-center">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img src={`${(b as any).logo_url ?? ''}`} alt={b.name} className="h-full w-full object-contain" />
                         </div>
                       ) : (
-                        <span className="text-xs text-white/60">—</span>
+                        <span className="text-xs text-slate-500">—</span>
                       )}
                     </td>
                     <td className="px-3 py-2 text-xs">
-                      <span className="inline-flex items-center px-2 py-1 rounded-full border border-white/20 bg-white/10 text-white/80">
+                      <span className="inline-flex items-center px-2 py-1 rounded-full border border-slate-200 bg-slate-100 text-slate-700">
                         {statusLabel[b.status] ?? b.status}
                       </span>
                     </td>
-                    <td className="px-3 py-2 text-white/80">{targetLabel[b.target ?? 'both'] ?? 'Beide'}</td>
-                <td className="px-3 py-2 text-pink-200 font-semibold">{discountLabel(b)}</td>
-                <td className="px-3 py-2 text-white/70">{b.code || '—'}</td>
-                <td className="px-3 py-2 text-white/70">{b.valid_to ? new Date(b.valid_to).toLocaleDateString() : 'offen'}</td>
-                <td className="px-3 py-2 text-white/70">{b.country || '—'}</td>
+                    <td className="px-3 py-2 text-slate-700">{targetLabel[b.target ?? 'both'] ?? 'Beide'}</td>
+                <td className="px-3 py-2 text-pink-600 font-semibold">{discountLabel(b)}</td>
+                <td className="px-3 py-2 text-slate-700">{b.code || '—'}</td>
+                <td className="px-3 py-2 text-slate-700">{b.valid_to ? new Date(b.valid_to).toLocaleDateString() : 'offen'}</td>
+                <td className="px-3 py-2 text-slate-700">{b.country || '—'}</td>
                 <td className="px-3 py-2 text-right space-x-2">
                   <button
-                    className="text-xs px-3 py-1 rounded-lg border border-white/30 text-white/80 hover:bg-white/10"
+                    className="text-xs px-3 py-1 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100"
                     onClick={() => openEdit(b)}
                   >
                     Bearbeiten
                   </button>
                   <button
-                    className="text-xs px-3 py-1 rounded-lg border border-rose-300 text-rose-100 hover:bg-rose-500/20"
+                    className="text-xs px-3 py-1 rounded-lg border border-rose-300 text-rose-600 hover:bg-rose-50"
                     onClick={() => handleDelete(b.id)}
                   >
                     Löschen
