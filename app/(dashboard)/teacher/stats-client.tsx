@@ -28,7 +28,7 @@ export default function TeacherStatsClient({
   const notesBars = useMemo(() => buildBars(notes), [notes]);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Kpi title="Buchungen Monat" value={kpis.monthBookings} compare={kpis.monthBookingsPrev} />
         <Kpi title="Buchungen Jahr" value={kpis.yearBookings} compare={kpis.yearBookingsPrev} />
@@ -103,7 +103,7 @@ function Kpi({
         ? `${sign} Δ ${Math.abs(diff)} (${pct !== null ? `${pct.toFixed(1)}%` : 'n/a'}) vs. VJ`
         : `${sign} Δ ${Math.abs(diff)} (${pct !== null ? `${pct.toFixed(1)}%` : 'n/a'}) vs. VJ`
       : '—');
-  const baseCard = 'relative overflow-hidden rounded-2xl border border-white/12 bg-gradient-to-br from-white/10 via-white/6 to-transparent backdrop-blur-2xl p-4 text-white shadow-[0_18px_48px_rgba(0,0,0,0.28)]';
+  const baseCard = 'relative overflow-hidden rounded-2xl border border-white/12 bg-gradient-to-br from-[#3c4358]/85 via-[#2f3546]/80 to-[#111a2e]/90 backdrop-blur-2xl p-5 text-white shadow-[0_20px_50px_rgba(0,0,0,0.38)] hover:-translate-y-1 transition-transform';
   const diffPill =
     diff === null
       ? 'border-white/20 text-white/70'
@@ -124,8 +124,8 @@ function Kpi({
           <p className="text-[11px] uppercase tracking-[0.2em] text-white/60 mb-1">{title}</p>
           <p className="text-3xl font-semibold drop-shadow-sm text-white leading-tight">{value}</p>
         </div>
-        <div className="h-10 w-10 rounded-xl bg-white/10 border border-white/15 grid place-items-center text-lg shadow-inner">
-          {icon}
+        <div className="h-11 w-11 rounded-full bg-gradient-to-br from-pink-500/70 via-purple-500/65 to-amber-400/70 border border-white/20 grid place-items-center text-lg shadow-inner">
+          <span className="drop-shadow-sm">{icon}</span>
         </div>
       </div>
       <div className="mt-3 flex items-center gap-2 text-[11px]">
@@ -149,9 +149,9 @@ function pickIcon(title: string) {
 
 function Card({ title, className, children }: { title: string; className?: string; children: React.ReactNode }) {
   return (
-    <div className={`rounded-2xl border border-white/15 bg-gradient-to-br from-slate-950/80 via-slate-900/65 to-slate-950/80 backdrop-blur-2xl p-4 text-white shadow-[0_18px_48px_rgba(0,0,0,0.32)] ${className || ''}`}>
-      <div className="flex items-center justify-between mb-2">
-        <p className="text-[11px] uppercase tracking-[0.16em] text-white/65">{title}</p>
+    <div className={`group relative rounded-2xl border border-white/12 bg-gradient-to-br from-[#3c4358]/90 via-[#2f3546]/85 to-[#111a2e]/92 backdrop-blur-2xl p-5 text-white shadow-[0_20px_55px_rgba(0,0,0,0.34)] transition transform hover:-translate-y-[2px] hover:shadow-[0_24px_60px_rgba(0,0,0,0.38)] ${className || ''}`}>
+      <div className="flex items-center justify-between mb-3">
+        <p className="text-[11px] uppercase tracking-[0.16em] text-white/68">{title}</p>
       </div>
       {children}
     </div>
@@ -163,7 +163,7 @@ function Empty({ children }: { children: React.ReactNode }) {
 }
 
 // Donut
-const palette = ['#7dd3fc', '#c4b5fd', '#fbbf95', '#f9a8c9', '#9debd1', '#cbd5e1', '#e2c8ff'];
+const palette = ['#6db6d6', '#b8a7f5', '#f4b799', '#f3a1c8', '#9debd1', '#c8d3e5', '#e2c8ff'];
 
 type DonutData = { total: number; segments: { color: string; from: number; to: number; label: string; value: number }[] };
 
@@ -191,7 +191,7 @@ function DonutChart({ total, segments, hideTotal }: DonutData & { hideTotal?: bo
     .join(', ');
   return (
     <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
-      <div className="relative h-52 w-52 sm:h-56 sm:w-56 mx-auto sm:mx-0">
+      <div className="relative h-48 w-48 sm:h-52 sm:w-52 mx-auto sm:mx-0">
         <div
           className="h-full w-full rounded-full"
           style={{
@@ -244,7 +244,7 @@ function BarChart({ bars }: BarData) {
           </div>
           <div className="h-2 rounded-full bg-white/10 overflow-hidden">
             <div
-              className="h-full rounded-full"
+              className="h-full rounded-full transition-[width] duration-700 ease-out"
               style={{ width: `${Math.min(100, b.value)}%`, background: b.color }}
             />
           </div>

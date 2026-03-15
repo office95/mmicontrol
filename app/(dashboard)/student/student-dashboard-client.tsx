@@ -200,7 +200,7 @@ export default function StudentDashboardClient({
       <div className="flex-1 space-y-10">
       {/* Tabs innerhalb des Student-Dashboards */}
       <nav className="sticky top-0 z-30 -mx-4 px-4 pt-3 pb-4">
-        <div className="rounded-3xl border border-white/12 bg-slate-950/85 backdrop-blur-2xl shadow-[0_16px_48px_rgba(0,0,0,0.35)] px-3 py-3 flex flex-wrap items-center gap-2 sm:gap-3 text-sm font-semibold text-white/85 overflow-x-auto">
+        <div className="rounded-3xl border border-white/12 bg-slate-950/85 backdrop-blur-2xl shadow-[0_18px_52px_rgba(0,0,0,0.38)] px-3 py-3.5 flex flex-wrap items-center gap-2 sm:gap-3 text-sm font-semibold text-white/85 overflow-x-auto">
           {([
             { key: 'bookings', label: 'Dashboard', tab: 'bookings' },
             { key: 'materials', label: 'Kursunterlagen', tab: 'materials' },
