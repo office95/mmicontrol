@@ -41,17 +41,17 @@ export default function RegisterPage() {
       }
 
       setLoading(false);
-    // Info-Mail ans Office: neuer User wartet auf Freigabe
-    try {
-      await fetch('/api/notify-pending', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: fullName, email }),
-      });
-    } catch (err) {
-      console.warn('notify pending failed', err);
-    }
-    router.push({ pathname: '/pending', query: { email } } as any);
+      // Info-Mail ans Office: neuer User wartet auf Freigabe
+      try {
+        await fetch('/api/notify-pending', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: fullName, email }),
+        });
+      } catch (err) {
+        console.warn('notify pending failed', err);
+      }
+      router.push(`/pending?email=${encodeURIComponent(email)}` as any);
     } catch (err: any) {
       console.error('signup error', err);
       setError(err?.message || 'Registrierung fehlgeschlagen. Bitte später erneut versuchen.');
