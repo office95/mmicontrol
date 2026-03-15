@@ -76,7 +76,11 @@ export default function RegisterPage() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
+            minLength={8}
           />
+          <p className="text-xs text-slate-500">
+            Mindestens 8 Zeichen, Groß- und Kleinbuchstaben sowie Ziffern verwenden.
+          </p>
         </div>
         {error && <p className="text-sm text-red-600">{error}</p>}
         <button type="submit" className="button-primary w-full" disabled={loading}>
