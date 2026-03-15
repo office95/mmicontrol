@@ -19,18 +19,28 @@ export default function RegisterPage() {
     e.preventDefault();
     setLoading(true);
     setError('');
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { full_name: fullName },
-      },
-    });
-    setLoading(false);
-    if (error) {
-      setError(error.message);
-      return;
-    }
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { full_name: fullName },
+        },
+      });
+
+      if (error) {
+        setError(error.message);
+        setLoading(false);
+        return;
+      }
+
+      if (!data?.user) {
+        setError('Registrierung konnte nicht abgeschlossen werden. Bitte erneut versuchen.');
+        setLoading(false);
+        return;
+      }
+
+      setLoading(false);
     // Info-Mail ans Office: neuer User wartet auf Freigabe
     try {
       await fetch('/api/notify-pending', {
@@ -42,6 +52,11 @@ export default function RegisterPage() {
       console.warn('notify pending failed', err);
     }
     router.push({ pathname: '/pending', query: { email } } as any);
+    } catch (err: any) {
+      console.error('signup error', err);
+      setError(err?.message || 'Registrierung fehlgeschlagen. Bitte später erneut versuchen.');
+      setLoading(false);
+    }
   }
 
   return (
