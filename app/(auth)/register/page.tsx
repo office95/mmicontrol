@@ -91,7 +91,7 @@ export default function RegisterPage() {
             minLength={8}
           />
           <p className="text-xs text-slate-500">
-            Mindestens 8 Zeichen, Groß- und Kleinbuchstaben sowie Ziffern verwenden.
+            Mindestens 8 Zeichen, Groß- und Kleinbuchstaben sowie Ziffern & Symbole verwenden.
           </p>
         </div>
         {error && <p className="text-sm text-red-600">{error}</p>}
