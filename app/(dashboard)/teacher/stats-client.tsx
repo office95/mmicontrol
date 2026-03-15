@@ -149,9 +149,9 @@ function pickIcon(title: string) {
 
 function Card({ title, className, children }: { title: string; className?: string; children: React.ReactNode }) {
   return (
-    <div className={`rounded-2xl border border-white/12 bg-white/6 backdrop-blur-xl p-4 text-white shadow-lg ${className || ''}`}>
+    <div className={`rounded-2xl border border-white/15 bg-gradient-to-br from-slate-950/80 via-slate-900/65 to-slate-950/80 backdrop-blur-2xl p-4 text-white shadow-[0_18px_48px_rgba(0,0,0,0.32)] ${className || ''}`}>
       <div className="flex items-center justify-between mb-2">
-        <p className="text-[11px] uppercase tracking-[0.16em] text-white/60">{title}</p>
+        <p className="text-[11px] uppercase tracking-[0.16em] text-white/65">{title}</p>
       </div>
       {children}
     </div>
@@ -163,7 +163,7 @@ function Empty({ children }: { children: React.ReactNode }) {
 }
 
 // Donut
-const palette = ['#22d3ee', '#a855f7', '#f97316', '#f43f5e', '#10b981', '#64748b', '#c084fc'];
+const palette = ['#7dd3fc', '#c4b5fd', '#fbbf95', '#f9a8c9', '#9debd1', '#cbd5e1', '#e2c8ff'];
 
 type DonutData = { total: number; segments: { color: string; from: number; to: number; label: string; value: number }[] };
 

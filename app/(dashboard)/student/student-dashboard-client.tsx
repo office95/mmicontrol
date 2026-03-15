@@ -223,7 +223,7 @@ export default function StudentDashboardClient({
                 }}
                 className={`px-3 py-2 rounded-full border transition ${
                   active
-                    ? 'border-pink-400 bg-pink-500/15 text-white shadow-pink-500/20 shadow-sm'
+                    ? 'border-pink-300/80 bg-gradient-to-r from-pink-500/55 via-rose-500/50 to-amber-400/45 text-white shadow-[0_10px_30px_rgba(236,72,153,0.25)]'
                     : 'border-white/15 bg-white/5 hover:border-pink-300 hover:text-white'
                 }`}
               >
@@ -872,10 +872,10 @@ function StudentKpi({ label, value, hint, tone = 'slate' }: { label: string; val
   } as const;
   const toneCfg = tones[tone] || tones.slate;
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-white/12 bg-gradient-to-br from-white/10 via-white/5 to-transparent backdrop-blur-2xl p-4 text-white shadow-[0_14px_40px_rgba(0,0,0,0.28)]">
+    <div className="relative overflow-hidden rounded-2xl border border-white/14 bg-gradient-to-br from-slate-950/80 via-slate-900/60 to-slate-950/85 backdrop-blur-2xl p-4 text-white shadow-[0_18px_46px_rgba(0,0,0,0.3)]">
       <div className={`absolute -right-10 -top-10 h-28 w-28 rounded-full blur-3xl ${toneCfg.glow}`} />
       <div className={`absolute inset-x-0 top-0 h-[2px] ${toneCfg.bar}`} />
-      <p className="text-[11px] uppercase tracking-[0.2em] text-white/60 mb-1">{label}</p>
+      <p className="text-[11px] uppercase tracking-[0.2em] text-white/65 mb-1">{label}</p>
       <p className="text-2xl font-semibold leading-tight drop-shadow-sm">{value}</p>
       {hint && <p className="text-xs text-white/70 mt-1">{hint}</p>}
     </div>
