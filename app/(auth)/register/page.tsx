@@ -20,11 +20,13 @@ export default function RegisterPage() {
     setLoading(true);
     setError('');
     try {
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || (typeof window !== 'undefined' ? window.location.origin : undefined);
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: { full_name: fullName },
+          emailRedirectTo: baseUrl ? `${baseUrl.replace(/\/$/, '')}/login` : undefined,
         },
       });
 
@@ -34,12 +36,7 @@ export default function RegisterPage() {
         return;
       }
 
-      if (!data?.user) {
-        setError('Registrierung konnte nicht abgeschlossen werden. Bitte erneut versuchen.');
-        setLoading(false);
-        return;
-      }
-
+      // auch wenn data.user null ist (z.B. bei confirm_email), trotzdem fortfahren
       setLoading(false);
       // Info-Mail ans Office: neuer User wartet auf Freigabe
       try {
