@@ -41,9 +41,8 @@ export default function RegisterPage() {
     } catch (err) {
       console.warn('notify pending failed', err);
     }
-    const target = new URL('/pending', window.location.origin);
-    target.searchParams.set('email', email);
-    router.push(target.toString());
+    const target = `/pending?email=${encodeURIComponent(email)}`;
+    router.push(target);
   }
 
   return (
