@@ -17,9 +17,12 @@ export default function ForgotPasswordPage() {
     setLoading(true);
     setError(null);
     setMessage(null);
+    const originFallback = typeof window !== 'undefined' ? window.location.origin : undefined;
+    const base = process.env.NEXT_PUBLIC_APP_URL || originFallback;
+    const redirectTo = base ? `${base.replace(/\/$/, '')}/reset` : undefined;
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      // Route liegt bei /reset (ohne /auth), daher Redirect entsprechend setzen
-      redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/reset`,
+      // Redirect nur setzen, wenn wir eine gültige Basis-URL haben; sonst Supabase-Default nutzen
+      redirectTo,
     });
     setLoading(false);
     if (error) {
