@@ -1,13 +1,24 @@
-'use client';
+import Link from 'next/link';
+import { Suspense, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { useSupabase } from '@/providers/supabase-provider';
+
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
 
-import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
-import { useSupabase } from '@/providers/supabase-provider';
-import { useState } from 'react';
-
 export default function PendingPage() {
+  return (
+    <Suspense fallback={
+      <main className="min-h-screen flex items-center justify-center px-4">
+        <div className="card max-w-lg w-full p-8 text-center">Lade...</div>
+      </main>
+    }>
+      <PendingContent />
+    </Suspense>
+  );
+}
+
+function PendingContent() {
   const searchParams = useSearchParams();
   const email = searchParams.get('email');
   const { supabase } = useSupabase();
