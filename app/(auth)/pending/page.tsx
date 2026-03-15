@@ -1,9 +1,8 @@
 "use client";
 
 import Link from 'next/link';
-import { Suspense, useState } from 'react';
+import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { useSupabase } from '@/providers/supabase-provider';
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
@@ -23,30 +22,6 @@ export default function PendingPage() {
 function PendingContent() {
   const searchParams = useSearchParams();
   const email = searchParams.get('email');
-  const { supabase } = useSupabase();
-  const [resending, setResending] = useState(false);
-  const [resendMsg, setResendMsg] = useState<string | null>(null);
-  const [resendErr, setResendErr] = useState<string | null>(null);
-
-  const handleResend = async () => {
-    if (!email) return;
-    setResending(true);
-    setResendMsg(null);
-    setResendErr(null);
-    const { error } = await supabase.auth.resend({
-      type: 'signup',
-      email,
-      options: {
-        emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/login`,
-      },
-    });
-    setResending(false);
-    if (error) {
-      setResendErr(error.message);
-    } else {
-      setResendMsg('E-Mail erneut versendet. Bitte Posteingang/Spam prüfen.');
-    }
-  };
 
   return (
     <main className="min-h-screen flex items-center justify-center px-4">
@@ -61,19 +36,6 @@ function PendingContent() {
             <li>· Prüfe auch Spam/Promo-Ordner.</li>
             <li>· Falls nichts ankommt: 1–2 Minuten warten und erneut versuchen.</li>
           </ul>
-          {email && (
-            <div className="space-y-2">
-              <button
-                className="button-primary w-full justify-center"
-                onClick={handleResend}
-                disabled={resending}
-              >
-                {resending ? 'Sende erneut…' : 'Bestätigungs-E-Mail erneut senden'}
-              </button>
-              {resendMsg && <p className="text-xs text-emerald-600">{resendMsg}</p>}
-              {resendErr && <p className="text-xs text-red-600">{resendErr}</p>}
-            </div>
-          )}
         </div>
         <Link href="/login" className="button-primary w-full justify-center">Zurück zum Login</Link>
       </div>
