@@ -139,7 +139,7 @@ export async function GET() {
     ['Status'],
   ];
   // Mehr Abstand zwischen Brutto und USt
-  const colWidths = [55, 55, 55, 110, 88, 54, 74, 72];
+  const colWidths = [55, 55, 55, 110, 92, 62, 74, 72];
   const gapLastCols = 8;
   const tableWidth = colWidths.reduce((s, w) => s + w, 0) + gapLastCols;
   const contentWidth = () => doc.page.width - doc.page.margins.left - doc.page.margins.right;
@@ -163,7 +163,8 @@ export async function GET() {
       const x = idx === headers.length - 1 ? baseX + gapLastCols : baseX;
       lines.forEach((ln, i) => {
         doc.font('Helvetica-Bold').fontSize(6.6).fillColor('#0a0f1a');
-        doc.text(ln, x, baseY + i * lineH, {
+        const offsetX = idx === 5 ? x + 6 : x; // etwas Luft vor USt
+        doc.text(ln, offsetX, baseY + i * lineH, {
           width: colWidths[idx] - (idx === headers.length - 1 ? 2 : 0), // etwas luft für letzte Spalte
           align: idx === 4 || idx === 6 ? 'right' : 'left',
           lineBreak: false,
@@ -215,7 +216,8 @@ export async function GET() {
     let x = tableStartX();
     vals.forEach((v, idx) => {
       if (idx === headers.length - 1) x += gapLastCols;
-      doc.text(v, x, y, {
+      const offsetX = idx === 5 ? x + 6 : x; // USt-Spalte leicht einrücken
+      doc.text(v, offsetX, y, {
         width: colWidths[idx],
         align: idx === 4 || idx === 6 ? 'right' : 'left',
         lineBreak: true,
