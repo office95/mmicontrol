@@ -736,7 +736,7 @@ export default function BookingsPage() {
                       />
                     </div>
                     <div>
-                      <label className="text-xs uppercase tracking-[0.12em] text-slate-500">Datum</label>
+                      <label className="text-xs uppercase tracking-[0.12em] text-slate-500">Zahlungseingang</label>
                       <input type="date" className="input" value={payDate} onChange={(e) => setPayDate(e.target.value)} />
                     </div>
                     <div>
