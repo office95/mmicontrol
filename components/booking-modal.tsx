@@ -165,7 +165,7 @@ export default function BookingModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 backdrop-blur-sm px-4">
-      <div className="bg-white/95 border border-slate-200 rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.25)] w-full max-w-4xl p-8 relative max-h-[90vh] overflow-y-auto text-slate-900 space-y-6">
+      <div className="bg-white/95 border border-slate-200 rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.25)] w-full max-w-5xl p-8 relative max-h-[90vh] overflow-y-auto text-slate-900 space-y-6">
         <button onClick={onClose} className="absolute top-4 right-4 text-slate-500 hover:text-slate-800">✕</button>
         <div className="flex items-center justify-between">
           <div>

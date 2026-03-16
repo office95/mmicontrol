@@ -596,7 +596,7 @@ export default function BookingsPage() {
 
       {selected && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
-          <div className="w-full max-w-5xl rounded-2xl bg-white text-ink shadow-2xl p-6 relative max-h-[90vh] overflow-y-auto">
+          <div className="w-full max-w-6xl rounded-2xl bg-white text-ink shadow-2xl p-6 relative max-h-[90vh] overflow-y-auto">
             <button
               className="absolute top-3 right-3 text-slate-500 hover:text-ink"
               onClick={() => {
