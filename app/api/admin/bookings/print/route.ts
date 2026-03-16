@@ -141,8 +141,9 @@ export async function GET() {
   ];
   // Spalten so verteilt, dass Inhalte ohne Umbruch passen (ca. 740pt Gesamtbreite)
   const colWidths = [65, 70, 70, 70, 115, 140, 70, 70, 70];
+  const offenGap = 28; // ~1 cm Abstand zwischen USt % und Offen
   const gapLastCols = 12;
-  const tableWidth = colWidths.reduce((s, w) => s + w, 0) + gapLastCols;
+  const tableWidth = colWidths.reduce((s, w) => s + w, 0) + gapLastCols + offenGap;
   const contentWidth = () => doc.page.width - doc.page.margins.left - doc.page.margins.right;
   const tableStartX = () => doc.page.margins.left + Math.max(0, (contentWidth() - tableWidth) / 2);
 
@@ -160,14 +161,14 @@ export async function GET() {
     doc.restore();
 
     headers.forEach((lines, idx) => {
-      const baseX = startX + colWidths.slice(0, idx).reduce((s, w) => s + w, 0);
+      const baseX = startX + colWidths.slice(0, idx).reduce((s, w) => s + w, 0) + (idx >= 7 ? offenGap : 0);
       const x = idx === headers.length - 1 ? baseX + gapLastCols : baseX;
       lines.forEach((ln, i) => {
         doc.font('Helvetica-Bold').fontSize(6.6).fillColor('#0a0f1a');
-        const offsetX = idx === 5 ? x + 12 : x; // mehr Abstand vor USt
+        const offsetX = idx === 5 ? x + 12 : idx === 7 ? x + offenGap : x; // Abstand USt & Offen
         doc.text(ln, offsetX, baseY + i * lineH, {
           width: colWidths[idx] - (idx === headers.length - 1 ? 2 : 0), // etwas luft für letzte Spalte
-          align: idx === 5 || idx === 6 ? 'right' : 'left',
+          align: idx === 5 || idx === 6 || idx === 7 ? 'right' : 'left',
           lineBreak: false,
         });
       });
@@ -217,8 +218,9 @@ export async function GET() {
 
     let x = tableStartX();
     vals.forEach((v, idx) => {
+      if (idx === 7) x += offenGap; // Abstand vor Offen
       if (idx === headers.length - 1) x += gapLastCols;
-      const offsetX = idx === 5 ? x + 12 : x; // USt-Spalte deutlicher einrücken
+      const offsetX = idx === 5 ? x + 12 : idx === 7 ? x + offenGap : x; // USt & Offen Abstand
       doc.text(v, offsetX, y, {
         width: colWidths[idx],
         align: idx === 5 || idx === 6 || idx === 7 ? 'right' : 'left',
