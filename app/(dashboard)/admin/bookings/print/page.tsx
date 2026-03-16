@@ -124,15 +124,15 @@ export default async function PrintBookings() {
           <tr>
             <th style={{ width: '12%' }}>Kunde</th>
             <th style={{ width: '12%' }}>Kurs</th>
-            <th style={{ width: '8%' }}>Auftragsnummer</th>
-            <th style={{ width: '8%' }}>Buchungsdatum</th>
+            <th style={{ width: '8%' }}>Auftragsnr</th>
+            <th style={{ width: '8%' }}>Buch.dat</th>
             <th style={{ width: '8%' }}>Fällig</th>
-            <th style={{ width: '8%' }}>Kursstart</th>
+            <th style={{ width: '8%' }}>Start</th>
             <th className="num" style={{ width: '7%' }}>Netto</th>
-            <th className="num" style={{ width: '6%' }}>USt %</th>
-            <th className="num" style={{ width: '7%' }}>Anzahlung</th>
-            <th className="num" style={{ width: '7%' }}>Betrag</th>
-            <th className="num" style={{ width: '7%' }}>Bezahlt</th>
+            <th className="num" style={{ width: '6%' }}>USt%</th>
+            <th className="num" style={{ width: '7%' }}>Anz.</th>
+            <th className="num" style={{ width: '7%' }}>Brutto</th>
+            <th className="num" style={{ width: '7%' }}>Bez.</th>
             <th className="num" style={{ width: '7%' }}>Offen</th>
             <th className="num" style={{ width: '5%' }}>Tage üf.</th>
             <th style={{ width: '5%' }}>Status</th>

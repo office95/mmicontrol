@@ -129,14 +129,14 @@ export async function GET() {
 
   // Tabellenkopf und Zeilen mit Pagination
   const headers: string[][] = [
-    ['Auftragsnummer'],
-    ['Buchungs', 'datum'],
-    ['Fällig', 'am'],
+    ['Auftragsnr'],
+    ['Buch.dat'],
+    ['Fällig'],
     ['Kunde'],
-    ['Kursbeitrag', 'brutto'],
-    ['Kursbeitrag', 'netto'],
+    ['Brutto'],
+    ['Netto'],
     ['USt %'],
-    ['Anzahlung'],
+    ['Anz.'],
     ['Bezahlt'],
     ['Offen'],
     ['Tage üf.'],
