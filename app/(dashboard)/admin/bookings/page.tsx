@@ -479,34 +479,27 @@ export default function BookingsPage() {
                     <td colSpan={9} style={{ padding: '8px 6px' }}>
                       <table style={{ width: '100%', fontSize: '10px', borderCollapse: 'collapse' }}>
                         <thead>
-                          <tr style={{ color: '#475569' }}>
-                            <th align="left">Rechnungsnummer</th>
-                            <th align="left">Zahlungsdatum</th>
-                            <th align="right">Betrag brutto</th>
-                            <th align="right">Betrag netto</th>
-                            <th align="right">USt</th>
-                            <th align="left">Zahlungsmethode</th>
-                            <th align="left">Zahlungsart</th>
+                          <tr style={{ color: '#475569', borderBottom: '1px solid #e2e8f0' }}>
+                            <th align="left" style={{ padding: '4px 2px' }}>Rechnungsnummer</th>
+                            <th align="left" style={{ padding: '4px 2px' }}>Zahlungsdatum</th>
+                            <th align="right" style={{ padding: '4px 2px' }}>Betrag</th>
+                            <th align="left" style={{ padding: '4px 2px' }}>Methode</th>
+                            <th align="left" style={{ padding: '4px 2px' }}>Anmerkung</th>
                           </tr>
                         </thead>
                         <tbody>
                           {paymentList.length === 0 && (
-                            <tr><td colSpan={7} style={{ padding: '4px 0', color: '#94a3b8' }}>Keine Zahlungen</td></tr>
+                            <tr><td colSpan={5} style={{ padding: '4px 0', color: '#94a3b8' }}>Keine Zahlungen</td></tr>
                           )}
                           {paymentList.map((p: any) => {
-                            const vatRate = b.vat_rate != null ? Number(b.vat_rate) : 0;
-                            const gross = Number(p.amount || 0);
-                            const netPay = vatRate ? Number((gross / (1 + vatRate)).toFixed(2)) : gross;
-                            const vatPay = Number((gross - netPay).toFixed(2));
+                            const amount = Number(p.amount || 0);
                             return (
-                              <tr key={p.id}>
-                                <td>{p.invoice_number || '—'}</td>
-                                <td>{p.payment_date ? new Date(p.payment_date).toLocaleDateString() : '—'}</td>
-                                <td align="right">{gross.toFixed(2)} €</td>
-                                <td align="right">{netPay.toFixed(2)} €</td>
-                                <td align="right">{vatPay.toFixed(2)} €</td>
-                                <td>{p.method || '—'}</td>
-                                <td>{p.note || '—'}</td>
+                              <tr key={p.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                                <td style={{ padding: '3px 2px' }}>{p.invoice_number || '—'}</td>
+                                <td style={{ padding: '3px 2px' }}>{p.payment_date ? new Date(p.payment_date).toLocaleDateString() : '—'}</td>
+                                <td style={{ padding: '3px 2px' }} align="right">{amount.toFixed(2)} €</td>
+                                <td style={{ padding: '3px 2px' }}>{p.method || '—'}</td>
+                                <td style={{ padding: '3px 2px' }}>{p.note || '—'}</td>
                               </tr>
                             );
                           })}
