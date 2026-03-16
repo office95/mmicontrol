@@ -6,10 +6,15 @@ export const dynamic = 'force-dynamic';
 type BookingRow = {
   id: string;
   student_name: string | null;
+  course_title: string | null;
   invoice_number: string | null;
   booking_date: string | null;
   due_date: string | null;
+  course_start: string | null;
   amount: number | null;
+  price_net: number | null;
+  vat_rate: number | null;
+  deposit: number | null;
   status: string | null;
 };
 
@@ -44,7 +49,9 @@ export default async function PrintBookings() {
 
   const { data: bookings } = await supabase
     .from('bookings')
-    .select('id, student_name, invoice_number, booking_date, due_date, amount, status')
+    .select(
+      'id, student_name, course_title, invoice_number, booking_date, due_date, course_start, amount, price_net, vat_rate, deposit, status'
+    )
     .order('booking_date', { ascending: false });
 
   const list: BookingRow[] = bookings ?? [];
@@ -81,8 +88,6 @@ export default async function PrintBookings() {
   });
 
   const sumOpen = rows.reduce((s, r) => s + r.open, 0);
-  const overdue = rows.filter((r) => (r.daysOver ?? 0) > 0 && r.open > 0);
-  const sumOverdue = overdue.reduce((s, r) => s + r.open, 0);
 
   return (
     <div className="print-container">
@@ -98,8 +103,8 @@ export default async function PrintBookings() {
         .meta { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 6px 10px; font-size: 11px; margin-bottom: 10px; }
         .meta strong { display: block; font-size: 11.5px; }
         table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 11px; }
-        th, td { padding: 7px 7px; border-bottom: 1px solid #e2e8f0; color: #0a0f1a; }
-        th { background: #f1f5f9; color: #0a1533; font-weight: 700; }
+        th, td { padding: 6px 6px; border-bottom: 1px solid #cbd5e1; color: #0a0f1a; }
+        th { background: #e7edf7; color: #0a1533; font-weight: 700; }
         .num { text-align: right; white-space: nowrap; }
         .date { text-align: right; white-space: nowrap; }
         tr.overdue td { background: #fff1f2; }
@@ -112,19 +117,25 @@ export default async function PrintBookings() {
       <div className="meta">
         <div><strong>Stichtag</strong> {today.toLocaleDateString('de-DE')}</div>
         <div><strong>Summe offen</strong> {sumOpen.toFixed(2)} €</div>
-        <div><strong>Offene Positionen</strong> {rows.length}</div>
-        <div><strong>Überfällig</strong> {overdue.length} / {sumOverdue.toFixed(2)} €</div>
+        <div><strong>Datensätze</strong> {rows.length}</div>
       </div>
       <table>
         <thead>
           <tr>
-            <th style={{ width: '28%' }}>Kunde</th>
-            <th style={{ width: '12%' }}>Beleg</th>
-            <th style={{ width: '12%' }}>Rech.datum</th>
-            <th style={{ width: '12%' }}>Fällig</th>
-            <th className="num" style={{ width: '14%' }}>Offen (€)</th>
-            <th className="num" style={{ width: '10%' }}>Tage üf.</th>
-            <th style={{ width: '12%' }}>Status</th>
+            <th style={{ width: '12%' }}>Kunde</th>
+            <th style={{ width: '12%' }}>Kurs</th>
+            <th style={{ width: '8%' }}>Auftragsnummer</th>
+            <th style={{ width: '8%' }}>Buchungsdatum</th>
+            <th style={{ width: '8%' }}>Fällig</th>
+            <th style={{ width: '8%' }}>Kursstart</th>
+            <th className="num" style={{ width: '7%' }}>Netto</th>
+            <th className="num" style={{ width: '6%' }}>USt %</th>
+            <th className="num" style={{ width: '7%' }}>Anzahlung</th>
+            <th className="num" style={{ width: '7%' }}>Betrag</th>
+            <th className="num" style={{ width: '7%' }}>Bezahlt</th>
+            <th className="num" style={{ width: '7%' }}>Offen</th>
+            <th className="num" style={{ width: '5%' }}>Tage üf.</th>
+            <th style={{ width: '5%' }}>Status</th>
           </tr>
         </thead>
         <tbody>
@@ -140,11 +151,18 @@ export default async function PrintBookings() {
             return (
               <tr key={b.id} className={rowClass}>
                 <td>{b.student_name ?? '—'}</td>
+                <td>{b.course_title ?? '—'}</td>
                 <td>{b.invoice_number ?? '—'}</td>
                 <td className="date">{formatDate(b.booking_date)}</td>
                 <td className="date">{formatDate(b.due_date)}</td>
+                <td className="date">{formatDate(b.course_start)}</td>
+                <td className="num">{formatMoney(b.price_net)}</td>
+                <td className="num">{b.vat_rate != null ? (Number(b.vat_rate) * 100).toFixed(1) : '—'}</td>
+                <td className="num">{formatMoney(b.deposit)}</td>
+                <td className="num">{formatMoney(b.gross)}</td>
+                <td className="num">{formatMoney((b as any).paid)}</td>
                 <td className="num">{formatMoney((b as any).open)}</td>
-                <td className="num">{b.daysOver != null && b.daysOver > 0 ? b.daysOver : '—'}</td>
+                <td className="num">{b.daysOver != null ? b.daysOver : '—'}</td>
                 <td>{b.status ?? '—'}</td>
               </tr>
             );
