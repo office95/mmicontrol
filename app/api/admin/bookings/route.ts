@@ -128,6 +128,7 @@ export async function GET(req: Request) {
   const id = searchParams.get('id');
   const wantMetrics = searchParams.get('metrics');
   const studentId = searchParams.get('student_id');
+  const withPayments = searchParams.get('with_payments') === '1';
 
   // KPI / Metrics View
   if (wantMetrics) {
@@ -211,7 +212,7 @@ export async function GET(req: Request) {
     if (ids.length) {
       const { data: payAgg } = await service
         .from('payments')
-        .select('booking_id, amount')
+        .select('id, booking_id, amount, payment_date, method, note, bank_fee, category, partner_id, invoice_number')
         .in('booking_id', ids);
       const sumByBooking = (payAgg ?? []).reduce<Record<string, number>>((acc, row: any) => {
         const key = row.booking_id;
@@ -223,6 +224,9 @@ export async function GET(req: Request) {
         const amount = row.amount ?? 0;
         row.paid_total = paid;
         row.open_amount = Number((amount - paid).toFixed(2));
+        if (withPayments) {
+          row.payments = (payAgg ?? []).filter((p: any) => p.booking_id === row.id);
+        }
       });
     }
   }

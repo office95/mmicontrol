@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, Fragment } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import ButtonLink from '@/components/button-link';
 
@@ -90,8 +90,10 @@ export default function BookingsPage() {
 
   const load = async () => {
     setLoading(true);
-    const query = filterStudentId ? `?student_id=${filterStudentId}` : '';
-    const res = await fetch(`/api/admin/bookings${query}`);
+    const baseParams = new URLSearchParams();
+    baseParams.set('with_payments', '1');
+    if (filterStudentId) baseParams.set('student_id', filterStudentId);
+    const res = await fetch(`/api/admin/bookings${baseParams.toString() ? `?${baseParams.toString()}` : ''}`);
     const data = await res.json();
     if (!res.ok) {
       setError(data.error || 'Fehler beim Laden');
@@ -422,11 +424,11 @@ export default function BookingsPage() {
       <div className="print-open-saldo mt-6">
         <h2 className="print-title">Offene Forderungen</h2>
         <p className="text-sm text-slate-600">Datensätze: {openItemsAll.length}</p>
-        <div className="print-meta">
-          <div><strong>Stichtag</strong> {formatDate(todayYmd)}</div>
-          <div><strong>Summe offen</strong> {openAging.total.toFixed(2)} €</div>
-          <div><strong>Noch nicht fällig</strong> {openAging.notDue.toFixed(2)} €</div>
-          <div><strong>Überfällig</strong> {openAging.overdue.toFixed(2)} €</div>
+          <div className="print-meta">
+            <div><strong>Stichtag</strong> {formatDate(todayYmd)}</div>
+            <div><strong>Summe offen</strong> {openAging.total.toFixed(2)} €</div>
+            <div><strong>Noch nicht fällig</strong> {openAging.notDue.toFixed(2)} €</div>
+            <div><strong>Überfällig</strong> {openAging.overdue.toFixed(2)} €</div>
           <div><strong>1–30 Tage üf.</strong> {openAging.bucket_1_30.toFixed(2)} €</div>
           <div><strong>31–60 Tage üf.</strong> {openAging.bucket_31_60.toFixed(2)} €</div>
           <div><strong>61–90 Tage üf.</strong> {openAging.bucket_61_90.toFixed(2)} €</div>
@@ -435,18 +437,15 @@ export default function BookingsPage() {
         <table className="print-table">
           <thead>
             <tr>
-              <th style={{ width: '8%' }}>Re.-Nr.</th>
-              <th style={{ width: '9%' }}>Buchungsdat.</th>
-              <th style={{ width: '9%' }}>Fällig</th>
+              <th style={{ width: '10%' }}>Auftragsnummer</th>
+              <th style={{ width: '10%' }}>Buchungsdatum</th>
+              <th style={{ width: '10%' }}>Fällig am</th>
               <th style={{ width: '16%' }}>Kunde</th>
-              <th className="print-num" style={{ width: '10%' }}>Kursbeitrag brutto</th>
-              <th className="print-num" style={{ width: '10%' }}>Kursbeitrag netto</th>
-              <th className="print-num" style={{ width: '6%' }}>USt %</th>
-              <th className="print-num" style={{ width: '8%' }}>Anzahlung</th>
-              <th className="print-num" style={{ width: '8%' }}>Bezahlt</th>
-              <th className="print-num" style={{ width: '8%' }}>Offen</th>
-              <th className="print-num" style={{ width: '6%' }}>Tage üf.</th>
-              <th style={{ width: '6%' }}>Status</th>
+              <th className="print-num" style={{ width: '11%' }}>Kursbeitrag brutto</th>
+              <th className="print-num" style={{ width: '11%' }}>Kursbeitrag netto</th>
+              <th className="print-num" style={{ width: '8%' }}>USt %</th>
+              <th className="print-num" style={{ width: '12%' }}>Offen</th>
+              <th style={{ width: '12%' }}>Status</th>
             </tr>
           </thead>
           <tbody>
@@ -455,31 +454,67 @@ export default function BookingsPage() {
               const amountGross = computeGross(b);
               const net = computeNet(b);
               const vatPercent = b.vat_rate != null ? Number(b.vat_rate) * 100 : null;
-              const deposit = b.deposit != null ? Number(b.deposit) : null;
               const due = b.due_date ? new Date(b.due_date) : null;
-              const daysOver = due ? Math.max(0, Math.floor((todayMs - due.getTime()) / 86400000)) : null;
-              const paid = computePaid(b);
               const rowClass = (() => {
                 if (!due || open <= 0 || !b.due_date) return '';
                 if (b.due_date < todayYmd) return 'overdue';
                 if (b.due_date <= in7) return 'due-soon';
                 return '';
               })();
+              const paymentList = (b as any).payments || [];
               return (
-                <tr key={b.id} className={rowClass}>
-                  <td>{b.invoice_number ?? '—'}</td>
-                  <td className="print-date">{formatDate(b.booking_date)}</td>
-                  <td className="print-date">{formatDate(b.due_date as string | null)}</td>
-                  <td>{b.student_name ?? '—'}</td>
-                  <td className="print-num">{amountGross != null ? amountGross.toFixed(2) : '—'}</td>
-                  <td className="print-num">{net != null ? net.toFixed(2) : '—'}</td>
-                  <td className="print-num">{vatPercent != null ? vatPercent.toFixed(1) : '—'}</td>
-                  <td className="print-num">{deposit != null ? deposit.toFixed(2) : '—'}</td>
-                  <td className="print-num">{paid != null ? paid.toFixed(2) : '—'}</td>
-                  <td className="print-num">{open.toFixed(2)}</td>
-                  <td className="print-num">{daysOver != null && b.due_date && b.due_date < todayYmd ? daysOver : '—'}</td>
-                  <td>{b.status ?? '—'}</td>
-                </tr>
+                <Fragment key={b.id}>
+                  <tr className={rowClass}>
+                    <td>{b.invoice_number ?? '—'}</td>
+                    <td className="print-date">{formatDate(b.booking_date)}</td>
+                    <td className="print-date">{formatDate(b.due_date as string | null)}</td>
+                    <td>{b.student_name ?? '—'}</td>
+                    <td className="print-num">{amountGross != null ? amountGross.toFixed(2) : '—'}</td>
+                    <td className="print-num">{net != null ? net.toFixed(2) : '—'}</td>
+                    <td className="print-num">{vatPercent != null ? vatPercent.toFixed(1) : '—'}</td>
+                    <td className="print-num">{open.toFixed(2)}</td>
+                    <td>{b.status ?? '—'}</td>
+                  </tr>
+                  <tr>
+                    <td colSpan={9} style={{ padding: '8px 6px' }}>
+                      <table style={{ width: '100%', fontSize: '10px', borderCollapse: 'collapse' }}>
+                        <thead>
+                          <tr style={{ color: '#475569' }}>
+                            <th align="left">Rechnungsnummer</th>
+                            <th align="left">Zahlungsdatum</th>
+                            <th align="right">Betrag brutto</th>
+                            <th align="right">Betrag netto</th>
+                            <th align="right">USt</th>
+                            <th align="left">Zahlungsmethode</th>
+                            <th align="left">Zahlungsart</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {paymentList.length === 0 && (
+                            <tr><td colSpan={7} style={{ padding: '4px 0', color: '#94a3b8' }}>Keine Zahlungen</td></tr>
+                          )}
+                          {paymentList.map((p: any) => {
+                            const vatRate = b.vat_rate != null ? Number(b.vat_rate) : 0;
+                            const gross = Number(p.amount || 0);
+                            const netPay = vatRate ? Number((gross / (1 + vatRate)).toFixed(2)) : gross;
+                            const vatPay = Number((gross - netPay).toFixed(2));
+                            return (
+                              <tr key={p.id}>
+                                <td>{p.invoice_number || '—'}</td>
+                                <td>{p.payment_date ? new Date(p.payment_date).toLocaleDateString() : '—'}</td>
+                                <td align="right">{gross.toFixed(2)} €</td>
+                                <td align="right">{netPay.toFixed(2)} €</td>
+                                <td align="right">{vatPay.toFixed(2)} €</td>
+                                <td>{p.method || '—'}</td>
+                                <td>{p.note || '—'}</td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </td>
+                  </tr>
+                </Fragment>
               );
             })}
             {!openItemsAll.length && (
