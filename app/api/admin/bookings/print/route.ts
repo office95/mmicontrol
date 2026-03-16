@@ -245,50 +245,28 @@ export async function GET() {
       const paySize = 6.4;
       const baseY = y + 2;
 
-      // Header
-      const headerH = 9;
-      if (baseY + headerH > pageBottom()) {
-        doc.addPage({ size: 'A4', layout: 'landscape', margin: 30 });
-        drawHeader();
-        y = doc.y;
-      }
-      doc.save();
-      doc.rect(startX - 1, baseY - 1, tableWidth + 2, headerH + 1).fill('#f8fafc');
-      doc.restore();
-      const headerLabels = ['Rechnungsnummer', 'Zahlungsdatum', 'Betrag', 'Methode', 'Anmerkung'];
-      let hx = startX;
-      headerLabels.forEach((lbl, idx) => {
-        doc.font(payFont).fontSize(paySize).fillColor('#0f172a');
-        doc.text(lbl, hx + 2, baseY + 1, { width: colW[idx] - 3, align: idx === 2 ? 'right' : 'left' });
-        hx += colW[idx];
-      });
-      let py = baseY + headerH;
+      const labels = ['Re.-Nr.', 'Zahl.dat.', 'Betrag', 'Methode', 'Anmerk.'];
+      let py = baseY;
 
       pays.forEach((p) => {
         const amount = Number(p.amount || 0).toFixed(2) + ' €';
-        const rowH = 8.5;
+        const rowH = 9.5;
         if (py + rowH > pageBottom()) {
           doc.addPage({ size: 'A4', layout: 'landscape', margin: 30 });
           drawHeader();
           y = doc.y;
           py = y + 2;
-          // redraw header for payments block
-          doc.save();
-          doc.rect(startX - 1, py - 1, tableWidth + 2, headerH + 1).fill('#f8fafc');
-          doc.restore();
-          let hx2 = startX;
-          headerLabels.forEach((lbl, idx) => {
-            doc.font(payFont).fontSize(paySize).fillColor('#0f172a');
-            doc.text(lbl, hx2 + 2, py + 1, { width: colW[idx] - 3, align: idx === 2 ? 'right' : 'left' });
-            hx2 += colW[idx];
-          });
-          py += headerH;
         }
         let px = startX;
         const cells = [p.invoice_number || '—', formatDate(p.payment_date), amount, p.method || '—', p.note || '—'];
         cells.forEach((cell, idx) => {
-          doc.font(payFont).fontSize(paySize).fillColor('#334155');
-          doc.text(cell, px + 2, py, { width: colW[idx] - 3, align: idx === 2 ? 'right' : 'left' });
+          doc.font(payFont).fontSize(paySize).fillColor('#0f172a');
+          const label = labels[idx];
+          doc.text(`${label} ${cell}`, px + 2, py, {
+            width: colW[idx] - 3,
+            align: idx === 2 ? 'right' : 'left',
+            lineBreak: true,
+          });
           px += colW[idx];
         });
         py += rowH;
