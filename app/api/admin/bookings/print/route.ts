@@ -24,7 +24,11 @@ type BookingRow = {
 
 type PaymentRow = {
   booking_id: string;
+  invoice_number: string | null;
+  payment_date: string | null;
   amount: number | null;
+  method: string | null;
+  note: string | null;
 };
 
 function formatDate(d: string | null): string {
@@ -57,7 +61,7 @@ export async function GET() {
   if (ids.length) {
     const { data: payRows, error: pErr } = await supabase
       .from('payments')
-      .select('booking_id, amount')
+      .select('booking_id, invoice_number, payment_date, amount, method, note')
       .in('booking_id', ids);
     if (pErr) return NextResponse.json({ error: pErr.message }, { status: 500 });
     payments = payRows ?? [];
@@ -66,6 +70,13 @@ export async function GET() {
   const paidMap = payments.reduce<Record<string, number>>((acc, p) => {
     const v = Number(p.amount || 0);
     acc[p.booking_id] = (acc[p.booking_id] || 0) + v;
+    return acc;
+  }, {});
+
+  const paymentsByBooking = payments.reduce<Record<string, PaymentRow[]>>((acc, p) => {
+    const list = acc[p.booking_id] || [];
+    list.push(p);
+    acc[p.booking_id] = list;
     return acc;
   }, {});
 
@@ -220,6 +231,27 @@ export async function GET() {
     });
     y += rowHeight;
     doc.y = y;
+
+    // Zahlungsdetails unter der Zeile
+    const pays = paymentsByBooking[r.id] || [];
+    if (pays.length) {
+      const payFontSize = 6.2;
+      const lineGap = 0.4;
+      const lineHeight = doc.heightOfString('Hg', { width: contentWidth(), lineGap, align: 'left', fontSize: payFontSize });
+      pays.forEach((p, idx) => {
+        const line = `• ${p.invoice_number || '—'} | ${formatDate(p.payment_date)} | ${(Number(p.amount || 0)).toFixed(2)} € | ${p.method || '—'} | ${p.note || '—'}`;
+        const h = doc.heightOfString(line, { width: contentWidth(), lineGap, align: 'left', fontSize: payFontSize });
+        if (y + h > pageBottom()) {
+          doc.addPage({ size: 'A4', layout: 'landscape', margin: 30 });
+          drawHeader();
+          y = doc.y;
+        }
+        doc.font('Helvetica').fontSize(payFontSize).fillColor('#334155');
+        doc.text(line, tableStartX(), y, { width: tableWidth, align: 'left', lineGap });
+        y += Math.max(h, lineHeight) + 1.5;
+        doc.y = y;
+      });
+    }
   });
 
   doc.end();
