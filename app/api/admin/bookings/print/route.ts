@@ -293,9 +293,19 @@ export async function GET() {
         });
         py += rowH;
       });
-      y = py + 3; // spacing after payments
+      y = py + 6; // spacing after payments
       doc.y = y;
     }
+
+    // Extra Abstand + Trennlinie zwischen Aufträgen
+    if (y + 10 > pageBottom()) {
+      doc.addPage({ size: 'A4', layout: 'landscape', margin: 30 });
+      drawHeader();
+      y = doc.y;
+    }
+    doc.moveTo(tableStartX(), y + 2).lineTo(tableStartX() + tableWidth, y + 2).strokeColor('#e2e8f0').lineWidth(0.7).stroke();
+    y += 8;
+    doc.y = y;
   });
 
   doc.end();
