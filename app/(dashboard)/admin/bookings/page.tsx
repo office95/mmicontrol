@@ -1081,7 +1081,7 @@ function GlassCard({ label, value, tone, children }: { label: string; value: str
 }
 
 // Offene Saldenliste
-function OpenSaldoTable({ items, computeOpen, computeNet }: { items: BookingRow[]; computeOpen: (b: BookingRow) => number; computeNet: (b: BookingRow) => number | null }) {
+function OpenSaldoTable({ items, computeOpen }: { items: BookingRow[]; computeOpen: (b: BookingRow) => number }) {
   const total = items.reduce((s, b) => s + (Number(b.open_amount ?? b.saldo ?? 0) || 0), 0);
   const sorted = [...items].sort((a, b) => Number(b.open_amount ?? b.saldo ?? 0) - Number(a.open_amount ?? a.saldo ?? 0));
   return (
@@ -1093,8 +1093,6 @@ function OpenSaldoTable({ items, computeOpen, computeNet }: { items: BookingRow[
       <div className="space-y-4">
         {sorted.map((b) => {
           const open = computeOpen(b);
-          const vatPercent = b.vat_rate != null ? Number(b.vat_rate) * 100 : null;
-          const net = computeNet(b);
           const amountGross = b.amount != null ? Number(b.amount) : null;
           const paymentList = (b as any).payments || [];
           return (
@@ -1105,8 +1103,8 @@ function OpenSaldoTable({ items, computeOpen, computeNet }: { items: BookingRow[
                 <Info label="Fällig am" value={b.due_date ? new Date(b.due_date).toLocaleDateString() : '—'} />
                 <Info label="Kunde" value={b.student_name ?? '—'} />
                 <Info label="Kursbeitrag brutto" value={amountGross != null ? `${amountGross.toFixed(2)} €` : '—'} />
-                <Info label="Kursbeitrag netto" value={net != null ? `${net.toFixed(2)} €` : '—'} />
-                <Info label="USt %" value={vatPercent != null ? `${vatPercent.toFixed(1)} %` : '—'} />
+                <Info label="Kursbeitrag netto" value={b.price_net != null ? `${Number(b.price_net).toFixed(2)} €` : '—'} />
+                <Info label="USt %" value={b.vat_rate != null ? `${(Number(b.vat_rate) * 100).toFixed(1)} %` : '—'} />
                 <Info label="Offen" value={`${open.toFixed(2)} €`} />
                 <Info label="Status" value={b.status ?? '—'} />
               </div>
@@ -1116,11 +1114,9 @@ function OpenSaldoTable({ items, computeOpen, computeNet }: { items: BookingRow[
                     <tr>
                       <th className="py-1 pr-2">Rechnungsnummer</th>
                       <th className="py-1 pr-2">Zahlungsdatum</th>
-                      <th className="py-1 pr-2 text-right">Betrag brutto</th>
-                      <th className="py-1 pr-2 text-right">Betrag netto</th>
-                      <th className="py-1 pr-2 text-right">USt</th>
-                      <th className="py-1 pr-2">Zahlungsmethode</th>
-                      <th className="py-1 pr-2">Zahlungsart</th>
+                      <th className="py-1 pr-2 text-right">Betrag</th>
+                      <th className="py-1 pr-2">Methode</th>
+                      <th className="py-1 pr-2">Anmerkung</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
@@ -1130,17 +1126,12 @@ function OpenSaldoTable({ items, computeOpen, computeNet }: { items: BookingRow[
                       </tr>
                     )}
                     {paymentList.map((p: any) => {
-                      const vatRate = b.vat_rate != null ? Number(b.vat_rate) : 0;
-                      const gross = Number(p.amount || 0);
-                      const netPay = vatRate ? Number((gross / (1 + vatRate)).toFixed(2)) : gross;
-                      const vatPay = Number((gross - netPay).toFixed(2));
+                      const amount = Number(p.amount || 0);
                       return (
                         <tr key={p.id} className="hover:bg-slate-50">
                           <td className="py-1 pr-2">{p.invoice_number || '—'}</td>
                           <td className="py-1 pr-2">{p.payment_date ? new Date(p.payment_date).toLocaleDateString() : '—'}</td>
-                          <td className="py-1 pr-2 text-right">{gross.toFixed(2)} €</td>
-                          <td className="py-1 pr-2 text-right">{netPay.toFixed(2)} €</td>
-                          <td className="py-1 pr-2 text-right">{vatPay.toFixed(2)} €</td>
+                          <td className="py-1 pr-2 text-right">{amount.toFixed(2)} €</td>
                           <td className="py-1 pr-2">{p.method || '—'}</td>
                           <td className="py-1 pr-2">{p.note || '—'}</td>
                         </tr>
