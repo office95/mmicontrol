@@ -133,12 +133,13 @@ export async function GET() {
     ['Buch.dat'],
     ['Fällig'],
     ['Kunde'],
-    ['Brutto'],
+    ['Kursbetr. brutto'],
     ['USt %'],
     ['Offen'],
     ['Status'],
   ];
-  const colWidths = [55, 55, 55, 110, 70, 40, 70, 70];
+  // Mehr Abstand vor USt und Offen
+  const colWidths = [55, 55, 55, 110, 78, 48, 74, 72];
   const gapLastCols = 8;
   const tableWidth = colWidths.reduce((s, w) => s + w, 0) + gapLastCols;
   const contentWidth = () => doc.page.width - doc.page.margins.left - doc.page.margins.right;
