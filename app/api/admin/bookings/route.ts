@@ -95,7 +95,8 @@ export async function POST(req: Request) {
   }
 
   const payload = {
-    booking_code: body.booking_code || `BU-${Date.now()}-${Math.floor(Math.random() * 1e4)}`,
+    // falls leer: DB-Default erzeugt laufende BU-Nummer
+    booking_code: body.booking_code || null,
     booking_date: body.booking_date || new Date().toISOString().slice(0, 10),
     amount: body.amount ?? tierValues.price_gross ?? amount,
     vat_rate: body.vat_rate ?? tierValues.vat_rate ?? null,
