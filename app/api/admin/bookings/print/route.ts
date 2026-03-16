@@ -37,6 +37,9 @@ function formatDate(d: string | null): string {
   return isNaN(dt.getTime()) ? '—' : dt.toLocaleDateString('de-DE');
 }
 
+const moneyFmt = new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const formatMoney = (v: number | null) => (v == null || isNaN(v) ? '—' : moneyFmt.format(Number(v)));
+
 export async function GET() {
   const supabaseUrl = process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -103,17 +106,13 @@ export async function GET() {
   doc.pipe(stream);
 
   doc.y = 18;
-  doc
-    .font('Helvetica-Bold')
-    .fontSize(13.5)
-    .fillColor('#0a0f1a')
-    .text('Offene Forderungen – Music Mission GmbH', { align: 'left' });
-  doc.moveDown(0.15);
+  doc.font('Helvetica-Bold').fontSize(11.5).fillColor('#0a0f1a').text('Offene Ford. – MM', { align: 'left' });
+  doc.moveDown(0.2);
   doc.font('Helvetica').fontSize(8.0).fillColor('#1f2937');
   doc.text(`Stichtag: ${today.toLocaleDateString('de-DE')}`);
   doc.text(`Datensätze: ${rows.length}`);
   const sumOpen = rows.reduce((s, r) => s + r.open, 0);
-  doc.text(`Summe offen: ${sumOpen.toFixed(2)} €`);
+  doc.text(`Summe offen: ${formatMoney(sumOpen)} €`);
   doc.moveDown(0.6); // etwas mehr Abstand vor der Tabelle
 
   if (!rows.length) {
@@ -186,18 +185,18 @@ export async function GET() {
   drawHeader();
   let y = doc.y;
 
-  rows.forEach((r) => {
+  rows.forEach((r, idxRow) => {
     const vals = [
       r.invoice_number ?? '—',
       formatDate(r.booking_date),
       formatDate(r.due_date),
       r.student_name ?? '—',
-      r.gross != null ? r.gross.toFixed(2) : '—',
-      r.price_net != null ? r.price_net.toFixed(2) : '—',
+      formatMoney(r.gross),
+      formatMoney(r.price_net),
       r.vat_rate != null ? (Number(r.vat_rate) * 100).toFixed(1) : '—',
-      r.deposit != null ? r.deposit.toFixed(2) : '—',
-      r.paid != null ? r.paid.toFixed(2) : '—',
-      r.open != null ? r.open.toFixed(2) : '—',
+      formatMoney(r.deposit),
+      formatMoney(r.paid),
+      formatMoney(r.open),
       r.daysOver != null ? String(r.daysOver) : '—',
       r.status ?? '—',
     ];
@@ -216,6 +215,13 @@ export async function GET() {
       doc.addPage({ size: 'A4', layout: 'landscape', margin: 30 });
       drawHeader();
       y = doc.y;
+    }
+
+    // dezente Zebra-Hinterlegung
+    if (idxRow % 2 === 0) {
+      doc.save();
+      doc.rect(tableStartX(), y - 1, tableWidth, rowHeight + 1.5).fill('#f8fafc');
+      doc.restore();
     }
 
     let x = tableStartX();
@@ -249,7 +255,7 @@ export async function GET() {
       let py = baseY;
 
       pays.forEach((p) => {
-        const amount = Number(p.amount || 0).toFixed(2) + ' €';
+        const amount = formatMoney(p.amount);
         const rowH = 9.5;
         if (py + rowH > pageBottom()) {
           doc.addPage({ size: 'A4', layout: 'landscape', margin: 30 });
