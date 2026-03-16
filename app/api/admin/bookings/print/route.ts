@@ -10,15 +10,10 @@ export const revalidate = 0;
 type BookingRow = {
   id: string;
   student_name: string | null;
-  course_title: string | null;
   invoice_number: string | null;
   booking_date: string | null;
   due_date: string | null;
-  course_start: string | null;
   amount: number | null;
-  price_net: number | null;
-  vat_rate: number | null;
-  deposit: number | null;
   status: string | null;
 };
 
@@ -51,9 +46,7 @@ export async function GET() {
 
   const { data: bookings, error: bErr } = await supabase
     .from('bookings')
-    .select(
-      'id, student_name, course_title, invoice_number, booking_date, due_date, course_start, amount, price_net, vat_rate, deposit, status'
-    )
+    .select('id, student_name, invoice_number, booking_date, due_date, amount, status')
     .order('booking_date', { ascending: false });
   if (bErr) return NextResponse.json({ error: bErr.message }, { status: 500 });
 
@@ -73,13 +66,6 @@ export async function GET() {
   const paidMap = payments.reduce<Record<string, number>>((acc, p) => {
     const v = Number(p.amount || 0);
     acc[p.booking_id] = (acc[p.booking_id] || 0) + v;
-    return acc;
-  }, {});
-
-  const paymentsByBooking = payments.reduce<Record<string, PaymentRow[]>>((acc, p) => {
-    const list = acc[p.booking_id] || [];
-    list.push(p);
-    acc[p.booking_id] = list;
     return acc;
   }, {});
 
@@ -112,7 +98,10 @@ export async function GET() {
   doc.text(`Stichtag: ${today.toLocaleDateString('de-DE')}`);
   doc.text(`Datensätze: ${rows.length}`);
   const sumOpen = rows.reduce((s, r) => s + r.open, 0);
+  const overdueRows = rows.filter((r) => (r.daysOver ?? 0) > 0 && r.open > 0);
+  const sumOverdue = overdueRows.reduce((s, r) => s + r.open, 0);
   doc.text(`Summe offen: ${formatMoney(sumOpen)} €`);
+  doc.text(`Überfällig: ${overdueRows.length} | ${formatMoney(sumOverdue)} €`);
   doc.moveDown(0.6); // etwas mehr Abstand vor der Tabelle
 
   if (!rows.length) {
@@ -128,22 +117,9 @@ export async function GET() {
   }
 
   // Tabellenkopf und Zeilen mit Pagination
-  const headers: string[][] = [
-    ['Auftragsnummer'],
-    ['Buchungs', 'datum'],
-    ['Fällig', 'am'],
-    ['Kunde'],
-    ['Kursbeitrag', 'brutto'],
-    ['Kursbeitrag', 'netto'],
-    ['USt %'],
-    ['Anzahlung'],
-    ['Bezahlt'],
-    ['Offen'],
-    ['Tage üf.'],
-    ['Status'],
-  ];
-  const colWidths = [50, 52, 52, 90, 60, 60, 34, 46, 60, 60, 44, 60];
-  const gapLastCols = 8;
+  const headers: string[][] = [['Kunde'], ['Beleg'], ['Rech.', 'datum'], ['Fällig'], ['Offen'], ['Tage üf.'], ['Status']];
+  const colWidths = [140, 70, 68, 68, 70, 50, 80];
+  const gapLastCols = 6;
   const tableWidth = colWidths.reduce((s, w) => s + w, 0) + gapLastCols;
   const contentWidth = () => doc.page.width - doc.page.margins.left - doc.page.margins.right;
   const tableStartX = () => doc.page.margins.left + Math.max(0, (contentWidth() - tableWidth) / 2);
@@ -156,9 +132,9 @@ export async function GET() {
     const startX = tableStartX();
     const headerHeight = lineH * 2 + 1.2;
 
-    // Hintergrund hellpink für Tabellenkopf
+    // Dezenter Kopf
     doc.save();
-    doc.rect(startX - 1, baseY - 0.6, tableWidth + 2, headerHeight + 0.6).fill('#ffe6ee');
+    doc.rect(startX - 1, baseY - 0.6, tableWidth + 2, headerHeight + 0.6).fill('#e5e7eb');
     doc.restore();
 
     headers.forEach((lines, idx) => {
@@ -172,7 +148,7 @@ export async function GET() {
           baseY + i * lineH,
           {
             width: colWidths[idx] - (idx === headers.length - 1 ? 2 : 0), // etwas luft für letzte Spalte
-            align: idx >= 4 && idx <= 10 ? 'right' : 'left',
+            align: idx === 4 || idx === 5 ? 'right' : 'left',
             lineBreak: false,
           }
         );
@@ -187,18 +163,13 @@ export async function GET() {
 
   rows.forEach((r, idxRow) => {
     const vals = [
+      r.student_name ?? '—',
       r.invoice_number ?? '—',
       formatDate(r.booking_date),
       formatDate(r.due_date),
-      r.student_name ?? '—',
-      formatMoney(r.gross),
-      formatMoney(r.price_net),
-      r.vat_rate != null ? (Number(r.vat_rate) * 100).toFixed(1) : '—',
-      formatMoney(r.deposit),
-      formatMoney(r.paid),
       formatMoney(r.open),
-      r.daysOver != null ? String(r.daysOver) : '—',
-      r.status ?? '—',
+      r.daysOver != null && r.daysOver > 0 ? String(r.daysOver) : '—',
+      (r.status ?? '—')
     ];
 
     // Dynamische Zeilenhöhe pro Zeile (max Höhe der Zellen)
@@ -206,7 +177,7 @@ export async function GET() {
       doc.heightOfString(v, {
         width: colWidths[idx],
         lineGap: 0.3,
-        align: idx >= 4 && idx <= 10 ? 'right' : 'left',
+        align: idx === 4 || idx === 5 ? 'right' : 'left',
       })
     );
     const rowHeight = Math.max(...heights, 7) + 3.0; // noch mehr Puffer für Zeilenabstand
@@ -229,7 +200,7 @@ export async function GET() {
       if (idx === headers.length - 1) x += gapLastCols;
       doc.text(v, x, y, {
         width: colWidths[idx],
-        align: idx >= 4 && idx <= 10 ? 'right' : 'left',
+        align: idx === 4 || idx === 5 ? 'right' : 'left',
         lineBreak: true,
         ellipsis: false,
       });
@@ -237,49 +208,6 @@ export async function GET() {
     });
     y += rowHeight;
     doc.y = y;
-
-    // Zahlungsdetails unter der Zeile
-    const pays = (paymentsByBooking[r.id] || []).slice().sort((a, b) => {
-      const da = a.payment_date || '';
-      const db = b.payment_date || '';
-      return da.localeCompare(db);
-    });
-    if (pays.length) {
-      const colW = [70, 70, 60, 90, tableWidth - (70 + 70 + 60 + 90)];
-      const startX = tableStartX();
-      const payFont = 'Helvetica';
-      const paySize = 6.4;
-      const baseY = y + 2;
-
-      const labels = ['Re.-Nr.', 'Zahl.dat.', 'Betrag', 'Methode', 'Anmerk.'];
-      let py = baseY;
-
-      pays.forEach((p) => {
-        const amount = formatMoney(p.amount);
-        const rowH = 9.5;
-        if (py + rowH > pageBottom()) {
-          doc.addPage({ size: 'A4', layout: 'landscape', margin: 30 });
-          drawHeader();
-          y = doc.y;
-          py = y + 2;
-        }
-        let px = startX;
-        const cells = [p.invoice_number || '—', formatDate(p.payment_date), amount, p.method || '—', p.note || '—'];
-        cells.forEach((cell, idx) => {
-          doc.font(payFont).fontSize(paySize).fillColor('#0f172a');
-          const label = labels[idx];
-          doc.text(`${label} ${cell}`, px + 2, py, {
-            width: colW[idx] - 3,
-            align: idx === 2 ? 'right' : 'left',
-            lineBreak: true,
-          });
-          px += colW[idx];
-        });
-        py += rowH;
-      });
-      y = py + 6; // spacing after payments
-      doc.y = y;
-    }
 
     // Extra Abstand + Trennlinie zwischen Aufträgen
     if (y + 10 > pageBottom()) {
