@@ -132,7 +132,7 @@ export async function GET() {
     ['Auftragsnr'],
     ['Buch.dat'],
     ['Fällig'],
-    ['Start'],
+    ['Kursstart'],
     ['Kunde'],
     ['Kursbetr. brutto'],
     ['USt %'],
