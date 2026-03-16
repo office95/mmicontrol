@@ -63,6 +63,8 @@ export async function POST(req: Request) {
   const body = await req.json();
   if (!body.student_id) return NextResponse.json({ error: 'student_id fehlt' }, { status: 400 });
 
+  const invoiceNumber = (body.invoice_number || '').trim();
+
   // Infos holen
   const { data: cd } = await service
     .from('course_dates')
@@ -113,6 +115,7 @@ export async function POST(req: Request) {
     student_name: stu?.name ?? null,
     student_email: stu?.email ?? null,
     price_tier_id: tierId,
+    invoice_number: invoiceNumber || null,
     writeoff_reason: body.writeoff_reason ?? null,
   };
   const { data, error } = await service.from('bookings').insert(payload).select(SELECT).single();

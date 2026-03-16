@@ -127,6 +127,10 @@ export default function BookingModal({
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!invoice.trim()) {
+      setError('Rechnungsnummer ist Pflicht.');
+      return;
+    }
     setLoading(true);
     setError(null);
     const res = await fetch('/api/admin/bookings', {
@@ -145,7 +149,7 @@ export default function BookingModal({
         saldo: saldo ? Number(saldo) : null,
         status,
         booking_date: bookingDate || null,
-        invoice_number: invoice || null,
+        invoice_number: invoice.trim(),
         due_date: dueDate || null,
       }),
     });
@@ -183,8 +187,8 @@ export default function BookingModal({
               <Field label="Buchungsdatum">
                 <input type="date" className="input" value={bookingDate} onChange={(e) => setBookingDate(e.target.value)} />
               </Field>
-              <Field label="Rechnungsnummer (optional)">
-                <input className="input" value={invoice} onChange={(e) => setInvoice(e.target.value)} />
+              <Field label="Rechnungsnummer" required>
+                <input className="input" value={invoice} onChange={(e) => setInvoice(e.target.value)} required />
               </Field>
               <Field label="Fälligkeit">
                 <input type="date" className="input" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
