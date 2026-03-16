@@ -551,7 +551,7 @@ export default function BookingsPage() {
                 Drucken (A4)
               </button>
             </div>
-            <OpenSaldoTable items={openItems} computeOpen={computeOpen} computeNet={computeNet} />
+            <OpenSaldoTable items={openItems} computeOpen={computeOpen} />
           </>
         )}
 
