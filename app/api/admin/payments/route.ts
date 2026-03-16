@@ -39,7 +39,7 @@ async function recomputeBooking(bookingId: string) {
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const bookingId = searchParams.get('booking_id');
-  let q = service.from('payments').select('id, booking_id, payment_date, amount, method, note, bank_fee, category, partner_id, created_at');
+  let q = service.from('payments').select('id, booking_id, payment_date, amount, method, note, bank_fee, category, partner_id, invoice_number, created_at');
   if (bookingId) q = q.eq('booking_id', bookingId);
   q = q.order('payment_date', { ascending: false });
   const { data, error } = await q;
@@ -49,7 +49,7 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   const body = await req.json();
-  const { booking_id, payment_date, amount, method, note, bank_fee, category, partner_id } = body;
+  const { booking_id, payment_date, amount, method, note, bank_fee, category, partner_id, invoice_number } = body;
   if (!booking_id) return NextResponse.json({ error: 'booking_id fehlt' }, { status: 400 });
   if (!amount) return NextResponse.json({ error: 'amount fehlt' }, { status: 400 });
   const effectiveCategory = category || (bank_fee ? 'Bankgebühr' : null);
@@ -66,6 +66,7 @@ export async function POST(req: Request) {
     bank_fee: bank_fee != null ? Number(bank_fee) : null,
     category: effectiveCategory,
     partner_id: effectiveCategory === 'Honorarnote' ? partner_id || null : null,
+    invoice_number: (invoice_number || '').trim() || null,
   };
   const { data, error } = await service.from('payments').insert(payload).select().single();
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });

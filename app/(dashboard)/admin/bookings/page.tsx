@@ -56,6 +56,7 @@ type PaymentRow = {
   bank_fee?: number | null;
   category?: string | null;
   partner_id?: string | null;
+  invoice_number?: string | null;
 };
 
 export default function BookingsPage() {
@@ -77,6 +78,7 @@ export default function BookingsPage() {
   const [payCategory, setPayCategory] = useState('');
   const [payPartnerId, setPayPartnerId] = useState('');
   const [payCustomCategory, setPayCustomCategory] = useState('');
+  const [payInvoice, setPayInvoice] = useState(`R-${Date.now()}`);
   const [savingPayment, setSavingPayment] = useState(false);
   const [statusSaving, setStatusSaving] = useState(false);
   const [basicsSaving, setBasicsSaving] = useState(false);
@@ -659,17 +661,17 @@ export default function BookingsPage() {
                 <section className="rounded-xl border border-slate-200 bg-slate-50/70 p-4 shadow-sm">
                   <p className="text-xs font-semibold text-ink uppercase tracking-[0.15em] mb-3">Basis</p>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                    <div className="rounded-lg border border-slate-200 bg-white px-3 py-2">
-                      <p className="text-[11px] uppercase tracking-[0.12em] text-slate-500 mb-1">Rechnungsnummer</p>
-                      <input
-                        className="input w-full"
-                        value={selected.invoice_number ?? ''}
-                        onChange={(e) =>
-                          setSelected((prev) => (prev ? { ...prev, invoice_number: e.target.value } : prev))
-                        }
-                        placeholder="Rechnungsnummer"
-                      />
-                    </div>
+                  <div className="rounded-lg border border-slate-200 bg-white px-3 py-2">
+                    <p className="text-[11px] uppercase tracking-[0.12em] text-slate-500 mb-1">Auftragsnummer</p>
+                    <input
+                      className="input w-full"
+                      value={selected.invoice_number ?? ''}
+                      onChange={(e) =>
+                        setSelected((prev) => (prev ? { ...prev, invoice_number: e.target.value } : prev))
+                      }
+                      placeholder="Auftragsnummer"
+                    />
+                  </div>
                     <div className="rounded-lg border border-slate-200 bg-white px-3 py-2">
                       <p className="text-[11px] uppercase tracking-[0.12em] text-slate-500 mb-1">Fälligkeit</p>
                       <input
@@ -723,7 +725,16 @@ export default function BookingsPage() {
                       Bezahlt: {(selected.paid_total ?? 0).toFixed(2)} € · Offen: {(selected.open_amount ?? selected.saldo ?? 0).toFixed(2)} €
                     </span>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-5 gap-3 text-sm">
+                  <div className="grid grid-cols-1 md:grid-cols-6 gap-3 text-sm">
+                    <div>
+                      <label className="text-xs uppercase tracking-[0.12em] text-slate-500">Rechnungsnummer</label>
+                      <input
+                        className="input"
+                        value={payInvoice}
+                        onChange={(e) => setPayInvoice(e.target.value.startsWith('R-') ? e.target.value : `R-${e.target.value}`)}
+                        placeholder="R-..."
+                      />
+                    </div>
                     <div>
                       <label className="text-xs uppercase tracking-[0.12em] text-slate-500">Datum</label>
                       <input type="date" className="input" value={payDate} onChange={(e) => setPayDate(e.target.value)} />
@@ -834,6 +845,7 @@ export default function BookingsPage() {
                           headers: { 'Content-Type': 'application/json' },
                           body: JSON.stringify({
                             booking_id: selected.id,
+                            invoice_number: payInvoice || null,
                             payment_date: payDate,
                             amount: Number(payAmount || 0),
                             method: payMethod || null,
@@ -860,6 +872,7 @@ export default function BookingsPage() {
                           setPayCategory('');
                           setPayCustomCategory('');
                           setPayPartnerId('');
+                          setPayInvoice(`R-${Date.now()}`);
                           loadOne(selected.id);
                           load(); // Liste aktualisieren
                         } else {
@@ -879,6 +892,7 @@ export default function BookingsPage() {
                           <p className="font-semibold text-ink">
                             {new Date(p.payment_date).toLocaleDateString()} · {Number(p.amount).toFixed(2)} €
                             {p.bank_fee != null && Number(p.bank_fee) !== 0 ? ` · Bankgebühr: ${Number(p.bank_fee).toFixed(2)} €` : ''}
+                            {p.invoice_number ? ` · RgNr: ${p.invoice_number}` : ''}
                           </p>
                           <p className="text-xs text-slate-500">
                             {p.method || '—'}
