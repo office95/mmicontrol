@@ -163,7 +163,7 @@ export async function GET() {
       const x = idx === headers.length - 1 ? baseX + gapLastCols : baseX;
       lines.forEach((ln, i) => {
         doc.font('Helvetica-Bold').fontSize(6.6).fillColor('#0a0f1a');
-        const offsetX = idx === 5 ? x + 6 : x; // etwas Luft vor USt
+        const offsetX = idx === 5 ? x + 12 : x; // mehr Abstand vor USt
         doc.text(ln, offsetX, baseY + i * lineH, {
           width: colWidths[idx] - (idx === headers.length - 1 ? 2 : 0), // etwas luft für letzte Spalte
           align: idx === 4 || idx === 6 ? 'right' : 'left',
@@ -216,7 +216,7 @@ export async function GET() {
     let x = tableStartX();
     vals.forEach((v, idx) => {
       if (idx === headers.length - 1) x += gapLastCols;
-      const offsetX = idx === 5 ? x + 6 : x; // USt-Spalte leicht einrücken
+      const offsetX = idx === 5 ? x + 12 : x; // USt-Spalte deutlicher einrücken
       doc.text(v, offsetX, y, {
         width: colWidths[idx],
         align: idx === 4 || idx === 6 ? 'right' : 'left',
