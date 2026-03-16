@@ -122,20 +122,14 @@ export default async function PrintBookings() {
       <table>
         <thead>
           <tr>
-            <th style={{ width: '12%' }}>Kunde</th>
-            <th style={{ width: '12%' }}>Kurs</th>
-            <th style={{ width: '8%' }}>Auftragsnr</th>
-            <th style={{ width: '8%' }}>Buch.dat</th>
-            <th style={{ width: '8%' }}>Fällig</th>
-            <th style={{ width: '8%' }}>Start</th>
-            <th className="num" style={{ width: '7%' }}>Netto</th>
-            <th className="num" style={{ width: '6%' }}>USt%</th>
-            <th className="num" style={{ width: '7%' }}>Anz.</th>
-            <th className="num" style={{ width: '7%' }}>Brutto</th>
-            <th className="num" style={{ width: '7%' }}>Bez.</th>
-            <th className="num" style={{ width: '7%' }}>Offen</th>
-            <th className="num" style={{ width: '5%' }}>Tage üf.</th>
-            <th style={{ width: '5%' }}>Status</th>
+            <th style={{ width: '16%' }}>Kunde</th>
+            <th style={{ width: '14%' }}>Kurs</th>
+            <th style={{ width: '9%' }}>Auftragsnr</th>
+            <th style={{ width: '9%' }}>Buch.dat</th>
+            <th style={{ width: '9%' }}>Fällig</th>
+            <th className="num" style={{ width: '14%' }}>Brutto</th>
+            <th className="num" style={{ width: '14%' }}>Offen</th>
+            <th style={{ width: '15%' }}>Status</th>
           </tr>
         </thead>
         <tbody>
@@ -155,21 +149,15 @@ export default async function PrintBookings() {
                 <td>{b.invoice_number ?? '—'}</td>
                 <td className="date">{formatDate(b.booking_date)}</td>
                 <td className="date">{formatDate(b.due_date)}</td>
-                <td className="date">{formatDate(b.course_start)}</td>
-                <td className="num">{formatMoney(b.price_net)}</td>
-                <td className="num">{b.vat_rate != null ? (Number(b.vat_rate) * 100).toFixed(1) : '—'}</td>
-                <td className="num">{formatMoney(b.deposit)}</td>
                 <td className="num">{formatMoney(b.gross)}</td>
-                <td className="num">{formatMoney((b as any).paid)}</td>
                 <td className="num">{formatMoney((b as any).open)}</td>
-                <td className="num">{b.daysOver != null ? b.daysOver : '—'}</td>
                 <td>{b.status ?? '—'}</td>
               </tr>
             );
           })}
           {!rows.length && (
             <tr>
-              <td colSpan={14} style={{ textAlign: 'center', padding: '18px 0' }}>
+              <td colSpan={8} style={{ textAlign: 'center', padding: '18px 0' }}>
                 Keine Buchungen gefunden.
               </td>
             </tr>

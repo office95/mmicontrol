@@ -134,15 +134,11 @@ export async function GET() {
     ['Fällig'],
     ['Kunde'],
     ['Brutto'],
-    ['Netto'],
     ['USt %'],
-    ['Anz.'],
-    ['Bezahlt'],
     ['Offen'],
-    ['Tage üf.'],
     ['Status'],
   ];
-  const colWidths = [50, 52, 52, 90, 60, 60, 34, 46, 60, 60, 44, 60];
+  const colWidths = [55, 55, 55, 110, 70, 40, 70, 70];
   const gapLastCols = 8;
   const tableWidth = colWidths.reduce((s, w) => s + w, 0) + gapLastCols;
   const contentWidth = () => doc.page.width - doc.page.margins.left - doc.page.margins.right;
@@ -166,16 +162,11 @@ export async function GET() {
       const x = idx === headers.length - 1 ? baseX + gapLastCols : baseX;
       lines.forEach((ln, i) => {
         doc.font('Helvetica-Bold').fontSize(6.6).fillColor('#0a0f1a');
-        doc.text(
-          ln,
-          x,
-          baseY + i * lineH,
-          {
-            width: colWidths[idx] - (idx === headers.length - 1 ? 2 : 0), // etwas luft für letzte Spalte
-            align: idx >= 4 && idx <= 10 ? 'right' : 'left',
-            lineBreak: false,
-          }
-        );
+        doc.text(ln, x, baseY + i * lineH, {
+          width: colWidths[idx] - (idx === headers.length - 1 ? 2 : 0), // etwas luft für letzte Spalte
+          align: idx === 4 || idx === 6 ? 'right' : 'left',
+          lineBreak: false,
+        });
       });
     });
     doc.y = baseY + headerHeight; // max 2 Zeilen + kleiner Abstand
@@ -192,12 +183,8 @@ export async function GET() {
       formatDate(r.due_date),
       r.student_name ?? '—',
       formatMoney(r.gross),
-      formatMoney(r.price_net),
       r.vat_rate != null ? (Number(r.vat_rate) * 100).toFixed(1) : '—',
-      formatMoney(r.deposit),
-      formatMoney(r.paid),
       formatMoney(r.open),
-      r.daysOver != null ? String(r.daysOver) : '—',
       r.status ?? '—',
     ];
 
@@ -206,7 +193,7 @@ export async function GET() {
       doc.heightOfString(v, {
         width: colWidths[idx],
         lineGap: 0.3,
-        align: idx >= 4 && idx <= 10 ? 'right' : 'left',
+        align: idx === 4 || idx === 6 ? 'right' : 'left',
       })
     );
     const rowHeight = Math.max(...heights, 7) + 3.0; // noch mehr Puffer für Zeilenabstand
@@ -229,7 +216,7 @@ export async function GET() {
       if (idx === headers.length - 1) x += gapLastCols;
       doc.text(v, x, y, {
         width: colWidths[idx],
-        align: idx >= 4 && idx <= 10 ? 'right' : 'left',
+        align: idx === 4 || idx === 6 ? 'right' : 'left',
         lineBreak: true,
         ellipsis: false,
       });
