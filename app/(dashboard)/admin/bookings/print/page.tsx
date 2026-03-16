@@ -124,7 +124,7 @@ export default async function PrintBookings() {
           <tr>
             <th style={{ width: '12%' }}>Kunde</th>
             <th style={{ width: '12%' }}>Kurs</th>
-            <th style={{ width: '8%' }}>Re.-Nr.</th>
+            <th style={{ width: '8%' }}>Auftragsnummer</th>
             <th style={{ width: '8%' }}>Buchungsdatum</th>
             <th style={{ width: '8%' }}>Fällig</th>
             <th style={{ width: '8%' }}>Kursstart</th>

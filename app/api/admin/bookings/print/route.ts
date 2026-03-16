@@ -130,7 +130,7 @@ export async function GET() {
 
   // Tabellenkopf und Zeilen mit Pagination
   const headers: string[][] = [
-    ['Re.-Nr.'],
+    ['Auftragsnummer'],
     ['Buchungs', 'datum'],
     ['Fällig', 'am'],
     ['Kunde'],
