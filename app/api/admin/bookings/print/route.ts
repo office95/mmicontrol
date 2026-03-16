@@ -132,14 +132,15 @@ export async function GET() {
     ['Auftragsnr'],
     ['Buch.dat'],
     ['Fällig'],
+    ['Start'],
     ['Kunde'],
     ['Kursbetr. brutto'],
     ['USt %'],
     ['Offen'],
     ['Status'],
   ];
-  // Spalten breiter verteilt, damit Inhalte ohne Umbruch passen
-  const colWidths = [70, 70, 70, 140, 150, 80, 80, 80];
+  // Spalten so verteilt, dass Inhalte ohne Umbruch passen (ca. 740pt Gesamtbreite)
+  const colWidths = [65, 70, 70, 70, 115, 140, 70, 70, 70];
   const gapLastCols = 12;
   const tableWidth = colWidths.reduce((s, w) => s + w, 0) + gapLastCols;
   const contentWidth = () => doc.page.width - doc.page.margins.left - doc.page.margins.right;
@@ -166,7 +167,7 @@ export async function GET() {
         const offsetX = idx === 5 ? x + 12 : x; // mehr Abstand vor USt
         doc.text(ln, offsetX, baseY + i * lineH, {
           width: colWidths[idx] - (idx === headers.length - 1 ? 2 : 0), // etwas luft für letzte Spalte
-          align: idx === 4 || idx === 6 ? 'right' : 'left',
+          align: idx === 5 || idx === 6 ? 'right' : 'left',
           lineBreak: false,
         });
       });
@@ -183,6 +184,7 @@ export async function GET() {
       r.invoice_number ?? '—',
       formatDate(r.booking_date),
       formatDate(r.due_date),
+      formatDate(r.course_start),
       r.student_name ?? '—',
       formatMoney(r.gross),
       r.vat_rate != null ? (Number(r.vat_rate) * 100).toFixed(1) : '—',
@@ -195,7 +197,7 @@ export async function GET() {
       doc.heightOfString(v, {
         width: colWidths[idx],
         lineGap: 0.3,
-        align: idx === 4 || idx === 6 ? 'right' : 'left',
+        align: idx === 5 || idx === 6 || idx === 7 ? 'right' : 'left',
       })
     );
     const rowHeight = Math.max(...heights, 7) + 3.0; // noch mehr Puffer für Zeilenabstand
@@ -219,7 +221,7 @@ export async function GET() {
       const offsetX = idx === 5 ? x + 12 : x; // USt-Spalte deutlicher einrücken
       doc.text(v, offsetX, y, {
         width: colWidths[idx],
-        align: idx === 4 || idx === 6 ? 'right' : 'left',
+        align: idx === 5 || idx === 6 || idx === 7 ? 'right' : 'left',
         lineBreak: true,
         ellipsis: false,
       });
