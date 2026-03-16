@@ -767,7 +767,7 @@ export default function BookingsPage() {
                       </select>
                     </div>
                     <div>
-                      <label className="text-xs uppercase tracking-[0.12em] text-slate-500">Kommentar</label>
+                      <label className="text-xs uppercase tracking-[0.12em] text-slate-500">Zahlungsart</label>
                       <select
                         className="input"
                         value={payNote}
