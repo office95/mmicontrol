@@ -233,24 +233,68 @@ export async function GET() {
     doc.y = y;
 
     // Zahlungsdetails unter der Zeile
-    const pays = paymentsByBooking[r.id] || [];
+    const pays = (paymentsByBooking[r.id] || []).slice().sort((a, b) => {
+      const da = a.payment_date || '';
+      const db = b.payment_date || '';
+      return da.localeCompare(db);
+    });
     if (pays.length) {
-      const payFontSize = 6.2;
-      const lineGap = 0.4;
-      const lineHeight = doc.heightOfString('Hg', { width: contentWidth(), lineGap, align: 'left', fontSize: payFontSize });
-      pays.forEach((p, idx) => {
-        const line = `• ${p.invoice_number || '—'} | ${formatDate(p.payment_date)} | ${(Number(p.amount || 0)).toFixed(2)} € | ${p.method || '—'} | ${p.note || '—'}`;
-        const h = doc.heightOfString(line, { width: contentWidth(), lineGap, align: 'left', fontSize: payFontSize });
-        if (y + h > pageBottom()) {
+      const colW = [70, 70, 60, 90, tableWidth - (70 + 70 + 60 + 90)];
+      const startX = tableStartX();
+      const payFont = 'Helvetica';
+      const paySize = 6.4;
+      const baseY = y + 2;
+
+      // Header
+      const headerH = 9;
+      if (baseY + headerH > pageBottom()) {
+        doc.addPage({ size: 'A4', layout: 'landscape', margin: 30 });
+        drawHeader();
+        y = doc.y;
+      }
+      doc.save();
+      doc.rect(startX - 1, baseY - 1, tableWidth + 2, headerH + 1).fill('#f8fafc');
+      doc.restore();
+      const headerLabels = ['Rechnungsnummer', 'Zahlungsdatum', 'Betrag', 'Methode', 'Anmerkung'];
+      let hx = startX;
+      headerLabels.forEach((lbl, idx) => {
+        doc.font(payFont).fontSize(paySize).fillColor('#0f172a');
+        doc.text(lbl, hx + 2, baseY + 1, { width: colW[idx] - 3, align: idx === 2 ? 'right' : 'left' });
+        hx += colW[idx];
+      });
+      let py = baseY + headerH;
+
+      pays.forEach((p) => {
+        const amount = Number(p.amount || 0).toFixed(2) + ' €';
+        const rowH = 8.5;
+        if (py + rowH > pageBottom()) {
           doc.addPage({ size: 'A4', layout: 'landscape', margin: 30 });
           drawHeader();
           y = doc.y;
+          py = y + 2;
+          // redraw header for payments block
+          doc.save();
+          doc.rect(startX - 1, py - 1, tableWidth + 2, headerH + 1).fill('#f8fafc');
+          doc.restore();
+          let hx2 = startX;
+          headerLabels.forEach((lbl, idx) => {
+            doc.font(payFont).fontSize(paySize).fillColor('#0f172a');
+            doc.text(lbl, hx2 + 2, py + 1, { width: colW[idx] - 3, align: idx === 2 ? 'right' : 'left' });
+            hx2 += colW[idx];
+          });
+          py += headerH;
         }
-        doc.font('Helvetica').fontSize(payFontSize).fillColor('#334155');
-        doc.text(line, tableStartX(), y, { width: tableWidth, align: 'left', lineGap });
-        y += Math.max(h, lineHeight) + 1.5;
-        doc.y = y;
+        let px = startX;
+        const cells = [p.invoice_number || '—', formatDate(p.payment_date), amount, p.method || '—', p.note || '—'];
+        cells.forEach((cell, idx) => {
+          doc.font(payFont).fontSize(paySize).fillColor('#334155');
+          doc.text(cell, px + 2, py, { width: colW[idx] - 3, align: idx === 2 ? 'right' : 'left' });
+          px += colW[idx];
+        });
+        py += rowH;
       });
+      y = py + 3; // spacing after payments
+      doc.y = y;
     }
   });
 
