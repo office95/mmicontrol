@@ -106,7 +106,7 @@ export async function GET() {
   doc.pipe(stream);
 
   doc.y = 18;
-  doc.font('Helvetica-Bold').fontSize(11.5).fillColor('#0a0f1a').text('Offene Ford. – MM', { align: 'left' });
+  doc.font('Helvetica-Bold').fontSize(11.5).fillColor('#0a0f1a').text('Offene Forderungen – Music Mission GmbH', { align: 'left' });
   doc.moveDown(0.2);
   doc.font('Helvetica').fontSize(8.0).fillColor('#1f2937');
   doc.text(`Stichtag: ${today.toLocaleDateString('de-DE')}`);
