@@ -31,7 +31,7 @@ const statusColor: Record<string, string> = {
   abgesagt: 'bg-red-100 text-red-700',
 };
 
-const STATUS_FILTERS = ['offen', 'laufend', 'verschoben', 'abgeschlossen', 'abgesagt'];
+const STATUS_FILTERS = ['offen', 'laufend', 'verschoben', 'abgeschlossen', 'abgesagt', 'archiviert', 'inaktiv'];
 
 const StatusBadge = ({ status }: { status: string }) => {
   const map: Record<string, string> = {
@@ -128,10 +128,11 @@ export default function CourseDatesPage() {
       [...items].sort((a, b) => (a.start_date || '').localeCompare(b.start_date || '')),
     [items]
   );
-  const filtered = useMemo(
-    () => sorted.filter((t) => statusFilter.includes(t.status)),
-    [sorted, statusFilter]
-  );
+  const filtered = useMemo(() => {
+    // wenn Filter leer -> alles anzeigen
+    if (!statusFilter.length) return sorted;
+    return sorted.filter((t) => statusFilter.includes(t.status));
+  }, [sorted, statusFilter]);
 
   const latestReschedule = (courseDateId: string) => reschedules[courseDateId]?.[0];
 
@@ -229,6 +230,12 @@ export default function CourseDatesPage() {
 
       <div className="flex flex-wrap items-center gap-2 text-xs text-slate-200">
         <span className="uppercase tracking-[0.15em] text-slate-400">Status</span>
+        <button
+          onClick={() => setStatusFilter(Array.from(new Set(items.map((i) => i.status))))}
+          className="px-3 py-1 rounded-full border border-white/25 bg-white/10 text-[12px] text-white"
+        >
+          Alle
+        </button>
         {STATUS_FILTERS.map((s) => (
           <button
             key={s}
