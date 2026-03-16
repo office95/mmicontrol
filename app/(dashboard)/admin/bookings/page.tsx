@@ -830,7 +830,7 @@ export default function BookingsPage() {
                   </div>
                   <div className="flex justify-end">
                     <button
-                      className="rounded-lg bg-pink-600 text-white px-4 py-2 hover:bg-pink-700 shadow"
+                      className="rounded-md bg-indigo-600 text-white px-3 py-1.5 text-sm font-semibold hover:bg-indigo-700 shadow"
                       disabled={savingPayment}
                       onClick={async () => {
                         if (!selected) return;
