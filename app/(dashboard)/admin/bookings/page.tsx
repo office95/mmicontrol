@@ -551,7 +551,7 @@ export default function BookingsPage() {
                 Drucken (A4)
               </button>
             </div>
-            <OpenSaldoTable items={openItems} />
+            <OpenSaldoTable items={openItems} computeOpen={computeOpen} computeNet={computeNet} />
           </>
         )}
 
@@ -1081,7 +1081,7 @@ function GlassCard({ label, value, tone, children }: { label: string; value: str
 }
 
 // Offene Saldenliste
-function OpenSaldoTable({ items }: { items: BookingRow[] }) {
+function OpenSaldoTable({ items, computeOpen, computeNet }: { items: BookingRow[]; computeOpen: (b: BookingRow) => number; computeNet: (b: BookingRow) => number | null }) {
   const total = items.reduce((s, b) => s + (Number(b.open_amount ?? b.saldo ?? 0) || 0), 0);
   const sorted = [...items].sort((a, b) => Number(b.open_amount ?? b.saldo ?? 0) - Number(a.open_amount ?? a.saldo ?? 0));
   return (
@@ -1090,41 +1090,78 @@ function OpenSaldoTable({ items }: { items: BookingRow[] }) {
         <span>Offene Salden: {sorted.length} Buchungen</span>
         <span className="font-semibold text-pink-600">{total.toFixed(2)} € gesamt</span>
       </div>
-      <table className="min-w-full text-sm">
-        <thead>
-          <tr className="text-left text-slate-500">
-            <th className="py-2 pr-4">Buchungsdatum</th>
-            <th className="py-2 pr-4">Teilnehmer</th>
-            <th className="py-2 pr-4">Kurs</th>
-            <th className="py-2 pr-4">Status</th>
-            <th className="py-2 pr-4 text-right">Offener Betrag</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-slate-200">
-          {sorted.map((b) => {
-            const open = Number(b.open_amount ?? b.saldo ?? 0) || 0;
-            return (
-              <tr key={b.id} className="hover:bg-slate-50">
-                <td className="py-2 pr-4 text-slate-700">{b.booking_date ? new Date(b.booking_date).toLocaleDateString() : '—'}</td>
-                <td className="py-2 pr-4">
-                  <div className="font-semibold text-ink">{b.student_name ?? '—'}</div>
-                  <div className="text-xs text-slate-500">{b.partner_name ?? '—'}</div>
-                </td>
-                <td className="py-2 pr-4">
-                  <div className="text-slate-800">{b.course_title ?? '—'}</div>
-                  <div className="text-xs text-slate-500">Start: {b.course_start ? new Date(b.course_start).toLocaleDateString() : '—'}</div>
-                </td>
-                <td className="py-2 pr-4 text-xs">
-                  <span className="inline-flex px-2 py-1 rounded-full bg-amber-100 text-amber-800 border border-amber-200">
-                    {b.status}
-                  </span>
-                </td>
-                <td className="py-2 pr-4 text-right font-semibold text-pink-700">{open.toFixed(2)} €</td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+      <div className="space-y-4">
+        {sorted.map((b) => {
+          const open = computeOpen(b);
+          const vatPercent = b.vat_rate != null ? Number(b.vat_rate) * 100 : null;
+          const net = computeNet(b);
+          const amountGross = b.amount != null ? Number(b.amount) : null;
+          const paymentList = (b as any).payments || [];
+          return (
+            <div key={b.id} className="border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+              <div className="grid grid-cols-2 lg:grid-cols-6 gap-2 text-sm bg-slate-50 px-3 py-2">
+                <Info label="Auftragsnummer" value={b.invoice_number ?? '—'} />
+                <Info label="Buchungsdatum" value={b.booking_date ? new Date(b.booking_date).toLocaleDateString() : '—'} />
+                <Info label="Fällig am" value={b.due_date ? new Date(b.due_date).toLocaleDateString() : '—'} />
+                <Info label="Kunde" value={b.student_name ?? '—'} />
+                <Info label="Kursbeitrag brutto" value={amountGross != null ? `${amountGross.toFixed(2)} €` : '—'} />
+                <Info label="Kursbeitrag netto" value={net != null ? `${net.toFixed(2)} €` : '—'} />
+                <Info label="USt %" value={vatPercent != null ? `${vatPercent.toFixed(1)} %` : '—'} />
+                <Info label="Offen" value={`${open.toFixed(2)} €`} />
+                <Info label="Status" value={b.status ?? '—'} />
+              </div>
+              <div className="p-3 text-xs text-slate-700">
+                <table className="w-full text-left">
+                  <thead className="text-slate-500">
+                    <tr>
+                      <th className="py-1 pr-2">Rechnungsnummer</th>
+                      <th className="py-1 pr-2">Zahlungsdatum</th>
+                      <th className="py-1 pr-2 text-right">Betrag brutto</th>
+                      <th className="py-1 pr-2 text-right">Betrag netto</th>
+                      <th className="py-1 pr-2 text-right">USt</th>
+                      <th className="py-1 pr-2">Zahlungsmethode</th>
+                      <th className="py-1 pr-2">Zahlungsart</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {paymentList.length === 0 && (
+                      <tr>
+                        <td colSpan={7} className="py-2 text-slate-400">Keine Zahlungen</td>
+                      </tr>
+                    )}
+                    {paymentList.map((p: any) => {
+                      const vatRate = b.vat_rate != null ? Number(b.vat_rate) : 0;
+                      const gross = Number(p.amount || 0);
+                      const netPay = vatRate ? Number((gross / (1 + vatRate)).toFixed(2)) : gross;
+                      const vatPay = Number((gross - netPay).toFixed(2));
+                      return (
+                        <tr key={p.id} className="hover:bg-slate-50">
+                          <td className="py-1 pr-2">{p.invoice_number || '—'}</td>
+                          <td className="py-1 pr-2">{p.payment_date ? new Date(p.payment_date).toLocaleDateString() : '—'}</td>
+                          <td className="py-1 pr-2 text-right">{gross.toFixed(2)} €</td>
+                          <td className="py-1 pr-2 text-right">{netPay.toFixed(2)} €</td>
+                          <td className="py-1 pr-2 text-right">{vatPay.toFixed(2)} €</td>
+                          <td className="py-1 pr-2">{p.method || '—'}</td>
+                          <td className="py-1 pr-2">{p.note || '—'}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function Info({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex flex-col">
+      <span className="text-[11px] uppercase tracking-[0.12em] text-slate-500">{label}</span>
+      <span className="text-sm font-semibold text-slate-800 truncate">{value}</span>
     </div>
   );
 }
