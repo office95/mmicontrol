@@ -138,9 +138,9 @@ export async function GET() {
     ['Offen'],
     ['Status'],
   ];
-  // Mehr Abstand zwischen Brutto und USt
-  const colWidths = [55, 55, 55, 110, 92, 62, 74, 72];
-  const gapLastCols = 8;
+  // Noch mehr Abstand zwischen Brutto und USt (breitere USt-Spalte + kleiner Gap)
+  const colWidths = [55, 55, 55, 110, 94, 72, 70, 72];
+  const gapLastCols = 10;
   const tableWidth = colWidths.reduce((s, w) => s + w, 0) + gapLastCols;
   const contentWidth = () => doc.page.width - doc.page.margins.left - doc.page.margins.right;
   const tableStartX = () => doc.page.margins.left + Math.max(0, (contentWidth() - tableWidth) / 2);
