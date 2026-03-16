@@ -165,7 +165,7 @@ export async function GET() {
       const x = idx === headers.length - 1 ? baseX + gapLastCols : baseX;
       lines.forEach((ln, i) => {
         doc.font('Helvetica-Bold').fontSize(6.6).fillColor('#0a0f1a');
-        const offsetX = idx === 5 ? x + 12 : idx === 7 ? x + offenGap : x; // Abstand USt & Offen
+        const offsetX = idx === 5 ? x + 12 : x; // Abstand USt, Offen nutzt BaseX-Gap
         doc.text(ln, offsetX, baseY + i * lineH, {
           width: colWidths[idx] - (idx === headers.length - 1 ? 2 : 0), // etwas luft für letzte Spalte
           align: idx === 5 || idx === 6 || idx === 7 ? 'right' : 'left',
@@ -220,7 +220,7 @@ export async function GET() {
     vals.forEach((v, idx) => {
       if (idx === 7) x += offenGap; // Abstand vor Offen
       if (idx === headers.length - 1) x += gapLastCols;
-      const offsetX = idx === 5 ? x + 12 : idx === 7 ? x + offenGap : x; // USt & Offen Abstand
+      const offsetX = idx === 5 ? x + 12 : x; // USt Abstand, Offen nutzt BaseX-Gap
       doc.text(v, offsetX, y, {
         width: colWidths[idx],
         align: idx === 5 || idx === 6 || idx === 7 ? 'right' : 'left',
