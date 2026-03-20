@@ -45,7 +45,20 @@ type Metrics = {
   by_status: Record<string, number>;
 };
 
-const STATUSES = ['alle', 'offen', 'Anzahlung erhalten', 'abgeschlossen', 'Zahlungserinnerung', '1. Mahnung', '2. Mahnung', 'Inkasso', 'Storno', 'Archiv', 'uneinbringlich'];
+const STATUSES = [
+  'alle',
+  'offen',
+  'Anzahlung erhalten',
+  'abgeschlossen',
+  'Schlussrechnung versendet',
+  'Zahlungserinnerung',
+  '1. Mahnung',
+  '2. Mahnung',
+  'Inkasso',
+  'Storno',
+  'Archiv',
+  'uneinbringlich',
+];
 
 type PaymentRow = {
   id: string;

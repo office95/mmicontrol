@@ -7,6 +7,7 @@ export default function StatusBadge({ status }: { status: string }) {
     offen: { border: 'border-emerald-200 text-emerald-700', text: 'offen' },
     'Anzahlung erhalten': { border: 'border-emerald-200 text-emerald-700', text: 'Anzahlung' },
     abgeschlossen: { border: 'border-slate-300 text-slate-600', text: 'abgeschlossen' },
+    'Schlussrechnung versendet': { border: 'border-indigo-200 text-indigo-700', text: 'Schlussrechnung versendet' },
     'Zahlungserinnerung': { border: 'border-amber-200 text-amber-700', text: 'Zahlungserinnerung' },
     '1. Mahnung': { border: 'border-amber-200 text-amber-700', text: '1. Mahnung' },
     '2. Mahnung': { border: 'border-rose-200 text-rose-700', text: '2. Mahnung' },

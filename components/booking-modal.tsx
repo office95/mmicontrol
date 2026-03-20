@@ -26,7 +26,18 @@ type PriceTier = {
 
 type Student = { id: string; name: string };
 
-const STATUSES = ['offen', 'Anzahlung erhalten', 'abgeschlossen', 'Zahlungserinnerung', '1. Mahnung', '2. Mahnung', 'Inkasso', 'Storno', 'Archiv'] as const;
+const STATUSES = [
+  'offen',
+  'Anzahlung erhalten',
+  'abgeschlossen',
+  'Schlussrechnung versendet',
+  'Zahlungserinnerung',
+  '1. Mahnung',
+  '2. Mahnung',
+  'Inkasso',
+  'Storno',
+  'Archiv',
+] as const;
 
 export default function BookingModal({
   student,

@@ -4,7 +4,18 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import ButtonLink from '@/components/button-link';
 
-const STATUSES = ['offen', 'Anzahlung erhalten', 'abgeschlossen', 'Zahlungserinnerung', '1. Mahnung', '2. Mahnung', 'Inkasso', 'Storno', 'Archiv'];
+const STATUSES = [
+  'offen',
+  'Anzahlung erhalten',
+  'abgeschlossen',
+  'Schlussrechnung versendet',
+  'Zahlungserinnerung',
+  '1. Mahnung',
+  '2. Mahnung',
+  'Inkasso',
+  'Storno',
+  'Archiv',
+];
 
 type Course = { id: string; title: string; price_gross?: number | null; vat_rate?: number | null; price_net?: number | null; deposit?: number | null; saldo?: number | null; duration_hours?: number | null };
 
