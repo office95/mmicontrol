@@ -153,16 +153,6 @@ export default function CourseDatesPage() {
     return Math.floor(diffMs / (1000 * 60 * 60 * 24));
   };
 
-  const daysSinceStart = (start: string | null) => {
-    if (!start) return null;
-    const now = new Date();
-    now.setHours(0, 0, 0, 0);
-    const s = new Date(start);
-    s.setHours(0, 0, 0, 0);
-    const diffMs = now.getTime() - s.getTime();
-    return Math.floor(diffMs / (1000 * 60 * 60 * 24));
-  };
-
   const latestReschedule = (courseDateId: string) => reschedules[courseDateId]?.[0];
 
   const openFor = (t: CourseDateListRow) => {
@@ -317,15 +307,9 @@ export default function CourseDatesPage() {
               const latest = latestReschedule(t.id);
               const hasHist = !!reschedules[t.id]?.length;
               const daysToStart = daysUntilStart(t.start_date);
-              const daysFromStart = daysSinceStart(t.start_date);
               const needsFollowUp =
                 daysToStart !== null &&
-                daysToStart >= 0 &&
                 daysToStart <= 7 &&
-                !hasLaterDateForCourse(t);
-              const needsFollowUpRunning =
-                daysFromStart !== null &&
-                daysFromStart > 0 &&
                 !hasLaterDateForCourse(t);
               return (
                 <div key={t.id} className="rounded-2xl border border-white/10 bg-white/90 shadow-sm p-4 space-y-3">
@@ -356,18 +340,13 @@ export default function CourseDatesPage() {
                           <span className="text-slate-500">Letzte Version v{latest.version}</span>
                         </div>
                       )}
-                      {(needsFollowUp || needsFollowUpRunning) && (
+                      {needsFollowUp && (
                         <div className="text-xs text-amber-900 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 flex flex-wrap items-center gap-3">
-                          {needsFollowUp && (
-                            <span className="font-semibold">
-                              Start in {daysToStart} Tag{daysToStart === 1 ? '' : 'en'} – Folgetermin planen
-                            </span>
-                          )}
-                          {needsFollowUpRunning && !needsFollowUp && (
-                            <span className="font-semibold">
-                              Kurs läuft seit {daysFromStart} Tag{daysFromStart === 1 ? '' : 'en'} – Folgetermin hinterlegen
-                            </span>
-                          )}
+                          <span className="font-semibold">
+                            {daysToStart != null && daysToStart < 0
+                              ? `Kurs läuft seit ${Math.abs(daysToStart)} Tag${Math.abs(daysToStart) === 1 ? '' : 'en'} – Folgetermin hinterlegen`
+                              : `Start in ${daysToStart} Tag${daysToStart === 1 ? '' : 'en'} – Folgetermin planen`}
+                          </span>
                           <button
                             className="px-3 py-1 rounded-md border border-amber-300 text-amber-800 bg-white hover:bg-amber-100 text-[12px]"
                             onClick={() => openFollowUp(t)}
