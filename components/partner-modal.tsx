@@ -155,6 +155,8 @@ export default function PartnerModal({
 
   useEffect(() => {
     if (!partner) return;
+    const contacts = Array.isArray(partner.contact_people) ? (partner.contact_people as ContactPerson[]) : [];
+    const primary = contacts[0];
     setStatus(partner.status ?? 'active');
     setCountry((partner.country as any) ?? 'Österreich');
     setState(partner.state ?? '');
@@ -168,8 +170,6 @@ export default function PartnerModal({
     setBank(partner.bank_name ?? '');
     setIban(partner.iban ?? '');
     setBic(partner.bic ?? '');
-    const contacts = Array.isArray(partner.contact_people) ? (partner.contact_people as ContactPerson[]) : [];
-    const primary = contacts[0];
     setContact(partner.contact_person ?? primary?.name ?? '');
     setContactPeople(contacts);
     setUid(partner.vat_number ?? '');
