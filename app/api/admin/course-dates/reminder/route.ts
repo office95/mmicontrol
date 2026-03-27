@@ -57,7 +57,18 @@ export async function GET(req: Request) {
     .in('status', ['offen', 'laufend', 'verschoben']);
   if (dateErr) return NextResponse.json({ error: dateErr.message }, { status: 400 });
 
-  const sorted: ReminderRow[] = (dates || []).filter((d) => !!(d as any).id) as ReminderRow[];
+  const normalized: ReminderRow[] = (dates || []).map((d: any) => ({
+    id: d.id,
+    start_date: d.start_date,
+    time_from: d.time_from,
+    time_to: d.time_to,
+    course_id: d.course_id,
+    partner_id: d.partner_id,
+    course: Array.isArray(d.course) ? d.course[0] ?? null : d.course ?? null,
+    partner: Array.isArray(d.partner) ? d.partner[0] ?? null : d.partner ?? null,
+  }));
+
+  const sorted = normalized.filter((d) => !!d.id);
   sorted.sort((a, b) => (a.start_date || '').localeCompare(b.start_date || ''));
 
   const today = new Date();
