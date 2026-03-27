@@ -33,15 +33,6 @@ const automations: {
   notes?: string;
 }[] = [
   {
-    id: 'course-followup-reminder-mail',
-    title: 'Kurstermine-Folgetermin Reminder (E-Mail an Admins)',
-    when: 'Täglich 07:00 · Kurstermin startet in ≤ 7 Tagen oder läuft bereits · kein späterer Termin für gleichen Kurs & Anbieter',
-    action: 'E-Mail an alle Admins mit Link, der die Folgetermin-Maske vorbefüllt (/admin/course-dates?cloneFrom=<id>)',
-    data: 'course_dates (status offen/laufend/verschoben), courses.title, partners.name, profiles.email (role=admin)',
-    status: 'aktiv',
-    notes: 'Endpoint: GET /api/admin/course-dates/reminder · Absicherung per CRON_SECRET + SMTP_*.',
-  },
-  {
     id: 'survey-reminder',
     title: 'Fragebogen-Erinnerung',
     when: 'X Tage vor Kursstart (Einstellung am Survey: „Öffnen ab … Tage“)',
