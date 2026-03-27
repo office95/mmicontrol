@@ -138,6 +138,7 @@ export default function CourseDatesPage() {
     sorted.some(
       (d) =>
         d.course_id === t.course_id &&
+        ((d.partner_id || null) === (t.partner_id || null)) &&
         d.start_date &&
         t.start_date &&
         d.start_date > t.start_date
