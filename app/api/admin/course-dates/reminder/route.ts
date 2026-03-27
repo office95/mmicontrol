@@ -57,7 +57,7 @@ export async function GET(req: Request) {
     .in('status', ['offen', 'laufend', 'verschoben']);
   if (dateErr) return NextResponse.json({ error: dateErr.message }, { status: 400 });
 
-  const sorted = (dates || []).filter((d): d is ReminderRow => !!d.id);
+  const sorted: ReminderRow[] = (dates || []).filter((d) => !!(d as any).id) as ReminderRow[];
   sorted.sort((a, b) => (a.start_date || '').localeCompare(b.start_date || ''));
 
   const today = new Date();
