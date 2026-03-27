@@ -17,6 +17,7 @@ type Partner = {
   iban: string | null;
   bic: string | null;
   contact_person: string | null;
+  contact_people?: { name: string; email: string; phone: string }[] | null;
   vat_number: string | null;
   tax_number: string | null;
   registry_number: string | null;

@@ -5,6 +5,8 @@ import { useSupabase } from '@/providers/supabase-provider';
 
 type PartnerStatus = 'active' | 'inactive' | 'lead' | 'archived';
 
+type ContactPerson = { name: string; email: string; phone: string };
+
 export type PartnerRow = {
   id: string;
   status: PartnerStatus;
@@ -22,6 +24,7 @@ export type PartnerRow = {
   iban: string | null;
   bic: string | null;
   contact_person: string | null;
+  contact_people?: ContactPerson[] | null;
   vat_number: string | null;
   tax_number: string | null;
   registry_number: string | null;
@@ -98,6 +101,7 @@ export default function PartnerModal({
   const [iban, setIban] = useState('');
   const [bic, setBic] = useState('');
   const [contact, setContact] = useState('');
+  const [contactPeople, setContactPeople] = useState<ContactPerson[]>([]);
   const [uid, setUid] = useState('');
   const [taxNumber, setTaxNumber] = useState('');
   const [registry, setRegistry] = useState('');
@@ -159,12 +163,15 @@ export default function PartnerModal({
     setStreet(partner.street ?? '');
     setZip(partner.zip ?? '');
     setCity(partner.city ?? '');
-    setPhone(partner.phone ?? '');
-    setEmail(partner.email ?? '');
+    setPhone(partner.phone ?? primary?.phone ?? '');
+    setEmail(partner.email ?? primary?.email ?? '');
     setBank(partner.bank_name ?? '');
     setIban(partner.iban ?? '');
     setBic(partner.bic ?? '');
-    setContact(partner.contact_person ?? '');
+    const contacts = Array.isArray(partner.contact_people) ? (partner.contact_people as ContactPerson[]) : [];
+    const primary = contacts[0];
+    setContact(partner.contact_person ?? primary?.name ?? '');
+    setContactPeople(contacts);
     setUid(partner.vat_number ?? '');
     setTaxNumber(partner.tax_number ?? '');
     setRegistry(partner.registry_number ?? '');
@@ -208,10 +215,30 @@ export default function PartnerModal({
     });
   }, [bookings, showPastBookings]);
 
+  const addContactPerson = () => {
+    setContactPeople((prev) => [...prev, { name: '', email: '', phone: '' }]);
+  };
+
+  const updateContactPerson = (idx: number, field: keyof ContactPerson, value: string) => {
+    setContactPeople((prev) => prev.map((c, i) => (i === idx ? { ...c, [field]: value } : c)));
+  };
+
+  const removeContactPerson = (idx: number) => {
+    setContactPeople((prev) => prev.filter((_, i) => i !== idx));
+  };
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    const contacts = contactPeople
+      .map((c) => ({
+        name: c.name.trim(),
+        email: c.email.trim(),
+        phone: c.phone.trim(),
+      }))
+      .filter((c) => c.name || c.email || c.phone);
+    const primary = contacts[0];
     const res = await fetch('/api/admin/partners', {
       method: partner ? 'PATCH' : 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -225,12 +252,13 @@ export default function PartnerModal({
         city: city || null,
         country,
         state: state || null,
-        phone: phone || null,
-        email: email || null,
+        phone: phone || primary?.phone || null,
+        email: email || primary?.email || null,
         bank_name: bank || null,
         iban: iban || null,
         bic: bic || null,
-        contact_person: contact || null,
+        contact_person: contact || primary?.name || null,
+        contact_people: contacts,
         vat_number: uid || null,
         tax_number: taxNumber || null,
         registry_number: registry || null,
@@ -404,6 +432,60 @@ export default function PartnerModal({
                       ))}
                     </select>
                   </Field>
+                </div>
+                <div className="flex items-center justify-between pt-2">
+                  <p className="text-sm font-semibold text-ink">Weitere Ansprechpartner</p>
+                  <button
+                    type="button"
+                    onClick={addContactPerson}
+                    className="inline-flex items-center gap-2 rounded-lg border border-pink-200 bg-white px-3 py-2 text-sm font-semibold text-pink-600 hover:bg-pink-50"
+                  >
+                    <span className="text-lg leading-none">＋</span>
+                    Ansprechpartner hinzufügen
+                  </button>
+                </div>
+                <div className="space-y-3">
+                  {contactPeople.length === 0 && (
+                    <p className="text-sm text-slate-500">Noch keine weiteren Ansprechpartner angelegt.</p>
+                  )}
+                  {contactPeople.map((c, idx) => (
+                    <div key={idx} className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm space-y-3">
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm font-semibold text-ink">Kontakt #{idx + 1}</p>
+                        <button
+                          type="button"
+                          onClick={() => removeContactPerson(idx)}
+                          className="text-xs text-slate-500 hover:text-red-600"
+                        >
+                          Entfernen
+                        </button>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <Field label="Name">
+                          <input
+                            className="input"
+                            value={c.name}
+                            onChange={(e) => updateContactPerson(idx, 'name', e.target.value)}
+                          />
+                        </Field>
+                        <Field label="Email">
+                          <input
+                            className="input"
+                            type="email"
+                            value={c.email}
+                            onChange={(e) => updateContactPerson(idx, 'email', e.target.value)}
+                          />
+                        </Field>
+                        <Field label="Telefon">
+                          <input
+                            className="input"
+                            value={c.phone}
+                            onChange={(e) => updateContactPerson(idx, 'phone', e.target.value)}
+                          />
+                        </Field>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </section>
 

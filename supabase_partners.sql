@@ -15,6 +15,7 @@ create table if not exists public.partners (
   iban text,
   bic text,
   contact_person text,
+  contact_people jsonb default '[]'::jsonb,
   vat_number text,
   tax_number text,
   registry_number text,
@@ -61,3 +62,4 @@ alter table public.partners add column if not exists teacher_profiles jsonb;
 alter table public.partners add column if not exists website_slogan text;
 alter table public.partners add column if not exists website_description text;
 alter table public.partners add column if not exists website_tags text[];
+alter table public.partners add column if not exists contact_people jsonb default '[]'::jsonb;
