@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import ButtonLink from '@/components/button-link';
 import CourseDateModal, { CourseDateRow } from '@/components/course-date-modal';
 import AttendanceModal from '@/components/attendance-modal';
@@ -47,6 +48,8 @@ const StatusBadge = ({ status }: { status: string }) => {
 };
 
 export default function CourseDatesPage() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const [items, setItems] = useState<CourseDateListRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -108,6 +111,17 @@ export default function CourseDatesPage() {
     loadReschedules();
     loadSurveys();
   }, []);
+
+  useEffect(() => {
+    // deep link: /admin/course-dates?cloneFrom=<course_date_id>
+    const cloneFrom = searchParams.get('cloneFrom');
+    if (!cloneFrom || !items.length) return;
+    const match = items.find((i) => i.id === cloneFrom);
+    if (!match) return;
+    openFollowUp(match);
+    // clean URL after opening
+    router.replace('/admin/course-dates');
+  }, [searchParams, items]);
 
   const loadSurveys = async () => {
     setSurveyLoading(true);
@@ -354,6 +368,15 @@ export default function CourseDatesPage() {
                           >
                             Folgetermin anlegen
                           </button>
+                          {typeof window !== 'undefined' && (
+                            <a
+                              className="px-3 py-1 rounded-md border border-slate-200 text-slate-700 bg-white hover:bg-slate-100 text-[12px]"
+                              href={`/admin/course-dates?cloneFrom=${t.id}`}
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              Link kopieren
+                            </a>
+                          )}
                         </div>
                       )}
                     </div>
