@@ -392,6 +392,60 @@ export default function PartnerModal({
                     <input className="input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
                   </Field>
                 </div>
+                <div className="flex items-center justify-between pt-2">
+                  <p className="text-sm font-semibold text-ink">Weitere Ansprechpartner</p>
+                  <button
+                    type="button"
+                    onClick={addContactPerson}
+                    className="inline-flex items-center gap-2 rounded-lg border border-pink-200 bg-white px-3 py-2 text-sm font-semibold text-pink-600 hover:bg-pink-50"
+                  >
+                    <span className="text-lg leading-none">＋</span>
+                    Ansprechpartner hinzufügen
+                  </button>
+                </div>
+                <div className="space-y-3">
+                  {contactPeople.length === 0 && (
+                    <p className="text-sm text-slate-500">Noch keine weiteren Ansprechpartner angelegt.</p>
+                  )}
+                  {contactPeople.map((c, idx) => (
+                    <div key={idx} className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm space-y-3">
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm font-semibold text-ink">Kontakt #{idx + 1}</p>
+                        <button
+                          type="button"
+                          onClick={() => removeContactPerson(idx)}
+                          className="text-xs text-slate-500 hover:text-red-600"
+                        >
+                          Entfernen
+                        </button>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <Field label="Name">
+                          <input
+                            className="input"
+                            value={c.name}
+                            onChange={(e) => updateContactPerson(idx, 'name', e.target.value)}
+                          />
+                        </Field>
+                        <Field label="Email">
+                          <input
+                            className="input"
+                            type="email"
+                            value={c.email}
+                            onChange={(e) => updateContactPerson(idx, 'email', e.target.value)}
+                          />
+                        </Field>
+                        <Field label="Telefon">
+                          <input
+                            className="input"
+                            value={c.phone}
+                            onChange={(e) => updateContactPerson(idx, 'phone', e.target.value)}
+                          />
+                        </Field>
+                      </div>
+                    </div>
+                  ))}
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Field label="Straße">
                     <input className="input" value={street} onChange={(e) => setStreet(e.target.value)} />
