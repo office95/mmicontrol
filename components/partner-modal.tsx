@@ -408,13 +408,16 @@ export default function PartnerModal({
                     <p className="text-sm text-slate-500">Noch keine weiteren Ansprechpartner angelegt.</p>
                   )}
                   {contactPeople.map((c, idx) => (
-                    <div key={idx} className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm space-y-3">
-                      <div className="flex items-center justify-between">
-                        <p className="text-sm font-semibold text-ink">Kontakt #{idx + 1}</p>
+                    <div
+                      key={idx}
+                      className="rounded-lg border border-slate-100 bg-slate-50/60 px-3 py-3 space-y-3"
+                    >
+                      <div className="flex items-center justify-between text-xs text-slate-600">
+                        <p className="font-semibold text-ink">Ansprechpartner {idx + 1}</p>
                         <button
                           type="button"
                           onClick={() => removeContactPerson(idx)}
-                          className="text-xs text-slate-500 hover:text-red-600"
+                          className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-slate-500 hover:text-red-600 hover:bg-white"
                         >
                           Entfernen
                         </button>
