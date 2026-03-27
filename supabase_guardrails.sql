@@ -12,6 +12,12 @@ create table if not exists public.deletion_log (
   restore_hint text null
 );
 
+-- RLS für Delete-Log (nur Admin sichtbar/schreibbar)
+alter table if exists public.deletion_log enable row level security;
+drop policy if exists deletion_log_admin_all on public.deletion_log;
+create policy deletion_log_admin_all on public.deletion_log
+  for all using (auth.uid() in (select id from public.v_admin));
+
 -- 2) Trigger-Funktion: speichert OLD als JSON
 create or replace function public.log_delete()
 returns trigger as $$
@@ -38,7 +44,7 @@ begin
 end;
 $$ language plpgsql security definer;
 
--- 3) Trigger auf alle User-Tabellen hängen (exkl. System/Realtime/Storage)
+-- 3) Trigger auf alle User-Tabellen hängen (nur Schema public, um Permissions-Probleme in auth/pg_catalog zu vermeiden)
 do $$
 declare
   r record;
@@ -49,8 +55,7 @@ begin
     from pg_class c
     join pg_namespace n on n.oid = c.relnamespace
     where c.relkind = 'r'
-      and n.nspname not in ('pg_catalog','information_schema','pg_toast','storage','extensions','realtime')
-      and n.nspname not like 'pg_temp%'
+      and n.nspname = 'public'
   loop
     trig_name := format('%I_delete_log_trg', r.table_name);
     if not exists (
@@ -79,4 +84,3 @@ end$$;
 --     execute format(''create trigger %I before delete on %I.%I for each row execute function public.prevent_delete();'', trig_name, r.schema_name, r.table_name);
 --   end loop;
 -- end$$;
-

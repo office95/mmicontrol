@@ -105,15 +105,26 @@ alter table if exists public.course_surveys enable row level security;
 alter table if exists public.course_survey_questions enable row level security;
 alter table if exists public.course_survey_responses enable row level security;
 alter table if exists public.course_survey_answers enable row level security;
+alter table if exists public.automation_settings enable row level security;
+alter table if exists public.course_survey_reminders enable row level security;
 
 -- Policies: Admin alles
-create policy if not exists course_surveys_admin_all on public.course_surveys for all using (auth.uid() in (select id from public.v_admin));
-create policy if not exists course_survey_questions_admin_all on public.course_survey_questions for all using (auth.uid() in (select id from public.v_admin));
-create policy if not exists course_survey_responses_admin_all on public.course_survey_responses for all using (auth.uid() in (select id from public.v_admin));
-create policy if not exists course_survey_answers_admin_all on public.course_survey_answers for all using (auth.uid() in (select id from public.v_admin));
+drop policy if exists course_surveys_admin_all on public.course_surveys;
+create policy course_surveys_admin_all on public.course_surveys for all using (auth.uid() in (select id from public.v_admin));
+drop policy if exists course_survey_questions_admin_all on public.course_survey_questions;
+create policy course_survey_questions_admin_all on public.course_survey_questions for all using (auth.uid() in (select id from public.v_admin));
+drop policy if exists course_survey_responses_admin_all on public.course_survey_responses;
+create policy course_survey_responses_admin_all on public.course_survey_responses for all using (auth.uid() in (select id from public.v_admin));
+drop policy if exists course_survey_answers_admin_all on public.course_survey_answers;
+create policy course_survey_answers_admin_all on public.course_survey_answers for all using (auth.uid() in (select id from public.v_admin));
+drop policy if exists automation_settings_admin_all on public.automation_settings;
+create policy automation_settings_admin_all on public.automation_settings for all using (auth.uid() in (select id from public.v_admin));
+drop policy if exists course_survey_reminders_admin_all on public.course_survey_reminders;
+create policy course_survey_reminders_admin_all on public.course_survey_reminders for all using (auth.uid() in (select id from public.v_admin));
 
 -- Studenten: lesen eigenen Kursfragebogen/-fragen
-create policy if not exists course_surveys_student_select on public.course_surveys
+drop policy if exists course_surveys_student_select on public.course_surveys;
+create policy course_surveys_student_select on public.course_surveys
   for select using (
     exists (
       select 1 from public.bookings b
@@ -125,7 +136,8 @@ create policy if not exists course_surveys_student_select on public.course_surve
     )
   );
 
-create policy if not exists course_survey_questions_student_select on public.course_survey_questions
+drop policy if exists course_survey_questions_student_select on public.course_survey_questions;
+create policy course_survey_questions_student_select on public.course_survey_questions
   for select using (
     exists (
       select 1
@@ -140,19 +152,25 @@ create policy if not exists course_survey_questions_student_select on public.cou
   );
 
 -- Lehrer: Lesen/Einsehen ihrer Kurse
-create policy if not exists course_surveys_teacher_select on public.course_surveys
+drop policy if exists course_surveys_teacher_select on public.course_surveys;
+create policy course_surveys_teacher_select on public.course_surveys
   for select using (auth.uid() in (select user_id from public.course_members cm where cm.course_id = course_surveys.course_id and cm.role = 'teacher'));
-create policy if not exists course_survey_questions_teacher_select on public.course_survey_questions
+drop policy if exists course_survey_questions_teacher_select on public.course_survey_questions;
+create policy course_survey_questions_teacher_select on public.course_survey_questions
   for select using (exists (select 1 from public.course_surveys s where s.id = survey_id and auth.uid() in (select user_id from public.course_members cm where cm.course_id = s.course_id and cm.role='teacher')));
-create policy if not exists course_survey_responses_teacher_select on public.course_survey_responses
+drop policy if exists course_survey_responses_teacher_select on public.course_survey_responses;
+create policy course_survey_responses_teacher_select on public.course_survey_responses
   for select using (exists (select 1 from public.course_surveys s where s.id = survey_id and auth.uid() in (select user_id from public.course_members cm where cm.course_id = s.course_id and cm.role='teacher')));
-create policy if not exists course_survey_answers_teacher_select on public.course_survey_answers
+drop policy if exists course_survey_answers_teacher_select on public.course_survey_answers;
+create policy course_survey_answers_teacher_select on public.course_survey_answers
   for select using (exists (select 1 from public.course_survey_responses r join public.course_surveys s on s.id = r.survey_id where r.id = course_survey_answers.response_id and auth.uid() in (select user_id from public.course_members cm where cm.course_id = s.course_id and cm.role='teacher')));
 
 -- Teilnehmer: eigenes Ausfüllen/Lesen
-create policy if not exists course_survey_responses_student_select on public.course_survey_responses
+drop policy if exists course_survey_responses_student_select on public.course_survey_responses;
+create policy course_survey_responses_student_select on public.course_survey_responses
   for select using (auth.uid() = student_id);
-create policy if not exists course_survey_answers_student_select on public.course_survey_answers
+drop policy if exists course_survey_answers_student_select on public.course_survey_answers;
+create policy course_survey_answers_student_select on public.course_survey_answers
   for select using (exists (select 1 from public.course_survey_responses r where r.id = course_survey_answers.response_id and r.student_id = auth.uid()));
 drop policy if exists course_survey_responses_student_insert on public.course_survey_responses;
 create policy course_survey_responses_student_insert on public.course_survey_responses
@@ -179,32 +197,55 @@ create policy course_survey_answers_student_insert on public.course_survey_answe
   );
 
 -- View: Kursfragebögen aus Sicht des Lehrers (alles fertig gejoint)
-create or replace view public.v_teacher_course_surveys as
-select
-  cm.user_id      as teacher_id,
-  cs.id           as survey_id,
-  cs.course_id,
-  c.partner_id    as course_partner_id,
-  cs.title        as survey_title,
-  cs.created_at   as survey_created_at,
-  csr.id          as response_id,
-  csr.booking_id,
-  csr.student_id,
-  csr.submitted_at,
-  ans.question_id,
-  ans.value,
-  ans.extra_text
-from public.course_members cm
-join public.courses c on c.id = cm.course_id
-join public.course_surveys cs on cs.course_id = c.id
-left join public.course_survey_responses csr on csr.survey_id = cs.id
-left join public.course_survey_answers   ans on ans.response_id = csr.id
-where cm.role = 'teacher';
+-- partner_id ist optional (nicht in allen Schemas vorhanden). View wird dynamisch gebaut.
+do $$
+declare
+  has_partner boolean;
+  sql text;
+begin
+  select exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'courses' and column_name = 'partner_id'
+  ) into has_partner;
+
+  -- View vorher entfernen, damit Spaltenänderungen möglich sind
+  execute 'drop view if exists public.v_teacher_course_surveys';
+
+  sql := $q$
+    create or replace view public.v_teacher_course_surveys as
+    select
+      cm.user_id      as teacher_id,
+      cs.id           as survey_id,
+      cs.course_id,
+      %s               as course_partner_id,
+      cs.title        as survey_title,
+      cs.created_at   as survey_created_at,
+      csr.id          as response_id,
+      csr.booking_id,
+      csr.student_id,
+      csr.submitted_at,
+      ans.question_id,
+      ans.value,
+      ans.extra_text
+    from public.course_members cm
+    join public.courses c on c.id = cm.course_id
+    join public.course_surveys cs on cs.course_id = c.id
+    left join public.course_survey_responses csr on csr.survey_id = cs.id
+    left join public.course_survey_answers   ans on ans.response_id = csr.id
+    where cm.role = 'teacher';
+  $q$;
+
+  if has_partner then
+    sql := format(sql, 'c.partner_id');
+  else
+    sql := format(sql, 'null::uuid');
+  end if;
+
+  execute sql;
+end$$;
 
 -- RLS für View
 alter view public.v_teacher_course_surveys set (security_invoker = false);
 grant select on public.v_teacher_course_surveys to authenticated, service_role, anon;
-
-drop policy if exists v_teacher_course_surveys_select on public.v_teacher_course_surveys;
-create policy v_teacher_course_surveys_select on public.v_teacher_course_surveys
-  for select using (auth.uid() = teacher_id);
+-- Keine RLS-Policies auf der View (PostgreSQL erlaubt Policies nur auf Tabellen);
+-- Zugriff steuert RLS der zugrunde liegenden Tabellen.

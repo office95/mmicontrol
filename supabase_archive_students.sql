@@ -21,6 +21,12 @@ create table if not exists public.archive_log (
   created_at timestamptz not null default now()
 );
 
+-- RLS für Archiv-Log (nur Admin sichtbar/schreibbar)
+alter table if exists public.archive_log enable row level security;
+drop policy if exists archive_log_admin_all on public.archive_log;
+create policy archive_log_admin_all on public.archive_log
+  for all using (auth.uid() in (select id from public.v_admin));
+
 -- Funktion zum Archivieren eines Studenten inkl. aller verknüpften Daten
 create or replace function public.archive_student(p_student_id uuid, p_actor uuid default null)
 returns void
@@ -79,4 +85,3 @@ begin
     values ('student', p_student_id, p_actor, 'archive');
 end;
 $$;
-

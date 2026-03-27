@@ -14,6 +14,7 @@ alter table if exists public.course_dates enable row level security;
 alter table if exists public.bookings enable row level security;
 alter table if exists public.price_tiers enable row level security;
 alter table if exists public.course_price_tiers enable row level security;
+alter table if exists public.payments enable row level security;
 -- Zusatzfelder für Preisklassen
 alter table if exists public.courses add column if not exists default_price_tier_id uuid references public.price_tiers(id) on delete set null;
 alter table if exists public.course_dates add column if not exists price_tier_id uuid references public.price_tiers(id) on delete set null;
@@ -214,6 +215,38 @@ create policy bookings_partner_teacher_view on bookings for select using (
 drop policy if exists price_tiers_admin_all on price_tiers;
 create policy price_tiers_admin_all on price_tiers
   for all using (auth.uid() in (select id from v_admin));
+
+-- payments
+drop policy if exists payments_admin_all on public.payments;
+drop policy if exists payments_student_select on public.payments;
+create policy payments_admin_all on public.payments
+  for all using (auth.uid() in (select id from public.v_admin));
+-- Studierende sehen nur Zahlungen zu ihren eigenen Buchungen (via student_id oder student_email)
+create policy payments_student_select on public.payments
+  for select using (
+    exists (
+      select 1 from public.bookings b
+      where b.id = public.payments.booking_id
+        and (
+          b.student_id = auth.uid()
+          or lower(b.student_email) = lower(auth.email())
+        )
+    )
+  );
+
+-- orders (derzeit nur Admin) – nur anlegen, wenn Tabelle existiert
+do $$
+begin
+  if exists (
+    select 1 from information_schema.tables
+    where table_schema = 'public' and table_name = 'orders'
+  ) then
+    alter table public.orders enable row level security;
+    drop policy if exists orders_admin_all on public.orders;
+    create policy orders_admin_all on public.orders
+      for all using (auth.uid() in (select id from public.v_admin));
+  end if;
+end$$;
 
 drop policy if exists course_price_tiers_admin_all on course_price_tiers;
 create policy course_price_tiers_admin_all on course_price_tiers
