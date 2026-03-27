@@ -10,6 +10,14 @@ const SELECT =
   'id, code, status, start_date, end_date, time_from, time_to, price_tier_id, price_gross, vat_rate, price_net, deposit, saldo, duration_hours, course_id, partner_id, price_tier:price_tiers!course_dates_price_tier_id_fkey(id,label), course:courses!course_dates_course_id_fkey(id,title,price_gross,default_price_tier_id), partner:partners!course_dates_partner_id_fkey(id,name), bookings(count)';
 
 export async function GET() {
+  // Auto-advance Status: "offen" -> "laufend", sobald Start erreicht oder überschritten
+  const today = new Date().toISOString().slice(0, 10);
+  await service
+    .from('course_dates')
+    .update({ status: 'laufend' })
+    .lte('start_date', today)
+    .eq('status', 'offen');
+
   const { data, error } = await service
     .from('course_dates')
     .select(SELECT)
