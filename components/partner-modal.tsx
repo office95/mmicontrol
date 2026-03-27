@@ -392,35 +392,12 @@ export default function PartnerModal({
                     <input className="input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
                   </Field>
                 </div>
-                <div className="flex items-center justify-start gap-3 pt-1">
-                  <button
-                    type="button"
-                    onClick={addContactPerson}
-                    className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-pink-600 hover:bg-pink-50"
-                  >
-                    <span className="text-base leading-none">＋</span>
-                    Ansprechpartner hinzufügen
-                  </button>
-                  {contactPeople.length === 0 && (
-                    <span className="text-xs text-slate-500">Noch keinen weiteren Kontakt erfasst.</span>
-                  )}
-                </div>
                 <div className="space-y-2">
                   {contactPeople.map((c, idx) => (
                     <div
                       key={idx}
-                      className="rounded-lg border border-slate-100 bg-white px-3 py-2 space-y-2 shadow-[0_6px_16px_-12px_rgba(15,23,42,0.45)]"
+                      className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-3 space-y-3 shadow-[0_6px_16px_-12px_rgba(15,23,42,0.35)]"
                     >
-                      <div className="flex items-center justify-between text-[11px] text-slate-600">
-                        <span className="font-semibold text-ink">Ansprechpartner {idx + 1}</span>
-                        <button
-                          type="button"
-                          onClick={() => removeContactPerson(idx)}
-                          className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-slate-500 hover:text-red-600 hover:bg-slate-50"
-                        >
-                          Entfernen
-                        </button>
-                      </div>
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                         <Field label="Name">
                           <input
@@ -445,8 +422,27 @@ export default function PartnerModal({
                           />
                         </Field>
                       </div>
+                      <div className="flex justify-end">
+                        <button
+                          type="button"
+                          onClick={() => removeContactPerson(idx)}
+                          className="text-xs text-slate-500 hover:text-red-600 hover:bg-white rounded-md px-2 py-1"
+                        >
+                          Entfernen
+                        </button>
+                      </div>
                     </div>
                   ))}
+                  <div className="pt-1">
+                    <button
+                      type="button"
+                      onClick={addContactPerson}
+                      className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-pink-600 hover:bg-pink-50"
+                    >
+                      <span className="text-base leading-none">＋</span>
+                      Ansprechpartner hinzufügen
+                    </button>
+                  </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Field label="Straße">
